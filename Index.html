@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broforce Style Game</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            border: 3px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            background: #000;
+            position: relative;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: #000;
+        }
+        
+        .ui-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 16px;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .character-select {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            z-index: 200;
+        }
+        
+        .character-option {
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .character-option:hover {
+            border-color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .level-select {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            z-index: 200;
+        }
+        
+        .level-option {
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .level-option:hover {
+            border-color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            z-index: 200;
+        }
+        
+        .victory {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,255,0,0.9);
+            padding: 30px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            z-index: 200;
+        }
+        
+        button {
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #ff8c42;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="1200" height="600"></canvas>
+        
+        <div class="ui-overlay">
+            <div id="health">Health: 100</div>
+            <div id="score">Score: 0</div>
+            <div id="ability">Ability: Ready</div>
+            <div id="hits">Hits: 0/10</div>
+        </div>
+        
+        <div id="characterSelect" class="character-select">
+            <h2>Choose Your Character</h2>
+            <div class="character-option" data-character="origami">
+                <h3>Origami</h3>
+                <p>Katana wielder with dash ability</p>
+                <p>Space: Slash | Special: Dash + Triple Damage</p>
+            </div>
+            <div class="character-option" data-character="toxin">
+                <h3>Toxin</h3>
+                <p>Dual pistol user with Combo ability</p>
+                <p>Space: Shoot | Special: Combo (10s invincibility)</p>
+            </div>
+            <div class="character-option" data-character="chameleon">
+                <h3>Chameleon</h3>
+                <p>Tongue attacker with instant kill</p>
+                <p>Space: Tongue | Special: Instant Kill</p>
+            </div>
+            <div class="character-option" data-character="troub">
+                <h3>Troub</h3>
+                <p>Bow shooter with ally conversion</p>
+                <p>Space: Shoot | Special: Convert 2 enemies</p>
+            </div>
+        </div>
+        
+        <div id="levelSelect" class="level-select" style="display: none;">
+            <h2>Choose Level</h2>
+            <div class="level-option" data-level="1">
+                <h3>Level 1: City Streets</h3>
+                <p>Urban environment with cover</p>
+            </div>
+            <div class="level-option" data-level="2">
+                <h3>Level 2: Forest Ambush</h3>
+                <p>Dense forest with multiple enemies</p>
+            </div>
+            <div class="level-option" data-level="3">
+                <h3>Level 3: Factory Complex</h3>
+                <p>Industrial setting with obstacles</p>
+            </div>
+        </div>
+        
+        <div id="gameOver" class="game-over" style="display: none;">
+            <h2>GAME OVER</h2>
+            <p id="finalScore">Final Score: 0</p>
+            <button onclick="restartGame()">Restart</button>
+            <button onclick="showCharacterSelect()">New Game</button>
+        </div>
+        
+        <div id="victory" class="victory" style="display: none;">
+            <h2>VICTORY!</h2>
+            <p id="victoryScore">Score: 0</p>
+            <button onclick="nextLevel()">Next Level</button>
+            <button onclick="showCharacterSelect()">New Game</button>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
+</body>
+</html> 
