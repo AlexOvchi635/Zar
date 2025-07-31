@@ -3,136 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Broforce Style Game</title>
+    <title>ZARGATES - Epic Adventure Game</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
         }
-        
+
         .game-container {
-            border: 3px solid #333;
-            border-radius: 10px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            background: #000;
             position: relative;
+            border: 3px solid #4a90e2;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
+            background: #000;
         }
-        
+
         #gameCanvas {
             display: block;
-            background: #000;
+            background: #2d5a3d;
         }
-        
+
         .ui-overlay {
             position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .ui-panel {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            font-size: 14px;
+            pointer-events: auto;
+        }
+
+        .top-left {
             top: 10px;
             left: 10px;
-            color: #fff;
-            font-size: 16px;
-            z-index: 100;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
-        
+
+        .top-right {
+            top: 10px;
+            right: 10px;
+        }
+
+        .bottom-left {
+            bottom: 10px;
+            left: 10px;
+        }
+
+        .bottom-right {
+            bottom: 10px;
+            right: 10px;
+        }
+
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff6600, #ffff00, #00ff00);
+            transition: width 0.3s ease;
+        }
+
         .character-select {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 20px;
-            border-radius: 10px;
-            color: #fff;
+            background: rgba(0, 0, 0, 0.9);
+            border: 3px solid #4a90e2;
+            border-radius: 15px;
+            padding: 30px;
             text-align: center;
-            z-index: 200;
+            pointer-events: auto;
+            z-index: 20;
         }
-        
+
         .character-option {
+            display: inline-block;
             margin: 10px;
-            padding: 10px;
-            border: 2px solid #666;
-            border-radius: 5px;
+            padding: 15px;
+            border: 2px solid #4a90e2;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: rgba(74, 144, 226, 0.1);
         }
-        
+
         .character-option:hover {
-            border-color: #fff;
-            background: rgba(255,255,255,0.1);
+            background: rgba(74, 144, 226, 0.3);
+            transform: scale(1.05);
         }
-        
-        .level-select {
+
+        .character-option.selected {
+            background: rgba(74, 144, 226, 0.5);
+            border-color: #ffff00;
+        }
+
+        .character-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .character-description {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .game-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4a90e2;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .controls-info {
             position: absolute;
-            top: 50%;
+            bottom: 10px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 20px;
-            border-radius: 10px;
-            color: #fff;
-            text-align: center;
-            z-index: 200;
-        }
-        
-        .level-option {
-            margin: 10px;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
             padding: 10px;
-            border: 2px solid #666;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            pointer-events: auto;
         }
-        
-        .level-option:hover {
-            border-color: #fff;
-            background: rgba(255,255,255,0.1);
-        }
-        
-        .game-over {
+
+        .debug-info {
             position: absolute;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 30px;
-            border-radius: 10px;
-            color: #fff;
-            text-align: center;
-            z-index: 200;
-        }
-        
-        .victory {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,255,0,0.9);
-            padding: 30px;
-            border-radius: 10px;
-            color: #fff;
-            text-align: center;
-            z-index: 200;
-        }
-        
-        button {
-            background: #ff6b35;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 5px;
-        }
-        
-        button:hover {
-            background: #ff8c42;
+            left: 10px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #4a90e2;
+            border-radius: 8px;
+            padding: 10px;
+            color: #00ff00;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            pointer-events: auto;
+            max-width: 300px;
         }
     </style>
 </head>
@@ -140,68 +176,71 @@
     <div class="game-container">
         <canvas id="gameCanvas" width="1200" height="600"></canvas>
         
-        <div class="ui-overlay">
-            <div id="health">Health: 100</div>
-            <div id="score">Score: 0</div>
-            <div id="ability">Ability: Ready</div>
-            <div id="hits">Hits: 0/10</div>
-        </div>
-        
-        <div id="characterSelect" class="character-select">
-            <h2>Choose Your Character</h2>
+        <!-- Character Selection Screen -->
+        <div id="characterSelect" class="character-select" style="display: none;">
+            <div class="game-title">Choose Your Hero</div>
             <div class="character-option" data-character="origami">
-                <h3>Origami</h3>
-                <p>Katana wielder with dash ability</p>
-                <p>Space: Slash | Special: Dash + Triple Damage</p>
+                <div class="character-name">Origami</div>
+                <div class="character-description">Dash forward with triple damage</div>
             </div>
             <div class="character-option" data-character="toxin">
-                <h3>Toxin</h3>
-                <p>Dual pistol user with Combo ability</p>
-                <p>Space: Shoot | Special: Combo (10s invincibility)</p>
+                <div class="character-name">Toxin</div>
+                <div class="character-description">10 seconds of invincibility</div>
             </div>
             <div class="character-option" data-character="chameleon">
-                <h3>Chameleon</h3>
-                <p>Tongue attacker with instant kill</p>
-                <p>Space: Tongue | Special: Instant Kill</p>
+                <div class="character-name">Chameleon</div>
+                <div class="character-description">Instant kill with full health</div>
             </div>
             <div class="character-option" data-character="troub">
-                <h3>Troub</h3>
-                <p>Bow shooter with ally conversion</p>
-                <p>Space: Shoot | Special: Convert 2 enemies</p>
+                <div class="character-name">Troub</div>
+                <div class="character-description">Convert 2 enemies to allies</div>
             </div>
         </div>
-        
-        <div id="levelSelect" class="level-select" style="display: none;">
-            <h2>Choose Level</h2>
-            <div class="level-option" data-level="1">
-                <h3>Level 1: City Streets</h3>
-                <p>Urban environment with cover</p>
+
+        <!-- Game UI -->
+        <div id="gameUI" class="ui-overlay" style="display: none;">
+            <!-- All UI in Top Left -->
+            <div class="ui-panel top-left">
+                <div id="locationInfo">Location: Home</div>
+                <div id="progressInfo">Progress: 0%</div>
+                <div id="scoreInfo">Score: 0</div>
+                <div id="abilityInfo">Ability: Ready</div>
+                <div>Health:</div>
+                <div class="health-bar">
+                    <div id="healthFill" class="health-fill" style="width: 100%;"></div>
+                </div>
+                <div id="healthText">Health: 100</div>
+                <div id="debugInfo">Debug info will appear here</div>
             </div>
-            <div class="level-option" data-level="2">
-                <h3>Level 2: Forest Ambush</h3>
-                <p>Dense forest with multiple enemies</p>
-            </div>
-            <div class="level-option" data-level="3">
-                <h3>Level 3: Factory Complex</h3>
-                <p>Industrial setting with obstacles</p>
-            </div>
-        </div>
-        
-        <div id="gameOver" class="game-over" style="display: none;">
-            <h2>GAME OVER</h2>
-            <p id="finalScore">Final Score: 0</p>
-            <button onclick="restartGame()">Restart</button>
-            <button onclick="showCharacterSelect()">New Game</button>
-        </div>
-        
-        <div id="victory" class="victory" style="display: none;">
-            <h2>VICTORY!</h2>
-            <p id="victoryScore">Score: 0</p>
-            <button onclick="nextLevel()">Next Level</button>
-            <button onclick="showCharacterSelect()">New Game</button>
+
+
         </div>
     </div>
-    
+
     <script src="game.js"></script>
+    
+    <!-- Open Game Button -->
+    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+        <button onclick="openGame()" style="
+            background: linear-gradient(45deg, #4a90e2, #2a5298);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            transition: all 0.3s ease;
+        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            🎮 ИГРАТЬ В ZARGATES
+        </button>
+    </div>
+
+    <script>
+        function openGame() {
+            window.open('index.html', '_blank');
+        }
+    </script>
 </body>
 </html> 
