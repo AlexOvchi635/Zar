@@ -1,18 +1,20 @@
-// Game variables
+// ZARGATES GAME - BASIC VERSION
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Game state
+// Game variables
 let gameState = {
-    currentScreen: 'characterSelect', // characterSelect, levelSelect, game, gameOver, victory
+    currentScreen: 'splash',
     selectedCharacter: null,
-    currentLevel: 1,
     score: 0,
     health: 100,
     hits: 0,
     abilityReady: false,
     abilityActive: false,
-    abilityTimer: 0
+    abilityTimer: 0,
+    currentLocation: 0,
+    gameOver: false,
+    transitioning: false
 };
 
 // Player
@@ -26,50 +28,13 @@ let player = {
     speed: 5,
     onGround: false,
     character: null,
-    direction: 1, // 1 for right, -1 for left
+    direction: 1,
     attacking: false,
     attackCooldown: 0,
-    dashCooldown: 0,
-    invincible: false,
-    invincibleTimer: 0
+    health: 100
 };
 
-// Game objects
-let platforms = [];
-let enemies = [];
-let projectiles = [];
-let particles = [];
-let allies = [];
-
-// Input handling
-const keys = {};
-const mouse = { x: 0, y: 0, clicked: false };
-
-document.addEventListener('keydown', (e) => {
-    keys[e.code] = true;
-    if (e.code === 'Space' && gameState.currentScreen === 'game') {
-        mouse.clicked = true;
-    }
-});
-
-document.addEventListener('keyup', (e) => {
-    keys[e.code] = false;
-    if (e.code === 'Space') {
-        mouse.clicked = false;
-    }
-});
-
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouse.x = e.clientX - rect.left;
-    mouse.y = e.clientY - rect.top;
-});
-
-canvas.addEventListener('click', (e) => {
-    mouse.clicked = true;
-});
-
-// Character definitions
+// Characters
 const characters = {
     origami: {
         name: 'Origami',
@@ -105,157 +70,415 @@ const characters = {
     }
 };
 
-// Level definitions
-const levels = {
-    1: {
-        name: 'City Streets',
-        background: '#2c3e50',
-        platforms: [
-            { x: 0, y: 550, width: 1200, height: 50, color: '#34495e' },
-            { x: 200, y: 450, width: 100, height: 20, color: '#34495e' },
-            { x: 400, y: 350, width: 100, height: 20, color: '#34495e' },
-            { x: 600, y: 250, width: 100, height: 20, color: '#34495e' },
-            { x: 800, y: 350, width: 100, height: 20, color: '#34495e' },
-            { x: 1000, y: 450, width: 100, height: 20, color: '#34495e' }
-        ],
-        enemies: [
-            { x: 300, y: 500, width: 30, height: 40, health: 50, type: 'melee', color: '#e74c3c' },
-            { x: 500, y: 400, width: 30, height: 40, health: 50, type: 'ranged', color: '#e67e22' },
-            { x: 700, y: 300, width: 30, height: 40, health: 50, type: 'melee', color: '#e74c3c' },
-            { x: 900, y: 400, width: 30, height: 40, health: 50, type: 'ranged', color: '#e67e22' }
-        ]
-    },
-    2: {
-        name: 'Forest Ambush',
-        background: '#27ae60',
-        platforms: [
-            { x: 0, y: 550, width: 1200, height: 50, color: '#2d5a3d' },
-            { x: 150, y: 450, width: 80, height: 20, color: '#2d5a3d' },
-            { x: 350, y: 350, width: 80, height: 20, color: '#2d5a3d' },
-            { x: 550, y: 250, width: 80, height: 20, color: '#2d5a3d' },
-            { x: 750, y: 350, width: 80, height: 20, color: '#2d5a3d' },
-            { x: 950, y: 450, width: 80, height: 20, color: '#2d5a3d' }
-        ],
-        enemies: [
-            { x: 250, y: 500, width: 30, height: 40, health: 60, type: 'melee', color: '#e74c3c' },
-            { x: 450, y: 400, width: 30, height: 40, health: 60, type: 'ranged', color: '#e67e22' },
-            { x: 650, y: 300, width: 30, height: 40, health: 60, type: 'melee', color: '#e74c3c' },
-            { x: 850, y: 400, width: 30, height: 40, health: 60, type: 'ranged', color: '#e67e22' },
-            { x: 1050, y: 500, width: 30, height: 40, health: 60, type: 'melee', color: '#e74c3c' }
-        ]
-    },
-    3: {
-        name: 'Factory Complex',
-        background: '#8e44ad',
-        platforms: [
-            { x: 0, y: 550, width: 1200, height: 50, color: '#6c5ce7' },
-            { x: 100, y: 450, width: 120, height: 20, color: '#6c5ce7' },
-            { x: 300, y: 350, width: 120, height: 20, color: '#6c5ce7' },
-            { x: 500, y: 250, width: 120, height: 20, color: '#6c5ce7' },
-            { x: 700, y: 350, width: 120, height: 20, color: '#6c5ce7' },
-            { x: 900, y: 450, width: 120, height: 20, color: '#6c5ce7' }
-        ],
-        enemies: [
-            { x: 200, y: 500, width: 30, height: 40, health: 70, type: 'melee', color: '#e74c3c' },
-            { x: 400, y: 400, width: 30, height: 40, health: 70, type: 'ranged', color: '#e67e22' },
-            { x: 600, y: 300, width: 30, height: 40, health: 70, type: 'melee', color: '#e74c3c' },
-            { x: 800, y: 400, width: 30, height: 40, health: 70, type: 'ranged', color: '#e67e22' },
-            { x: 1000, y: 500, width: 30, height: 40, health: 70, type: 'melee', color: '#e74c3c' },
-            { x: 1100, y: 300, width: 30, height: 40, health: 70, type: 'ranged', color: '#e67e22' }
-        ]
-    }
+// Background images
+const backgroundImages = {
+    forest: null,
+    street: null,
+    castle: null
 };
 
+// Character sprites
+const characterSprites = {
+    origami: null
+};
+
+// Enemy sprites
+const enemySprites = {
+    fireEnemy: null
+};
+
+// Portal sprite
+const portalSprite = new Image();
+portalSprite.crossOrigin = 'anonymous';
+portalSprite.onload = function() {
+    console.log('✅ Portal sprite loaded!');
+};
+portalSprite.onerror = function() {
+    console.error('❌ Failed to load portal sprite!');
+};
+portalSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiamlxiktldu5biljkebu2xvrkaolbsvasmspsesvhscg44n5h6rae';
+
+// Load forest background
+function loadForestBackground() {
+    backgroundImages.forest = new Image();
+    backgroundImages.forest.crossOrigin = 'anonymous';
+    backgroundImages.forest.onload = function() {
+        console.log('✅ Forest background loaded successfully!');
+    };
+    backgroundImages.forest.onerror = function() {
+        console.error('❌ Failed to load forest background!');
+    };
+    backgroundImages.forest.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibfjgh5l3pyhddztwrg72ciuk2ibe44tosbmjricjng5eah4zslxi';
+}
+
+// Load street background
+function loadStreetBackground() {
+    backgroundImages.street = new Image();
+    backgroundImages.street.crossOrigin = 'anonymous';
+    backgroundImages.street.onload = function() {
+        console.log('✅ Street background loaded successfully!');
+    };
+    backgroundImages.street.onerror = function() {
+        console.error('❌ Failed to load street background!');
+    };
+    backgroundImages.street.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigfchrhk27ujz7u6i2w3rfxilyhaypxex2bngfidg6qfieugkvude';
+}
+
+// Load castle background
+function loadCastleBackground() {
+    backgroundImages.castle = new Image();
+    backgroundImages.castle.crossOrigin = 'anonymous';
+    backgroundImages.castle.onload = function() {
+        console.log('✅ Castle background loaded successfully!');
+    };
+    backgroundImages.castle.onerror = function() {
+        console.error('❌ Failed to load castle background!');
+    };
+    backgroundImages.castle.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeib2o437ujwxb24bwe3pofhuhrlfl7v55n56lq3xk6gnzq7phyzlqm';
+}
+
+// Load Origami sprite
+function loadOrigamiSprite() {
+    characterSprites.origami = new Image();
+    characterSprites.origami.crossOrigin = 'anonymous';
+    characterSprites.origami.onload = function() {
+        console.log('✅ Origami sprite loaded successfully!');
+    };
+    characterSprites.origami.onerror = function() {
+        console.error('❌ Failed to load Origami sprite!');
+    };
+    characterSprites.origami.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreielkhx25xurmek6kemswdjtq7gipvqbyixp76yjhhimknecsax5tq';
+}
+
+// Load fire enemy sprite
+function loadFireEnemySprite() {
+    enemySprites.fireEnemy = new Image();
+    enemySprites.fireEnemy.crossOrigin = 'anonymous';
+    enemySprites.fireEnemy.onload = function() {
+        console.log('✅ Fire enemy sprite loaded successfully!');
+    };
+    enemySprites.fireEnemy.onerror = function() {
+        console.error('❌ Failed to load fire enemy sprite!');
+    };
+    enemySprites.fireEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeidrxvgd47fxr4x275tgj2q6lxboovbobd6hjejrdedolrr444gzpa';
+}
+
+// Enemy class
+class Enemy {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.width = 40;
+        this.height = 40;
+        this.type = type;
+        this.health = 30;
+        this.attackCooldown = 0;
+        this.attackRange = 200;
+        this.damage = 5;
+        this.speed = 2;
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.targetX = x;
+        this.targetY = y;
+        this.changeDirectionTimer = 0;
+        this.aimAtPlayer = false;
+    }
+    
+    update(player) {
+        // Change direction randomly
+        this.changeDirectionTimer++;
+        if (this.changeDirectionTimer > 120) { // Every 2 seconds
+            this.changeDirectionTimer = 0;
+            this.aimAtPlayer = Math.random() < 0.3; // 30% chance to aim at player
+            
+            if (this.aimAtPlayer) {
+                // Aim at player
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 0) {
+                    this.velocityX = (dx / distance) * this.speed;
+                    this.velocityY = (dy / distance) * this.speed;
+                }
+            } else {
+                // Random movement
+                this.targetX = 1200 + Math.random() * 800; // Forest area
+                this.targetY = 100 + Math.random() * 300;
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance > 0) {
+                    this.velocityX = (dx / distance) * this.speed;
+                    this.velocityY = (dy / distance) * this.speed;
+                }
+            }
+        }
+        
+        // Update position
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+        
+            // Keep within current location bounds
+    const locationStart = gameState.currentLocation * LOCATION_WIDTH;
+    const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
+    if (this.x < locationStart + 50) this.x = locationStart + 50;
+    if (this.x > locationEnd - 50) this.x = locationEnd - 50;
+    if (this.y < 50) this.y = 50;
+    if (this.y > 400) this.y = 400;
+        
+        // Attack cooldown
+        if (this.attackCooldown > 0) {
+            this.attackCooldown--;
+        }
+    }
+    
+    attack(player) {
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < this.attackRange && this.attackCooldown === 0) {
+            this.attackCooldown = 90; // 1.5 seconds at 60fps
+            
+            // Calculate direction to player for projectile
+            const direction = dx > 0 ? 1 : -1;
+            return { damage: this.damage, direction: direction };
+        }
+        return { damage: 0, direction: 1 };
+    }
+}
+
+// Fire projectile class
+class FireProjectile {
+    constructor(x, y, velocityX, velocityY) {
+        this.x = x;
+        this.y = y;
+        this.width = 15;
+        this.height = 15;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.damage = 5;
+    }
+    
+    update() {
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+    }
+    
+    isOffScreen() {
+        return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
+// Global arrays for enemies and projectiles
+let enemies = [];
+let fireProjectiles = [];
+
+// Locations with smooth transitions
+const locations = [
+    { name: 'Дом', background: '#8B4513', enemies: [], width: 1200 },
+    { name: 'Лес', background: '#228B22', enemies: [], width: 1200, hasImage: true },
+    { name: 'Каменная долина', background: '#696969', enemies: [], width: 1200 },
+    { name: 'Замок', background: '#4A4A4A', enemies: [], width: 1200, hasImage: true },
+    { name: 'Остров', background: '#2E8B57', enemies: [], width: 1200 },
+    { name: 'Портал', background: '#800080', enemies: [], width: 1200 },
+    { name: 'Гиперсити', background: '#FFD700', enemies: [], width: 1200 }
+];
+
+// World dimensions
+const WORLD_WIDTH = 8400; // 7 locations × 1200px each
+const LOCATION_WIDTH = 1200;
+
+// Fade transition state
+let fadeAlpha = 0;
+let fading = false;
+let fadeCallback = null;
+
+function startFade(callback) {
+    fading = true;
+    fadeAlpha = 0;
+    fadeCallback = callback;
+}
+
+function updateFade() {
+    if (fading) {
+        fadeAlpha += 0.04;
+        if (fadeAlpha >= 1) {
+            fadeAlpha = 1;
+            fading = false;
+            if (fadeCallback) fadeCallback();
+            setTimeout(() => { fadeAlpha = 0; }, 200);
+        }
+    }
+}
+
+// Input handling
+const keys = {};
+
+document.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
+    if (e.code === 'Space') attack();
+    if (e.code === 'KeyE') useSpecialAbility();
+    if (e.code === 'KeyR') restartGame();
+});
+
+document.addEventListener('keyup', (e) => {
+    keys[e.code] = false;
+});
+
+// Mouse click handling
+canvas.addEventListener('click', (e) => {
+    if (gameState.currentScreen === 'splash') {
+        gameState.currentScreen = 'characterSelect';
+        document.getElementById('characterSelect').style.display = 'block';
+    }
+});
+
+// Character selection click handling
+document.addEventListener('click', (e) => {
+    if (gameState.currentScreen === 'characterSelect') {
+        const charOptions = document.querySelectorAll('.character-option');
+        charOptions.forEach((option) => {
+            const rect = option.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right && 
+                e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                const characterKey = option.dataset.character;
+                selectCharacter(characterKey);
+            }
+        });
+    }
+});
+
 // Character selection
-document.querySelectorAll('.character-option').forEach(option => {
-    option.addEventListener('click', () => {
-        gameState.selectedCharacter = option.dataset.character;
+function selectCharacter(characterKey) {
+    if (characters[characterKey]) {
+        player.character = characters[characterKey];
+        gameState.currentScreen = 'game';
         document.getElementById('characterSelect').style.display = 'none';
-        document.getElementById('levelSelect').style.display = 'block';
-    });
-});
+        document.getElementById('gameUI').style.display = 'block';
+    }
+}
 
-// Level selection
-document.querySelectorAll('.level-option').forEach(option => {
-    option.addEventListener('click', () => {
-        gameState.currentLevel = parseInt(option.dataset.level);
-        startGame();
-    });
-});
+// Attack function
+function attack() {
+    if (!player.character || player.attackCooldown > 0 || gameState.gameOver) return;
+    
+    player.attacking = true;
+    player.attackCooldown = 15;
+    
+    // Check if special ability is active for dash attack
+    if (gameState.abilityActive) {
+        // Dash forward with triple damage
+        const dashDistance = 100;
+        const dashDirection = player.direction;
+        player.x += dashDistance * dashDirection;
+        
+        // Keep player within world bounds
+        if (player.x < 0) player.x = 0;
+        if (player.x > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
+        
+        gameState.score += 30; // Triple damage
+        gameState.abilityActive = false; // Deactivate after use
+        gameState.abilityTimer = 0;
+    } else {
+        gameState.score += 10;
+    }
+    
+    gameState.hits++;
+    if (gameState.hits >= 10 && !gameState.abilityReady) {
+        gameState.abilityReady = true;
+    }
+}
 
-function startGame() {
-    document.getElementById('levelSelect').style.display = 'none';
-    gameState.currentScreen = 'game';
-    gameState.score = 0;
+// Special ability
+function useSpecialAbility() {
+    if (!gameState.abilityReady || !player.character) return;
+    gameState.abilityReady = false;
+    gameState.abilityActive = true;
+    gameState.hits = 0;
+    gameState.abilityTimer = 120; // 2 seconds at 60fps
+}
+
+// Initialize enemies for Forest location
+function initializeForestEnemies() {
+    enemies = [
+        new Enemy(1250, 150, 'fire'),
+        new Enemy(1450, 200, 'fire'),
+        new Enemy(1650, 180, 'fire'),
+        new Enemy(1850, 120, 'fire')
+    ];
+}
+
+// Restart game
+function restartGame() {
+    player.x = 100;
+    player.y = 400;
     gameState.health = 100;
+    gameState.score = 0;
     gameState.hits = 0;
     gameState.abilityReady = false;
     gameState.abilityActive = false;
     gameState.abilityTimer = 0;
-    
-    // Initialize player
-    player.character = characters[gameState.selectedCharacter];
-    player.x = 100;
-    player.y = 400;
-    player.velocityX = 0;
-    player.velocityY = 0;
-    player.attacking = false;
-    player.attackCooldown = 0;
-    player.dashCooldown = 0;
-    player.invincible = false;
-    player.invincibleTimer = 0;
-    
-    // Load level
-    loadLevel(gameState.currentLevel);
-    
-    updateUI();
+    gameState.gameOver = false;
+    gameState.currentLocation = 0;
+    gameState.transitioning = false;
+    fireProjectiles = [];
+    enemies = [];
 }
 
-function loadLevel(levelNum) {
-    const level = levels[levelNum];
-    platforms = level.platforms;
-    enemies = level.enemies.map(enemy => ({
-        ...enemy,
-        velocityX: 0,
-        velocityY: 0,
-        onGround: false,
-        attacking: false,
-        attackCooldown: 0,
-        direction: Math.random() > 0.5 ? 1 : -1
-    }));
-    projectiles = [];
-    particles = [];
-    allies = [];
-}
+// Camera system
+let cameraX = 0;
 
-function updateUI() {
-    document.getElementById('health').textContent = `Health: ${gameState.health}`;
-    document.getElementById('score').textContent = `Score: ${gameState.score}`;
-    document.getElementById('hits').textContent = `Hits: ${gameState.hits}/10`;
-    
-    if (gameState.abilityReady) {
-        document.getElementById('ability').textContent = `Ability: ${player.character.specialDescription}`;
-    } else if (gameState.abilityActive) {
-        document.getElementById('ability').textContent = `Ability: Active (${Math.ceil(gameState.abilityTimer/60)})`;
-    } else {
-        document.getElementById('ability').textContent = 'Ability: Charging...';
-    }
-}
-
-// Physics functions
-function checkCollision(rect1, rect2) {
-    return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
-}
-
+// Update player
 function updatePlayer() {
+    if (gameState.currentScreen !== 'game') return;
+    
+    // Don't update if game is over or transitioning
+    if (gameState.gameOver || gameState.transitioning) return;
+    
+    // Get current location bounds
+    const locationStart = gameState.currentLocation * LOCATION_WIDTH;
+    const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
+    
+    // Keep player within current location bounds
+    if (player.x < locationStart) player.x = locationStart;
+    if (player.x + player.width > locationEnd) player.x = locationEnd - player.width;
+    
+         // Check portal collision (portal is at the end of each location)
+     if (gameState.currentLocation < locations.length - 1) {
+         const portalX = locationEnd - 60;
+         const playerCenterY = canvas.height - 40 - player.height/2;
+         const portalHeight = 120;
+         const portalY = playerCenterY - portalHeight/2;
+         
+         if (
+             player.x + player.width > portalX &&
+             player.x < portalX + 80 &&
+             player.y + player.height > portalY &&
+             player.y < portalY + portalHeight
+         ) {
+            // Start transition to next location
+            gameState.transitioning = true;
+            startFade(() => {
+                gameState.currentLocation++;
+                player.x = (gameState.currentLocation * LOCATION_WIDTH) + 50;
+                gameState.transitioning = false;
+                                 // Initialize enemies for new location if needed
+                 if (gameState.currentLocation === 1) { // Лес location
+                     initializeForestEnemies();
+                 } else {
+                     // Clear enemies for other locations
+                     enemies = [];
+                 }
+            });
+        }
+    }
+    
     // Movement
-    if (keys['ArrowLeft']) {
+    if (keys['KeyA'] || keys['ArrowLeft']) {
         player.velocityX = -player.speed;
         player.direction = -1;
-    } else if (keys['ArrowRight']) {
+    } else if (keys['KeyD'] || keys['ArrowRight']) {
         player.velocityX = player.speed;
         player.direction = 1;
     } else {
@@ -263,456 +486,485 @@ function updatePlayer() {
     }
     
     // Jumping
-    if (keys['ArrowUp'] && player.onGround) {
+    if ((keys['KeyW'] || keys['ArrowUp']) && player.onGround) {
         player.velocityY = -15;
         player.onGround = false;
     }
     
-    // Apply gravity
+    // Draw ground line for reference
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(0, canvas.height - 40, canvas.width, 2);
+    
+    // Gravity
     player.velocityY += 0.8;
     
     // Update position
     player.x += player.velocityX;
     player.y += player.velocityY;
     
-    // Keep player in bounds
+    // World bounds - full world width
     if (player.x < 0) player.x = 0;
-    if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+    if (player.x > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
     
-    // Platform collision
-    player.onGround = false;
-    for (let platform of platforms) {
-        if (checkCollision(player, platform)) {
-            if (player.velocityY > 0 && player.y < platform.y) {
-                player.y = platform.y - player.height;
-                player.velocityY = 0;
-                player.onGround = true;
-            }
-        }
+    // Ground level (raised to match red line in screenshot)
+    const groundLevel = canvas.height - 40;
+    if (player.y > groundLevel - player.height) {
+        player.y = groundLevel - player.height;
+        player.velocityY = 0;
+        player.onGround = true;
     }
     
-    // Attack cooldown
+    // Update cooldowns
     if (player.attackCooldown > 0) player.attackCooldown--;
-    if (player.dashCooldown > 0) player.dashCooldown--;
+    if (gameState.abilityTimer > 0) gameState.abilityTimer--;
     
-    // Invincibility
-    if (player.invincible) {
-        player.invincibleTimer--;
-        if (player.invincibleTimer <= 0) {
-            player.invincible = false;
-        }
-    }
+    // Update current location
+    gameState.currentLocation = Math.floor(player.x / LOCATION_WIDTH);
     
-    // Attack
-    if (mouse.clicked && player.attackCooldown === 0) {
-        attack();
-    }
-    
-    // Special ability
-    if (keys['KeyE'] && gameState.abilityReady && !gameState.abilityActive) {
-        useSpecialAbility();
-    }
-    
-    // Ability timer
-    if (gameState.abilityActive) {
-        gameState.abilityTimer--;
-        if (gameState.abilityTimer <= 0) {
-            gameState.abilityActive = false;
-            if (player.character.specialAbility === 'combo') {
-                player.invincible = false;
-            }
-        }
-    }
-}
-
-function attack() {
-    player.attacking = true;
-    player.attackCooldown = 20;
-    
-    // Create attack hitbox
-    const attackBox = {
-        x: player.direction > 0 ? player.x + player.width : player.x - player.character.attackRange,
-        y: player.y + player.height/2 - 20,
-        width: player.character.attackRange,
-        height: 40
-    };
-    
-    // Check for hits
-    let hitEnemy = false;
-    for (let enemy of enemies) {
-        if (checkCollision(attackBox, enemy)) {
-            enemy.health -= player.character.attackDamage;
-            gameState.hits++;
-            gameState.score += 10;
-            hitEnemy = true;
+    // Check for enemy attacks and fire projectiles
+    enemies.forEach(enemy => {
+        const attackResult = enemy.attack(player);
+        if (attackResult.damage > 0) {
+            gameState.health -= attackResult.damage;
             
-            // Create damage particles
-            for (let i = 0; i < 5; i++) {
-                particles.push({
-                    x: enemy.x + enemy.width/2,
-                    y: enemy.y + enemy.height/2,
-                    velocityX: (Math.random() - 0.5) * 10,
-                    velocityY: (Math.random() - 0.5) * 10,
-                    life: 30,
-                    color: '#ff0000'
-                });
+            // Check if player is dead
+            if (gameState.health <= 0) {
+                gameState.health = 0;
+                gameState.gameOver = true;
             }
             
-            if (enemy.health <= 0) {
-                enemies.splice(enemies.indexOf(enemy), 1);
-                gameState.score += 50;
+            // Create fire projectile aimed at player
+            const dx = player.x - enemy.x;
+            const dy = player.y - enemy.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > 0) {
+                const projectileSpeed = 4;
+                const velocityX = (dx / distance) * projectileSpeed;
+                const velocityY = (dy / distance) * projectileSpeed;
+                fireProjectiles.push(new FireProjectile(enemy.x, enemy.y, velocityX, velocityY));
             }
         }
-    }
+    });
     
-    // Check ability readiness
-    if (gameState.hits >= 10 && !gameState.abilityReady) {
-        gameState.abilityReady = true;
-        gameState.hits = 0;
-    }
-    
-    // Create attack effect
-    if (player.character.specialAbility === 'dash' && gameState.abilityActive) {
-        // Dash attack
-        player.x += player.direction * 100;
-        for (let enemy of enemies) {
-            if (Math.abs(enemy.x - player.x) < 100 && Math.abs(enemy.y - player.y) < 50) {
-                enemy.health -= player.character.attackDamage * 3;
-                gameState.score += 30;
-                if (enemy.health <= 0) {
-                    enemies.splice(enemies.indexOf(enemy), 1);
-                    gameState.score += 50;
-                }
-            }
-        }
-    }
-    
-    setTimeout(() => {
-        player.attacking = false;
-    }, 200);
-}
-
-function useSpecialAbility() {
-    gameState.abilityReady = false;
-    gameState.abilityActive = true;
-    
-    switch (player.character.specialAbility) {
-        case 'dash':
-            gameState.abilityTimer = 60; // 1 second
-            player.dashCooldown = 120;
-            break;
-        case 'combo':
-            gameState.abilityTimer = 600; // 10 seconds
-            player.invincible = true;
-            player.invincibleTimer = 600;
-            break;
-        case 'instantKill':
-            gameState.abilityTimer = 60;
-            // Instant kill random enemy
-            if (enemies.length > 0) {
-                const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
-                enemies.splice(enemies.indexOf(randomEnemy), 1);
-                gameState.score += 100;
-            }
-            break;
-        case 'convert':
-            gameState.abilityTimer = 60;
-            // Convert 2 random enemies to allies
-            for (let i = 0; i < 2 && enemies.length > 0; i++) {
-                const randomIndex = Math.floor(Math.random() * enemies.length);
-                const enemy = enemies.splice(randomIndex, 1)[0];
-                allies.push({
-                    ...enemy,
-                    color: '#00ff00',
-                    isAlly: true
-                });
-            }
-            break;
-    }
-}
-
-function updateEnemies() {
-    for (let enemy of enemies) {
-        // Simple AI
-        if (Math.random() < 0.02) {
-            enemy.direction *= -1;
-        }
+    // Update fire projectiles
+    fireProjectiles.forEach((projectile, index) => {
+        projectile.update();
         
-        enemy.velocityX = enemy.direction * 2;
-        enemy.x += enemy.velocityX;
-        
-        // Keep enemies in bounds
-        if (enemy.x < 0 || enemy.x + enemy.width > canvas.width) {
-            enemy.direction *= -1;
-        }
-        
-        // Attack player if close
-        if (Math.abs(enemy.x - player.x) < 50 && Math.abs(enemy.y - player.y) < 50) {
-            if (!player.invincible && !gameState.abilityActive) {
-                gameState.health -= 1;
-            }
-        }
-    }
-}
-
-function updateAllies() {
-    for (let ally of allies) {
-        // Ally AI - attack nearest enemy
-        let nearestEnemy = null;
-        let nearestDistance = Infinity;
-        
-        for (let enemy of enemies) {
-            const distance = Math.abs(enemy.x - ally.x) + Math.abs(enemy.y - ally.y);
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
-                nearestEnemy = enemy;
-            }
-        }
-        
-        if (nearestEnemy) {
-            // Move towards enemy
-            if (nearestEnemy.x > ally.x) {
-                ally.velocityX = 2;
-            } else {
-                ally.velocityX = -2;
+        // Check collision with player
+        if (projectile.x < player.x + player.width &&
+            projectile.x + projectile.width > player.x &&
+            projectile.y < player.y + player.height &&
+            projectile.y + projectile.height > player.y) {
+            gameState.health -= projectile.damage;
+            
+            // Check if player is dead
+            if (gameState.health <= 0) {
+                gameState.health = 0;
+                gameState.gameOver = true;
             }
             
-            ally.x += ally.velocityX;
-            
-            // Attack if close
-            if (Math.abs(nearestEnemy.x - ally.x) < 40) {
-                nearestEnemy.health -= 5;
-                if (nearestEnemy.health <= 0) {
-                    enemies.splice(enemies.indexOf(nearestEnemy), 1);
-                    gameState.score += 25;
-                }
-            }
+            fireProjectiles.splice(index, 1);
         }
+        
+        // Remove off-screen projectiles
+        if (projectile.isOffScreen()) {
+            fireProjectiles.splice(index, 1);
+        }
+    });
+    
+    // Update enemies
+    enemies.forEach(enemy => {
+        enemy.update(player);
+    });
+
+
+}
+
+// Update camera
+function updateCamera() {
+    // Smooth camera that follows player
+    cameraX = player.x - canvas.width / 2;
+    
+    // Prevent camera from going outside world bounds
+    if (cameraX < 0) {
+        cameraX = 0;
+    }
+    if (cameraX > WORLD_WIDTH - canvas.width) {
+        cameraX = WORLD_WIDTH - canvas.width;
     }
 }
 
-function updateProjectiles() {
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-        const projectile = projectiles[i];
-        projectile.x += projectile.velocityX;
-        projectile.y += projectile.velocityY;
-        
-        // Check wall collision for ricochet
-        if (projectile.x <= 0 || projectile.x >= canvas.width) {
-            projectile.velocityX *= -1;
-            projectile.damage *= 1.5; // Increase damage on ricochet
+// Update UI
+function updateUI() {
+    const locationInfo = document.getElementById('locationInfo');
+    const progressInfo = document.getElementById('progressInfo');
+    const healthText = document.getElementById('healthText');
+    const healthFill = document.getElementById('healthFill');
+    const scoreInfo = document.getElementById('scoreInfo');
+    const abilityInfo = document.getElementById('abilityInfo');
+    const debugInfo = document.getElementById('debugInfo');
+    
+    if (locationInfo) locationInfo.textContent = `Location: ${locations[gameState.currentLocation]?.name || 'Unknown'}`;
+    if (progressInfo) progressInfo.textContent = `Progress: ${Math.floor((player.x / WORLD_WIDTH) * 100)}%`;
+    if (healthText) healthText.textContent = `Health: ${gameState.health}`;
+    if (healthFill) healthFill.style.width = `${(gameState.health / 100) * 100}%`;
+    if (scoreInfo) scoreInfo.textContent = `Score: ${gameState.score}`;
+    
+    if (abilityInfo) {
+        if (gameState.gameOver) {
+            abilityInfo.textContent = 'GAME OVER';
+            abilityInfo.style.color = '#ff0000';
+        } else if (gameState.abilityReady) {
+            abilityInfo.textContent = 'SPECIAL READY!';
+            abilityInfo.style.color = '#ffff00';
+        } else if (gameState.abilityActive) {
+            abilityInfo.textContent = 'DASH READY!';
+            abilityInfo.style.color = '#00ffff';
+        } else {
+            abilityInfo.textContent = 'Ability: Ready';
+            abilityInfo.style.color = '#ffffff';
         }
-        
-        // Check enemy hits
-        for (let enemy of enemies) {
-            if (checkCollision(projectile, enemy)) {
-                enemy.health -= projectile.damage;
-                gameState.score += 10;
-                projectiles.splice(i, 1);
-                
-                if (enemy.health <= 0) {
-                    enemies.splice(enemies.indexOf(enemy), 1);
-                    gameState.score += 50;
-                }
-                break;
-            }
-        }
-        
-        // Remove projectiles that are off screen
-        if (projectile.x < 0 || projectile.x > canvas.width || projectile.y < 0 || projectile.y > canvas.height) {
-            projectiles.splice(i, 1);
-        }
+    }
+    
+    if (debugInfo) {
+        const keysPressed = Object.keys(keys).filter(key => keys[key]).join(', ');
+        debugInfo.textContent = `Player X: ${Math.floor(player.x)} | Keys: ${keysPressed}`;
     }
 }
 
-function updateParticles() {
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const particle = particles[i];
-        particle.x += particle.velocityX;
-        particle.y += particle.velocityY;
-        particle.velocityX *= 0.95;
-        particle.velocityY *= 0.95;
-        particle.life--;
-        
-        if (particle.life <= 0) {
-            particles.splice(i, 1);
-        }
-    }
-}
-
-// Drawing functions
+// Draw functions
 function drawBackground() {
-    const level = levels[gameState.currentLevel];
-    ctx.fillStyle = level.background;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function drawPlatforms() {
-    for (let platform of platforms) {
-        ctx.fillStyle = platform.color;
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+    // Draw all locations with smooth transitions
+    locations.forEach((location, index) => {
+        const locationX = index * LOCATION_WIDTH;
+        const screenX = locationX - cameraX;
+        
+        // Only draw if location is visible on screen
+        if (screenX < canvas.width && screenX + LOCATION_WIDTH > 0) {
+                         // Draw background images for specific locations
+             if (location.name === 'Лес' && location.hasImage && backgroundImages.forest && backgroundImages.forest.complete) {
+                 try {
+                     ctx.drawImage(backgroundImages.forest, screenX, 0, LOCATION_WIDTH, canvas.height);
+                 } catch (error) {
+                     console.error('Error drawing forest background:', error);
+                     // Fallback to solid color
+                     ctx.fillStyle = location.background;
+                     ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                 }
+             } else if (location.name === 'Каменная долина' && backgroundImages.street && backgroundImages.street.complete) {
+                 try {
+                     ctx.drawImage(backgroundImages.street, screenX, 0, LOCATION_WIDTH, canvas.height);
+                 } catch (error) {
+                     console.error('Error drawing street background:', error);
+                     // Fallback to solid color
+                     ctx.fillStyle = location.background;
+                     ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                 }
+             } else if (location.name === 'Замок' && location.hasImage && backgroundImages.castle && backgroundImages.castle.complete) {
+                 try {
+                     ctx.drawImage(backgroundImages.castle, screenX, 0, LOCATION_WIDTH, canvas.height);
+                 } catch (error) {
+                     console.error('Error drawing castle background:', error);
+                     // Fallback to solid color
+                     ctx.fillStyle = location.background;
+                     ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                 }
+             } else {
+                 // Draw solid color background
+                 ctx.fillStyle = location.background;
+                 ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+             }
+            
+            // Add location name
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(location.name, screenX + LOCATION_WIDTH/2, 50);
+            
+                         // Draw portal at the end of each location (except last)
+             if (index < locations.length - 1) {
+                 const portalX = locationX + LOCATION_WIDTH - 60;
+                 const portalScreenX = portalX - cameraX;
+                 
+                 // Portal animation
+                 const portalPulse = Math.sin(Date.now() * 0.005) * 0.2 + 1;
+                 const portalGlow = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
+                 
+                 // Portal center should be at player center level
+                 const playerCenterY = canvas.height - 40 - player.height/2;
+                 const portalHeight = 120;
+                 const portalY = playerCenterY - portalHeight/2;
+                 
+                 if (portalSprite.complete) {
+                     // Draw main portal
+                     ctx.drawImage(portalSprite, portalScreenX, portalY, 80, 120);
+                     
+                     // Draw soft portal glow effect only on front side
+                     ctx.save();
+                     ctx.globalAlpha = portalGlow * 0.3; // Much softer glow
+                     ctx.drawImage(portalSprite, portalScreenX - 3, portalY - 3, 86, 126);
+                     ctx.restore();
+                     
+                     // Draw soft portal particles only on front side
+                     for (let i = 0; i < 6; i++) {
+                         const angle = (Date.now() * 0.001 + i * 60) * Math.PI / 180; // Slower rotation
+                         const particleX = portalScreenX + 40 + Math.cos(angle) * (25 + Math.sin(Date.now() * 0.005) * 5); // Smaller radius
+                         const particleY = portalY + 60 + Math.sin(angle) * (25 + Math.sin(Date.now() * 0.005) * 5);
+                         
+                         ctx.fillStyle = `rgba(255, 100, 255, ${0.4 - i * 0.05})`; // Much softer particles
+                         ctx.beginPath();
+                         ctx.arc(particleX, particleY, 1.5 + Math.sin(Date.now() * 0.01 + i) * 0.5, 0, Math.PI * 2); // Smaller particles
+                         ctx.fill();
+                     }
+                 } else {
+                     // Fallback portal with animation
+                     ctx.fillStyle = `rgba(0, 0, 255, ${portalGlow})`;
+                     ctx.fillRect(portalScreenX, portalY, 80, 120);
+                     
+                     // Animated border
+                     ctx.strokeStyle = `rgba(255, 100, 255, ${portalGlow})`;
+                     ctx.lineWidth = 3;
+                     ctx.strokeRect(portalScreenX, portalY, 80, 120);
+                 }
+             }
+        }
+    });
+    // Draw fade overlay
+    if (fadeAlpha > 0) {
+        ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
     }
 }
 
 function drawPlayer() {
-    if (player.invincible) {
-        ctx.globalAlpha = 0.5;
-    }
-    
-    // Player body
-    ctx.fillStyle = player.character.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-    
-    // Player details
-    ctx.fillStyle = '#000';
-    ctx.fillRect(player.x + 10, player.y + 10, 20, 10); // Eyes
-    ctx.fillRect(player.x + 15, player.y + 25, 10, 5); // Mouth
-    
-    // Attack effect
-    if (player.attacking) {
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        if (player.direction > 0) {
-            ctx.moveTo(player.x + player.width, player.y + player.height/2);
-            ctx.lineTo(player.x + player.width + player.character.attackRange, player.y + player.height/2);
+    if (player.character) {
+        // Draw player relative to camera
+        const screenX = player.x - cameraX;
+        
+        // Draw Origami sprite if available
+        if (player.character.name === 'Origami' && characterSprites.origami && characterSprites.origami.complete) {
+            try {
+                ctx.save();
+                if (player.direction === -1) {
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(characterSprites.origami, -(screenX + player.width), player.y, player.width, player.height);
+                } else {
+                    ctx.drawImage(characterSprites.origami, screenX, player.y, player.width, player.height);
+                }
+                ctx.restore();
+            } catch (error) {
+                console.error('Error drawing Origami sprite:', error);
+                // Fallback to colored rectangle
+                ctx.fillStyle = player.character.color;
+                ctx.fillRect(screenX, player.y, player.width, player.height);
+            }
         } else {
-            ctx.moveTo(player.x, player.y + player.height/2);
-            ctx.lineTo(player.x - player.character.attackRange, player.y + player.height/2);
+            // Draw colored rectangle for other characters
+            ctx.fillStyle = player.character.color;
+            ctx.fillRect(screenX, player.y, player.width, player.height);
         }
-        ctx.stroke();
+        
+                 // Character name hidden
+        
+        // Draw attack animation
+        if (player.attacking) {
+            if (gameState.abilityActive) {
+                // Draw dash attack effect
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 5;
+                const dashX = screenX + (player.direction > 0 ? player.width + 100 : -100);
+                ctx.beginPath();
+                ctx.moveTo(screenX + player.width/2, player.y + player.height/2);
+                ctx.lineTo(dashX, player.y + player.height/2);
+                ctx.stroke();
+                
+                // Draw dash trail effect
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+                ctx.lineWidth = 3;
+                for (let i = 1; i <= 3; i++) {
+                    const trailX = screenX - (player.direction * i * 20);
+                    ctx.beginPath();
+                    ctx.moveTo(trailX + player.width/2, player.y + player.height/2);
+                    ctx.lineTo(trailX + player.width/2 + (player.direction * 50), player.y + player.height/2);
+                    ctx.stroke();
+                }
+            } else {
+                // Draw normal attack
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                const attackX = screenX + (player.direction > 0 ? player.width : -player.character.attackRange);
+                ctx.beginPath();
+                ctx.moveTo(screenX + player.width/2, player.y + player.height/2);
+                ctx.lineTo(attackX, player.y + player.height/2);
+                ctx.stroke();
+            }
+            player.attacking = false;
+        }
     }
-    
-    ctx.globalAlpha = 1;
 }
 
 function drawEnemies() {
-    for (let enemy of enemies) {
-        ctx.fillStyle = enemy.color;
-        ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    enemies.forEach(enemy => {
+        const screenX = enemy.x - cameraX;
         
-        // Enemy details
-        ctx.fillStyle = '#000';
-        ctx.fillRect(enemy.x + 5, enemy.y + 5, 5, 5);
-        ctx.fillRect(enemy.x + 20, enemy.y + 5, 5, 5);
-        
-        // Health bar
-        const healthPercent = enemy.health / 70;
-        ctx.fillStyle = '#ff0000';
-        ctx.fillRect(enemy.x, enemy.y - 10, enemy.width, 5);
-        ctx.fillStyle = '#00ff00';
-        ctx.fillRect(enemy.x, enemy.y - 10, enemy.width * healthPercent, 5);
-    }
+        // Only draw if enemy is visible on screen
+        if (screenX > -enemy.width && screenX < canvas.width) {
+            // Determine enemy direction based on player position
+            const enemyDirection = player.x > enemy.x ? 1 : -1;
+            
+            // Draw fire enemy sprite if available
+            if (enemy.type === 'fire' && enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
+                try {
+                    ctx.save();
+                    if (enemyDirection === -1) {
+                        // Flip enemy horizontally when facing left
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(enemySprites.fireEnemy, -(screenX + enemy.width), enemy.y, enemy.width, enemy.height);
+                    } else {
+                        // Draw normally when facing right
+                        ctx.drawImage(enemySprites.fireEnemy, screenX, enemy.y, enemy.width, enemy.height);
+                    }
+                    ctx.restore();
+                } catch (error) {
+                    console.error('Error drawing fire enemy sprite:', error);
+                    // Fallback to animated fire ball
+                    drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
+                }
+            } else {
+                // Fallback to animated fire ball
+                drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
+            }
+            
+                         // Health bar hidden
+        }
+    });
 }
 
-function drawAllies() {
-    for (let ally of allies) {
-        ctx.fillStyle = ally.color;
-        ctx.fillRect(ally.x, ally.y, ally.width, ally.height);
-        
-        // Ally details
-        ctx.fillStyle = '#000';
-        ctx.fillRect(ally.x + 5, ally.y + 5, 5, 5);
-        ctx.fillRect(ally.x + 20, ally.y + 5, 5, 5);
-    }
-}
-
-function drawProjectiles() {
-    for (let projectile of projectiles) {
-        ctx.fillStyle = '#ffff00';
+function drawAnimatedFireBall(screenX, y, width, height) {
+    // Outer glow
+    ctx.fillStyle = 'rgba(255, 100, 0, 0.3)';
+    ctx.beginPath();
+    ctx.arc(screenX + width/2, y + height/2, width/2 + 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Main fire ball
+    ctx.fillStyle = '#ff6600';
+    ctx.beginPath();
+    ctx.arc(screenX + width/2, y + height/2, width/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Inner fire core
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath();
+    ctx.arc(screenX + width/2, y + height/2, width/3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Fire particles effect
+    for (let i = 0; i < 3; i++) {
+        const angle = (Date.now() / 100 + i * 120) * Math.PI / 180;
+        const particleX = screenX + width/2 + Math.cos(angle) * (width/2 + 3);
+        const particleY = y + height/2 + Math.sin(angle) * (width/2 + 3);
+        ctx.fillStyle = '#ffaa00';
         ctx.beginPath();
-        ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI * 2);
+        ctx.arc(particleX, particleY, 2, 0, Math.PI * 2);
         ctx.fill();
     }
 }
 
-function drawParticles() {
-    for (let particle of particles) {
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.life / 30;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    ctx.globalAlpha = 1;
+function drawFireProjectiles() {
+    fireProjectiles.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        
+        // Only draw if projectile is visible on screen
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            // Draw fire projectile with trail effect
+            ctx.fillStyle = 'rgba(255, 100, 0, 0.4)';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2 + 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Main projectile
+            ctx.fillStyle = '#ff6600';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner core
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fire trail particles
+            for (let i = 0; i < 2; i++) {
+                const trailX = screenX - projectile.velocityX * (i + 1) * 0.5;
+                const trailY = projectile.y - projectile.velocityY * (i + 1) * 0.5;
+                ctx.fillStyle = `rgba(255, 170, 0, ${0.6 - i * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(trailX + projectile.width/2, trailY + projectile.height/2, 3 - i, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    });
 }
 
-function drawAbilityEffect() {
-    if (gameState.abilityActive) {
-        ctx.strokeStyle = '#ffff00';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(player.x - 10, player.y - 10, player.width + 20, player.height + 20);
-    }
+function drawSplashScreen() {
+    ctx.fillStyle = '#2d5a3d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('ZARGATES', canvas.width / 2, canvas.height / 2 - 50);
+    ctx.font = '24px Arial';
+    ctx.fillText('Click to Start', canvas.width / 2, canvas.height / 2 + 50);
 }
 
-// Game loop
+function drawGameOverScreen() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#ff0000';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '24px Arial';
+    ctx.fillText(`Final Score: ${gameState.score}`, canvas.width / 2, canvas.height / 2);
+    ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 50);
+}
+
+// Main game loop
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (gameState.currentScreen === 'game') {
-        // Update game objects
+    if (gameState.currentScreen === 'splash') {
+        drawSplashScreen();
+    } else if (gameState.currentScreen === 'game') {
         updatePlayer();
-        updateEnemies();
-        updateAllies();
-        updateProjectiles();
-        updateParticles();
-        
-        // Draw everything
-        drawBackground();
-        drawPlatforms();
-        drawEnemies();
-        drawAllies();
-        drawProjectiles();
-        drawParticles();
-        drawPlayer();
-        drawAbilityEffect();
-        
-        // Update UI
+        updateCamera();
         updateUI();
+        drawBackground();
+        drawEnemies();
+        drawFireProjectiles();
+        drawPlayer();
         
-        // Check win/lose conditions
-        if (gameState.health <= 0) {
-            gameOver();
-        } else if (enemies.length === 0) {
-            victory();
+        // Draw game over screen if player is dead
+        if (gameState.gameOver) {
+            drawGameOverScreen();
         }
+        updateFade();
     }
     
     requestAnimationFrame(gameLoop);
 }
 
-function gameOver() {
-    gameState.currentScreen = 'gameOver';
-    document.getElementById('finalScore').textContent = `Final Score: ${gameState.score}`;
-    document.getElementById('gameOver').style.display = 'block';
-}
-
-function victory() {
-    gameState.currentScreen = 'victory';
-    document.getElementById('victoryScore').textContent = `Score: ${gameState.score}`;
-    document.getElementById('victory').style.display = 'block';
-}
-
-function restartGame() {
-    document.getElementById('gameOver').style.display = 'none';
-    startGame();
-}
-
-function nextLevel() {
-    document.getElementById('victory').style.display = 'none';
-    gameState.currentLevel++;
-    if (gameState.currentLevel > 3) {
-        gameState.currentLevel = 1;
-    }
-    startGame();
-}
-
-function showCharacterSelect() {
-    document.getElementById('gameOver').style.display = 'none';
-    document.getElementById('victory').style.display = 'none';
-    gameState.currentScreen = 'characterSelect';
-    document.getElementById('characterSelect').style.display = 'block';
-}
-
 // Start the game
+loadForestBackground(); // Load forest background image
+loadStreetBackground(); // Load street background image
+loadCastleBackground(); // Load castle background image
+loadOrigamiSprite(); // Load Origami sprite
+loadFireEnemySprite(); // Load fire enemy sprite
+// Don't initialize enemies at start - they will be added when entering Forest location
 gameLoop(); 
