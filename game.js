@@ -203,7 +203,42 @@ function loadOrigamiSprite() {
     characterSprites.origami.onerror = function() {
         console.error('❌ Failed to load Origami sprite!');
     };
-    characterSprites.origami.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreielkhx25xurmek6kemswdjtq7gipvqbyixp76yjhhimknecsax5tq';
+         characterSprites.origami.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeidig35myg7sui7jwrrwebubh6ukgjh4jilrhurbgslakjjgjakf4m';
+    
+    // Load Toxin sprite
+    characterSprites.toxin = new Image();
+    characterSprites.toxin.crossOrigin = 'anonymous';
+    characterSprites.toxin.onload = function() {
+        console.log('✅ Toxin sprite loaded successfully!');
+    };
+    characterSprites.toxin.onerror = function() {
+        console.error('❌ Failed to load Toxin sprite!');
+    };
+    characterSprites.toxin.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifc6wdh2trjrttockgt6p3u7ge7kxvyhahrykrcsp7ygysqxhstry';
+    
+    // Load Chameleon sprite
+    characterSprites.chameleon = new Image();
+    characterSprites.chameleon.crossOrigin = 'anonymous';
+    characterSprites.chameleon.onload = function() {
+        console.log('✅ Chameleon sprite loaded successfully!');
+    };
+    characterSprites.chameleon.onerror = function() {
+        console.error('❌ Failed to load Chameleon sprite!');
+    };
+    characterSprites.chameleon.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeieqrseuye7k5lkr7lgmqvsx62hpwkuj6kubvnt6w3tmku2bvqnkqi';
+    
+    // Load Troub sprite
+    characterSprites.troub = new Image();
+    characterSprites.troub.crossOrigin = 'anonymous';
+    characterSprites.troub.onload = function() {
+        console.log('✅ Troub sprite loaded successfully!');
+    };
+    characterSprites.troub.onerror = function() {
+        console.error('❌ Failed to load Troub sprite!');
+    };
+    characterSprites.troub.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeig6gb566ctnbwxtdhclecnnpdwutqbcg6omnaymv5ateaxbc6aqsm';
+     
+
 }
 
 // Load fire enemy sprite
@@ -810,26 +845,27 @@ function drawBackground() {
          }
      }
      
-     // Draw fade overlay
-    if (fadeAlpha > 0) {
-        ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-    }
+                       // Draw fade overlay
+      if (fadeAlpha > 0) {
+          ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+      }
+
 
 function drawPlayer() {
     if (player.character) {
         // Draw player relative to camera
         const screenX = player.x - cameraX;
         
-        // Draw Origami sprite if available
-        if (player.character.name === 'Origami' && characterSprites.origami && characterSprites.origami.complete) {
+                 // Draw character sprites if available
+         if (player.character.name === 'Origami' && characterSprites.origami && characterSprites.origami.complete) {
             try {
                 ctx.save();
-                if (player.direction === -1) {
+                                if (player.direction === -1) {
                     ctx.scale(-1, 1);
-                    ctx.drawImage(characterSprites.origami, -(screenX + player.width), player.y, player.width, player.height);
+                    ctx.drawImage(characterSprites.origami, -(screenX + 80), player.y, 80, player.height);
                 } else {
-                    ctx.drawImage(characterSprites.origami, screenX, player.y, player.width, player.height);
+                    ctx.drawImage(characterSprites.origami, screenX, player.y, 80, player.height);
                 }
                 ctx.restore();
             } catch (error) {
@@ -838,11 +874,59 @@ function drawPlayer() {
                 ctx.fillStyle = player.character.color;
                 ctx.fillRect(screenX, player.y, player.width, player.height);
             }
-        } else {
-            // Draw colored rectangle for other characters
-            ctx.fillStyle = player.character.color;
-            ctx.fillRect(screenX, player.y, player.width, player.height);
-        }
+         } else if (player.character.name === 'Toxin' && characterSprites.toxin && characterSprites.toxin.complete) {
+             try {
+                 ctx.save();
+                 if (player.direction === -1) {
+                     ctx.scale(-1, 1);
+                     ctx.drawImage(characterSprites.toxin, -(screenX + 80), player.y, 80, player.height);
+                 } else {
+                     ctx.drawImage(characterSprites.toxin, screenX, player.y, 80, player.height);
+                 }
+                 ctx.restore();
+             } catch (error) {
+                 console.error('Error drawing Toxin sprite:', error);
+                 // Fallback to colored rectangle
+                 ctx.fillStyle = player.character.color;
+                 ctx.fillRect(screenX, player.y, player.width, player.height);
+             }
+         } else if (player.character.name === 'Chameleon' && characterSprites.chameleon && characterSprites.chameleon.complete) {
+             try {
+                 ctx.save();
+                 if (player.direction === -1) {
+                     ctx.scale(-1, 1);
+                     ctx.drawImage(characterSprites.chameleon, -(screenX + 80), player.y, 80, player.height);
+                 } else {
+                     ctx.drawImage(characterSprites.chameleon, screenX, player.y, 80, player.height);
+                 }
+                 ctx.restore();
+             } catch (error) {
+                 console.error('Error drawing Chameleon sprite:', error);
+                 // Fallback to colored rectangle
+                 ctx.fillStyle = player.character.color;
+                 ctx.fillRect(screenX, player.y, player.width, player.height);
+             }
+         } else if (player.character.name === 'Troub' && characterSprites.troub && characterSprites.troub.complete) {
+             try {
+                 ctx.save();
+                 if (player.direction === -1) {
+                     ctx.scale(-1, 1);
+                     ctx.drawImage(characterSprites.troub, -(screenX + 80), player.y, 80, player.height);
+                 } else {
+                     ctx.drawImage(characterSprites.troub, screenX, player.y, 80, player.height);
+                 }
+                 ctx.restore();
+             } catch (error) {
+                 console.error('Error drawing Troub sprite:', error);
+                 // Fallback to colored rectangle
+                 ctx.fillStyle = player.character.color;
+                 ctx.fillRect(screenX, player.y, player.width, player.height);
+             }
+         } else {
+             // Draw colored rectangle for other characters
+             ctx.fillStyle = player.character.color;
+             ctx.fillRect(screenX, player.y, player.width, player.height);
+         }
         
                  // Character name hidden
         
@@ -896,14 +980,14 @@ function drawEnemies() {
             if (enemy.type === 'fire' && enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
                 try {
                     ctx.save();
-                    if (enemyDirection === -1) {
-                        // Flip enemy horizontally when facing left
-                        ctx.scale(-1, 1);
-                        ctx.drawImage(enemySprites.fireEnemy, -(screenX + enemy.width), enemy.y, enemy.width, enemy.height);
-                    } else {
-                        // Draw normally when facing right
-                        ctx.drawImage(enemySprites.fireEnemy, screenX, enemy.y, enemy.width, enemy.height);
-                    }
+                                         if (enemyDirection === -1) {
+                         // Flip enemy horizontally when facing left
+                         ctx.scale(-1, 1);
+                         ctx.drawImage(enemySprites.fireEnemy, -(screenX + 80), enemy.y, 80, 60);
+                     } else {
+                         // Draw normally when facing right
+                         ctx.drawImage(enemySprites.fireEnemy, screenX, enemy.y, 80, 60);
+                     }
                     ctx.restore();
                 } catch (error) {
                     console.error('Error drawing fire enemy sprite:', error);
