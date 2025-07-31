@@ -72,9 +72,13 @@ const characters = {
 
 // Background images
 const backgroundImages = {
+    home: null,
     forest: null,
     street: null,
-    castle: null
+    castle: null,
+    island: null,
+    portal: null,
+    hyperspace: null
 };
 
 // Character sprites
@@ -124,6 +128,19 @@ function loadStreetBackground() {
     backgroundImages.street.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigfchrhk27ujz7u6i2w3rfxilyhaypxex2bngfidg6qfieugkvude';
 }
 
+// Load home background
+function loadHomeBackground() {
+    backgroundImages.home = new Image();
+    backgroundImages.home.crossOrigin = 'anonymous';
+    backgroundImages.home.onload = function() {
+        console.log('✅ Home background loaded successfully!');
+    };
+    backgroundImages.home.onerror = function() {
+        console.error('❌ Failed to load home background!');
+    };
+    backgroundImages.home.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeiasucpw4kul7n56zlzfzku7qeuwrboih53uythkzherkpp6btepz4';
+}
+
 // Load castle background
 function loadCastleBackground() {
     backgroundImages.castle = new Image();
@@ -135,6 +152,45 @@ function loadCastleBackground() {
         console.error('❌ Failed to load castle background!');
     };
     backgroundImages.castle.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeib2o437ujwxb24bwe3pofhuhrlfl7v55n56lq3xk6gnzq7phyzlqm';
+}
+
+// Load island background
+function loadIslandBackground() {
+    backgroundImages.island = new Image();
+    backgroundImages.island.crossOrigin = 'anonymous';
+    backgroundImages.island.onload = function() {
+        console.log('✅ Island background loaded successfully!');
+    };
+    backgroundImages.island.onerror = function() {
+        console.error('❌ Failed to load island background!');
+    };
+    backgroundImages.island.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigtlt6xnfngkjiw2drunzx2svc2hawqrarxfz6f7ckdqcdaneenme';
+}
+
+// Load portal background
+function loadPortalBackground() {
+    backgroundImages.portal = new Image();
+    backgroundImages.portal.crossOrigin = 'anonymous';
+    backgroundImages.portal.onload = function() {
+        console.log('✅ Portal background loaded successfully!');
+    };
+    backgroundImages.portal.onerror = function() {
+        console.error('❌ Failed to load portal background!');
+    };
+    backgroundImages.portal.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifxqxu625vivxk4hq7waiucuxbalno6axdxftunboephwyptslksm';
+}
+
+// Load hyperspace background
+function loadHyperspaceBackground() {
+    backgroundImages.hyperspace = new Image();
+    backgroundImages.hyperspace.crossOrigin = 'anonymous';
+    backgroundImages.hyperspace.onload = function() {
+        console.log('✅ Hyperspace background loaded successfully!');
+    };
+    backgroundImages.hyperspace.onerror = function() {
+        console.error('❌ Failed to load hyperspace background!');
+    };
+    backgroundImages.hyperspace.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load Origami sprite
@@ -276,7 +332,7 @@ let fireProjectiles = [];
 
 // Locations with smooth transitions
 const locations = [
-    { name: 'Дом', background: '#8B4513', enemies: [], width: 1200 },
+    { name: 'Дом', background: '#8B4513', enemies: [], width: 1200, hasImage: true },
     { name: 'Лес', background: '#228B22', enemies: [], width: 1200, hasImage: true },
     { name: 'Каменная долина', background: '#696969', enemies: [], width: 1200 },
     { name: 'Замок', background: '#4A4A4A', enemies: [], width: 1200, hasImage: true },
@@ -582,33 +638,30 @@ function updatePlayer() {
 
 // Update camera
 function updateCamera() {
-    // Smooth camera that follows player
-    cameraX = player.x - canvas.width / 2;
-    
-    // Prevent camera from going outside world bounds
-    if (cameraX < 0) {
-        cameraX = 0;
-    }
-    if (cameraX > WORLD_WIDTH - canvas.width) {
-        cameraX = WORLD_WIDTH - canvas.width;
-    }
+    // Camera is fixed to current location
+    const locationStart = gameState.currentLocation * LOCATION_WIDTH;
+    cameraX = locationStart;
 }
 
 // Update UI
 function updateUI() {
-    const locationInfo = document.getElementById('locationInfo');
-    const progressInfo = document.getElementById('progressInfo');
     const healthText = document.getElementById('healthText');
     const healthFill = document.getElementById('healthFill');
-    const scoreInfo = document.getElementById('scoreInfo');
     const abilityInfo = document.getElementById('abilityInfo');
-    const debugInfo = document.getElementById('debugInfo');
+    const abilityFill = document.getElementById('abilityFill');
     
-    if (locationInfo) locationInfo.textContent = `Location: ${locations[gameState.currentLocation]?.name || 'Unknown'}`;
-    if (progressInfo) progressInfo.textContent = `Progress: ${Math.floor((player.x / WORLD_WIDTH) * 100)}%`;
     if (healthText) healthText.textContent = `Health: ${gameState.health}`;
     if (healthFill) healthFill.style.width = `${(gameState.health / 100) * 100}%`;
-    if (scoreInfo) scoreInfo.textContent = `Score: ${gameState.score}`;
+    
+    // Update ability bar
+    if (abilityFill) {
+        if (gameState.abilityReady) {
+            abilityFill.style.width = '100%';
+        } else {
+            const abilityProgress = (gameState.hits / 10) * 100;
+            abilityFill.style.width = `${abilityProgress}%`;
+        }
+    }
     
     if (abilityInfo) {
         if (gameState.gameOver) {
@@ -625,66 +678,93 @@ function updateUI() {
             abilityInfo.style.color = '#ffffff';
         }
     }
-    
-    if (debugInfo) {
-        const keysPressed = Object.keys(keys).filter(key => keys[key]).join(', ');
-        debugInfo.textContent = `Player X: ${Math.floor(player.x)} | Keys: ${keysPressed}`;
-    }
 }
 
 // Draw functions
 function drawBackground() {
-    // Draw all locations with smooth transitions
-    locations.forEach((location, index) => {
-        const locationX = index * LOCATION_WIDTH;
-        const screenX = locationX - cameraX;
+    // Draw only current location
+    const currentLocation = locations[gameState.currentLocation];
+    const locationX = gameState.currentLocation * LOCATION_WIDTH;
+    const screenX = locationX - cameraX;
+    
+    // Draw current location background
+    if (currentLocation) {
+        // Draw background images for specific locations
+        if (currentLocation.name === 'Дом' && currentLocation.hasImage && backgroundImages.home && backgroundImages.home.complete) {
+            try {
+                ctx.drawImage(backgroundImages.home, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing home background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else if (currentLocation.name === 'Лес' && currentLocation.hasImage && backgroundImages.forest && backgroundImages.forest.complete) {
+            try {
+                ctx.drawImage(backgroundImages.forest, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing forest background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else if (currentLocation.name === 'Каменная долина' && backgroundImages.street && backgroundImages.street.complete) {
+            try {
+                ctx.drawImage(backgroundImages.street, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing street background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else if (currentLocation.name === 'Замок' && currentLocation.hasImage && backgroundImages.castle && backgroundImages.castle.complete) {
+            try {
+                ctx.drawImage(backgroundImages.castle, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing castle background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else if (currentLocation.name === 'Остров' && backgroundImages.island && backgroundImages.island.complete) {
+            try {
+                ctx.drawImage(backgroundImages.island, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing island background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else if (currentLocation.name === 'Портал' && backgroundImages.portal && backgroundImages.portal.complete) {
+            try {
+                ctx.drawImage(backgroundImages.portal, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing portal background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else if (currentLocation.name === 'Гиперсити' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+            try {
+                ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+            } catch (error) {
+                console.error('Error drawing hyperspace background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            }
+        } else {
+            // Draw solid color background
+            ctx.fillStyle = currentLocation.background;
+            ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+        }
         
-        // Only draw if location is visible on screen
-        if (screenX < canvas.width && screenX + LOCATION_WIDTH > 0) {
-                         // Draw background images for specific locations
-             if (location.name === 'Лес' && location.hasImage && backgroundImages.forest && backgroundImages.forest.complete) {
-                 try {
-                     ctx.drawImage(backgroundImages.forest, screenX, 0, LOCATION_WIDTH, canvas.height);
-                 } catch (error) {
-                     console.error('Error drawing forest background:', error);
-                     // Fallback to solid color
-                     ctx.fillStyle = location.background;
-                     ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-                 }
-             } else if (location.name === 'Каменная долина' && backgroundImages.street && backgroundImages.street.complete) {
-                 try {
-                     ctx.drawImage(backgroundImages.street, screenX, 0, LOCATION_WIDTH, canvas.height);
-                 } catch (error) {
-                     console.error('Error drawing street background:', error);
-                     // Fallback to solid color
-                     ctx.fillStyle = location.background;
-                     ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-                 }
-             } else if (location.name === 'Замок' && location.hasImage && backgroundImages.castle && backgroundImages.castle.complete) {
-                 try {
-                     ctx.drawImage(backgroundImages.castle, screenX, 0, LOCATION_WIDTH, canvas.height);
-                 } catch (error) {
-                     console.error('Error drawing castle background:', error);
-                     // Fallback to solid color
-                     ctx.fillStyle = location.background;
-                     ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-                 }
-             } else {
-                 // Draw solid color background
-                 ctx.fillStyle = location.background;
-                 ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-             }
-            
-            // Add location name
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 24px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText(location.name, screenX + LOCATION_WIDTH/2, 50);
-            
-                         // Draw portal at the end of each location (except last)
-             if (index < locations.length - 1) {
-                 const portalX = locationX + LOCATION_WIDTH - 60;
-                 const portalScreenX = portalX - cameraX;
+        // Ground hidden
+        
+        // Draw portal at the end of current location (except last)
+        if (gameState.currentLocation < locations.length - 1) {
+            const portalX = locationX + LOCATION_WIDTH - 60;
+            const portalScreenX = portalX - cameraX;
                  
                  // Portal animation
                  const portalPulse = Math.sin(Date.now() * 0.005) * 0.2 + 1;
@@ -727,14 +807,14 @@ function drawBackground() {
                      ctx.strokeRect(portalScreenX, portalY, 80, 120);
                  }
              }
-        }
-    });
-    // Draw fade overlay
+         }
+     }
+     
+     // Draw fade overlay
     if (fadeAlpha > 0) {
         ctx.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
         ctx.fillRect(0,0,canvas.width,canvas.height);
     }
-}
 
 function drawPlayer() {
     if (player.character) {
@@ -961,9 +1041,13 @@ function gameLoop() {
 }
 
 // Start the game
+loadHomeBackground(); // Load home background image
 loadForestBackground(); // Load forest background image
 loadStreetBackground(); // Load street background image
 loadCastleBackground(); // Load castle background image
+loadIslandBackground(); // Load island background image
+loadPortalBackground(); // Load portal background image
+loadHyperspaceBackground(); // Load hyperspace background image
 loadOrigamiSprite(); // Load Origami sprite
 loadFireEnemySprite(); // Load fire enemy sprite
 // Don't initialize enemies at start - they will be added when entering Forest location
