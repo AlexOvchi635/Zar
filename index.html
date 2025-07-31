@@ -45,10 +45,11 @@
             background: rgba(0, 0, 0, 0.8);
             border: 2px solid #4a90e2;
             border-radius: 8px;
-            padding: 10px;
+            padding: 8px;
             color: white;
-            font-size: 14px;
+            font-size: 12px;
             pointer-events: auto;
+            min-width: 180px;
         }
 
         .top-left {
@@ -72,12 +73,29 @@
         }
 
         .health-bar {
-            width: 200px;
-            height: 20px;
+            width: 160px;
+            height: 10px;
             background: #333;
-            border: 2px solid #4a90e2;
-            border-radius: 10px;
+            border: 1px solid #4a90e2;
+            border-radius: 5px;
             overflow: hidden;
+            margin: 2px 0;
+        }
+
+        .ability-bar {
+            width: 160px;
+            height: 10px;
+            background: #333;
+            border: 1px solid #4a90e2;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 2px 0;
+        }
+
+        .ability-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a90e2, #00ffff);
+            transition: width 0.3s ease;
         }
 
         .health-fill {
@@ -201,16 +219,16 @@
         <div id="gameUI" class="ui-overlay" style="display: none;">
             <!-- All UI in Top Left -->
             <div class="ui-panel top-left">
-                <div id="locationInfo">Location: Home</div>
-                <div id="progressInfo">Progress: 0%</div>
-                <div id="scoreInfo">Score: 0</div>
-                <div id="abilityInfo">Ability: Ready</div>
                 <div>Health:</div>
                 <div class="health-bar">
                     <div id="healthFill" class="health-fill" style="width: 100%;"></div>
                 </div>
                 <div id="healthText">Health: 100</div>
-                <div id="debugInfo">Debug info will appear here</div>
+                <div>Ability (E):</div>
+                <div class="ability-bar">
+                    <div id="abilityFill" class="ability-fill" style="width: 0%;"></div>
+                </div>
+                <div id="abilityInfo">Ability: Ready</div>
             </div>
 
 
