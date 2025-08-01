@@ -17,6 +17,25 @@ let gameState = {
     transitioning: false
 };
 
+// Toxin attack animation variables
+let toxinAttackAnimation = {
+    active: false,
+    timer: 0,
+    blinkTimer: 0,
+    visible: false
+};
+
+// Toxin special ability variables
+let toxinSpecialAbility = {
+    active: false,
+    timer: 0,
+    duration: 600 // 10 seconds at 60fps
+};
+
+// Sound variables
+let machineGunSound = null;
+let isMachineGunPlaying = false;
+
 // Player
 let player = {
     x: 100,
@@ -223,7 +242,7 @@ function loadOrigamiSprite() {
     characterSprites.toxin.onerror = function() {
         console.error('❌ Failed to load Toxin sprite!');
     };
-    characterSprites.toxin.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifc6wdh2trjrttockgt6p3u7ge7kxvyhahrykrcsp7ygysqxhstry';
+    characterSprites.toxin.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifb3pet4ecuz3okn4qodvkppz5ts46frbxaipiyo6cuw26kfh7zwi';
     
     // Load Chameleon sprite
     characterSprites.chameleon = new Image();
@@ -274,6 +293,85 @@ function loadArrowSprite() {
         console.error('❌ Failed to load Arrow sprite!');
     };
     arrowSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreibrxc3vvsn6wnjwx2dzwi7rtlr42p53253ve6ad45i4c54lafc7s4';
+}
+
+// Load Toxin attack animation sprite
+let toxinAttackSprite = null;
+function loadToxinAttackSprite() {
+    console.log('🔄 Starting to load Toxin attack sprite...');
+    toxinAttackSprite = new Image();
+    toxinAttackSprite.crossOrigin = 'anonymous';
+    toxinAttackSprite.onload = function() {
+        console.log('✅ Toxin attack sprite loaded successfully!');
+        console.log('Sprite dimensions:', toxinAttackSprite.width, 'x', toxinAttackSprite.height);
+        console.log('Sprite complete status:', toxinAttackSprite.complete);
+    };
+    toxinAttackSprite.onerror = function() {
+        console.error('❌ Failed to load Toxin attack sprite!');
+        console.error('Error details:', toxinAttackSprite.src);
+    };
+    toxinAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreidqafobnux4uyqp3yhi7j5qpa74krpwvqy7jkkz6kvrupevhlx7lu';
+    console.log('🔄 Loading Toxin attack sprite from:', toxinAttackSprite.src);
+    console.log('🔄 Initial complete status:', toxinAttackSprite.complete);
+}
+
+// Load Toxin bullet sprite
+let toxinBulletSprite = null;
+function loadToxinBulletSprite() {
+    toxinBulletSprite = new Image();
+    toxinBulletSprite.crossOrigin = 'anonymous';
+    toxinBulletSprite.onload = function() {
+        console.log('✅ Toxin bullet sprite loaded successfully!');
+    };
+    toxinBulletSprite.onerror = function() {
+        console.error('❌ Failed to load Toxin bullet sprite!');
+    };
+    toxinBulletSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiccmzsystm4q3sxxkieul3mvsxq7bgr4e27o6qapxyvh4cocw7aze';
+}
+
+function loadMachineGunSound() {
+    machineGunSound = new Audio();
+    
+    // Загружаем твой звук выстрела
+    machineGunSound.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreig2td5p4mjp5jje6fop6cz7xgxln2zzbfhk77aeylrqadeuoumnl4';
+    
+    machineGunSound.volume = 0.7;
+    machineGunSound.preload = 'auto';
+    machineGunSound.loop = true; // Зацикливаем звук
+    
+    // Добавляем обработчики
+    machineGunSound.addEventListener('canplaythrough', function() {
+        console.log('✅ Звук автомата загружен успешно!');
+    });
+    
+    machineGunSound.addEventListener('error', function(e) {
+        console.log('❌ Ошибка загрузки звука:', e);
+        createBeepSound(); // Fallback если не загрузился
+    });
+    
+    // Загружаем звук
+    machineGunSound.load();
+}
+
+function createBeepSound() {
+    console.log('🔄 Creating fallback beep sound...');
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.type = 'square';
+    
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+    
+    console.log('🔊 Fallback beep sound created!');
 }
 
 // Enemy class
@@ -429,10 +527,33 @@ class BlueSphereProjectile {
     }
 }
 
+class ToxinProjectile {
+    constructor(x, y, velocityX, velocityY) {
+        this.x = x;
+        this.y = y;
+        this.width = 16;
+        this.height = 8;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.damage = 9; // Half of Troub's arrow damage (18/2)
+        this.speed = 10; // Faster than Troub's arrows (8)
+    }
+    
+    update() {
+        this.x += this.velocityX * this.speed;
+        this.y += this.velocityY * this.speed;
+    }
+    
+    isOffScreen() {
+        return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
 // Global arrays for enemies and projectiles
 let enemies = [];
 let fireProjectiles = [];
 let arrowProjectiles = [];
+let toxinProjectiles = [];
 
 // Locations with smooth transitions
 const locations = [
@@ -484,6 +605,16 @@ document.addEventListener('keydown', (e) => {
 
 document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
+    
+    // Stop machine gun sound when spacebar is released
+    if (e.code === 'Space' && player.character && player.character.name === 'Toxin' && isMachineGunPlaying) {
+        if (machineGunSound) {
+            machineGunSound.pause();
+            machineGunSound.currentTime = 0;
+        }
+        isMachineGunPlaying = false;
+        console.log('🔇 Machine gun sound stopped!');
+    }
 });
 
 // Mouse click handling
@@ -512,6 +643,16 @@ document.addEventListener('click', (e) => {
 // Character selection
 function selectCharacter(characterKey) {
     if (characters[characterKey]) {
+        // Stop machine gun sound if switching from Toxin
+        if (player.character && player.character.name === 'Toxin' && isMachineGunPlaying) {
+            if (machineGunSound) {
+                machineGunSound.pause();
+                machineGunSound.currentTime = 0;
+            }
+            isMachineGunPlaying = false;
+            console.log('🔇 Machine gun sound stopped on character switch!');
+        }
+        
         player.character = characters[characterKey];
         gameState.currentScreen = 'game';
         document.getElementById('characterSelect').style.display = 'none';
@@ -521,13 +662,15 @@ function selectCharacter(characterKey) {
 
 // Attack function
 function attack() {
-                        if (!player.character || player.attackCooldown > 0 || gameState.gameOver) return;
+    if (!player.character || player.attackCooldown > 0 || gameState.gameOver) return;
 
                     player.attacking = true;
                     
                     // Different cooldown for ranged vs melee characters
-                    if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
-                        player.attackCooldown = 30; // 0.5 seconds (30 frames at 60 FPS) for ranged characters
+                    if (player.character.name === 'Toxin') {
+                        player.attackCooldown = 15; // 0.25 seconds (15 frames at 60 FPS) - twice as fast as Troub
+                    } else if (player.character.name === 'Troub') {
+                        player.attackCooldown = 30; // 0.5 seconds (30 frames at 60 FPS) for Troub
                     } else {
                         player.attackCooldown = 15; // Normal cooldown for melee characters
                     }
@@ -593,6 +736,40 @@ function attack() {
         arrowProjectiles.push(new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY));
     }
     
+                    // Create toxin projectile for Toxin
+                if (player.character.name === 'Toxin') {
+                    console.log('🎯 Toxin attack triggered - Direction:', player.direction);
+                    // Position bullet to come from the center of the fire animation - higher position
+                    const toxinX = player.x + (player.direction > 0 ? player.width : 0);
+                    const toxinY = player.y + player.height / 2 + 6.5; // Raised by 3.5 pixels higher
+                    const toxinVelocityX = player.direction;
+                    const toxinVelocityY = 0;
+                    
+                    toxinProjectiles.push(new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY));
+                    console.log('💥 Toxin projectile created at:', toxinX, toxinY, 'Velocity:', toxinVelocityX);
+                    
+                    // Start machine gun sound (if not already playing)
+                    if (machineGunSound && machineGunSound.readyState >= 2 && !isMachineGunPlaying) {
+                        machineGunSound.currentTime = 0;
+                        machineGunSound.play().catch(e => {
+                            console.log('Sound play failed:', e);
+                            createBeepSound(); // Use fallback if main sound fails
+                        });
+                        isMachineGunPlaying = true;
+                        console.log('🔫 Machine gun sound started!');
+                    } else if (!machineGunSound || machineGunSound.readyState < 2) {
+                        console.log('⚠️ Machine gun sound not ready, using fallback');
+                        createBeepSound(); // Use fallback beep sound
+                    }
+                    
+                    // Activate attack animation
+                    toxinAttackAnimation.active = true;
+                    toxinAttackAnimation.timer = 15; // 0.25 seconds at 60fps
+                    toxinAttackAnimation.blinkTimer = 0;
+                    toxinAttackAnimation.visible = true;
+                    console.log('🎯 Toxin attack animation activated - Direction:', player.direction, 'Active:', toxinAttackAnimation.active, 'Visible:', toxinAttackAnimation.visible);
+                }
+    
     // Check for enemy hits based on character type
     if (gameState.currentLocation === 1) { // Only on Forest location (second location)
         enemies.forEach(enemy => {
@@ -610,19 +787,8 @@ function attack() {
                         }
                     }
                 }
-            } else if (player.character.name === 'Toxin') {
-                // Ranged attack - longer range (Toxin only, Troub uses arrows)
-                if (dx < 300 && dy < 100) {
-                    enemy.health -= player.character.attackDamage;
-                    if (enemy.health <= 0) {
-                        const index = enemies.indexOf(enemy);
-                        if (index > -1) {
-                            enemies.splice(index, 1);
-                        }
-                    }
-                }
             }
-            // Troub damage is handled by arrow projectiles in updatePlayer()
+            // Troub and Toxin damage is handled by projectiles in updatePlayer()
         });
     }
     
@@ -642,6 +808,12 @@ function useSpecialAbility() {
         gameState.abilityActive = true;
         gameState.hits = 0;
         gameState.abilityTimer = 120; // 2 seconds at 60fps
+    } else if (player.character.name === 'Toxin') {
+        // Toxin's special ability: 10 seconds of invincibility
+        gameState.abilityReady = false;
+        gameState.hits = 0;
+        toxinSpecialAbility.active = true;
+        toxinSpecialAbility.timer = toxinSpecialAbility.duration;
     } else {
         // Default dash ability for other characters
         gameState.abilityReady = false;
@@ -676,9 +848,28 @@ function restartGame() {
     gameState.transitioning = false;
     fireProjectiles = [];
     arrowProjectiles = [];
+    toxinProjectiles = [];
     blueSphereProjectiles = [];
     enemies = [];
     friendlyEnemies = [];
+    
+    // Reset toxin attack animation
+    toxinAttackAnimation.active = false;
+    toxinAttackAnimation.timer = 0;
+    toxinAttackAnimation.blinkTimer = 0;
+    toxinAttackAnimation.visible = false;
+    
+    // Reset toxin special ability
+    toxinSpecialAbility.active = false;
+    toxinSpecialAbility.timer = 0;
+    
+    // Stop machine gun sound
+    if (machineGunSound && isMachineGunPlaying) {
+        machineGunSound.pause();
+        machineGunSound.currentTime = 0;
+        isMachineGunPlaying = false;
+        console.log('🔇 Machine gun sound stopped on restart!');
+    }
 }
 
 // Camera system
@@ -773,6 +964,36 @@ function updatePlayer() {
     if (player.attackCooldown > 0) player.attackCooldown--;
     if (gameState.abilityTimer > 0) gameState.abilityTimer--;
     
+                    // Update toxin attack animation
+                if (toxinAttackAnimation.active) {
+                    toxinAttackAnimation.timer--;
+                    toxinAttackAnimation.blinkTimer++;
+                    
+                    // Blink every 5 frames (0.083 seconds)
+                    if (toxinAttackAnimation.blinkTimer >= 5) {
+                        toxinAttackAnimation.visible = !toxinAttackAnimation.visible;
+                        toxinAttackAnimation.blinkTimer = 0;
+                        console.log('💫 Toxin animation blink - Visible:', toxinAttackAnimation.visible, 'Timer:', toxinAttackAnimation.timer);
+                    }
+                    
+                    // Deactivate animation when timer expires
+                    if (toxinAttackAnimation.timer <= 0) {
+                        toxinAttackAnimation.active = false;
+                        toxinAttackAnimation.visible = false;
+                        console.log('⏰ Toxin animation expired');
+                    }
+                    
+                    console.log('🔄 Toxin animation update - Timer:', toxinAttackAnimation.timer, 'BlinkTimer:', toxinAttackAnimation.blinkTimer, 'Visible:', toxinAttackAnimation.visible);
+                }
+                
+                // Update toxin special ability
+                if (toxinSpecialAbility.active) {
+                    toxinSpecialAbility.timer--;
+                    if (toxinSpecialAbility.timer <= 0) {
+                        toxinSpecialAbility.active = false;
+                    }
+                }
+    
     // Update current location
     gameState.currentLocation = Math.floor(player.x / LOCATION_WIDTH);
     
@@ -780,12 +1001,15 @@ function updatePlayer() {
     enemies.forEach(enemy => {
         const attackResult = enemy.attack(player);
         if (attackResult.damage > 0) {
-            gameState.health -= attackResult.damage;
-            
-            // Check if player is dead
-            if (gameState.health <= 0) {
-                gameState.health = 0;
-                gameState.gameOver = true;
+            // Check if Toxin is in special ability mode (invincible)
+            if (!(player.character.name === 'Toxin' && toxinSpecialAbility.active)) {
+                gameState.health -= attackResult.damage;
+                
+                // Check if player is dead
+                if (gameState.health <= 0) {
+                    gameState.health = 0;
+                    gameState.gameOver = true;
+                }
             }
             
             // Create fire projectile aimed at player
@@ -810,12 +1034,15 @@ function updatePlayer() {
             projectile.x + projectile.width > player.x &&
             projectile.y < player.y + player.height &&
             projectile.y + projectile.height > player.y) {
-            gameState.health -= projectile.damage;
-            
-            // Check if player is dead
-            if (gameState.health <= 0) {
-                gameState.health = 0;
-                gameState.gameOver = true;
+            // Check if Toxin is in special ability mode (invincible)
+            if (!(player.character.name === 'Toxin' && toxinSpecialAbility.active)) {
+                gameState.health -= projectile.damage;
+                
+                // Check if player is dead
+                if (gameState.health <= 0) {
+                    gameState.health = 0;
+                    gameState.gameOver = true;
+                }
             }
             
             fireProjectiles.splice(index, 1);
@@ -853,6 +1080,35 @@ function updatePlayer() {
         // Remove off-screen projectiles
         if (projectile.isOffScreen()) {
             arrowProjectiles.splice(index, 1);
+        }
+    });
+    
+    // Update toxin projectiles
+    toxinProjectiles.forEach((projectile, index) => {
+        projectile.update();
+        
+        // Check collision with enemies (only on Forest location)
+        if (gameState.currentLocation === 1) {
+            enemies.forEach(enemy => {
+                if (projectile.x < enemy.x + enemy.width &&
+                    projectile.x + projectile.width > enemy.x &&
+                    projectile.y < enemy.y + enemy.height &&
+                    projectile.y + projectile.height > enemy.y) {
+                    enemy.health -= projectile.damage;
+                    if (enemy.health <= 0) {
+                        const enemyIndex = enemies.indexOf(enemy);
+                        if (enemyIndex > -1) {
+                            enemies.splice(enemyIndex, 1);
+                        }
+                    }
+                    toxinProjectiles.splice(index, 1);
+                }
+            });
+        }
+        
+        // Remove off-screen projectiles
+        if (projectile.isOffScreen()) {
+            toxinProjectiles.splice(index, 1);
         }
     });
     
@@ -1128,6 +1384,12 @@ function drawPlayer() {
          } else if (player.character.name === 'Toxin' && characterSprites.toxin && characterSprites.toxin.complete) {
              try {
                  ctx.save();
+                 
+                 // Apply black and white effect if special ability is active
+                 if (toxinSpecialAbility.active) {
+                     ctx.filter = 'grayscale(100%)';
+                 }
+                 
                  if (player.direction === -1) {
                      ctx.scale(-1, 1);
                      ctx.drawImage(characterSprites.toxin, -(screenX + 80), player.y, 80, player.height);
@@ -1138,7 +1400,7 @@ function drawPlayer() {
              } catch (error) {
                  console.error('Error drawing Toxin sprite:', error);
                  // Fallback to colored rectangle
-                 ctx.fillStyle = player.character.color;
+                 ctx.fillStyle = toxinSpecialAbility.active ? '#808080' : player.character.color;
                  ctx.fillRect(screenX, player.y, player.width, player.height);
              }
          } else if (player.character.name === 'Chameleon' && characterSprites.chameleon && characterSprites.chameleon.complete) {
@@ -1455,6 +1717,67 @@ function drawArrowProjectiles() {
     });
 }
 
+function drawToxinProjectiles() {
+    toxinProjectiles.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        
+        // Only draw if projectile is visible on screen
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            // Draw toxin bullet sprite if available
+            if (toxinBulletSprite && toxinBulletSprite.complete) {
+                try {
+                    ctx.save();
+                    // Flip bullet based on direction
+                    if (projectile.velocityX < 0) {
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(toxinBulletSprite, -(screenX + projectile.width), projectile.y, projectile.width, projectile.height);
+                    } else {
+                        ctx.drawImage(toxinBulletSprite, screenX, projectile.y, projectile.width, projectile.height);
+                    }
+                    ctx.restore();
+                } catch (error) {
+                    console.error('Error drawing toxin bullet sprite:', error);
+                    // Fallback to colored rectangle
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
+                }
+            } else {
+                // Fallback to colored rectangle
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
+            }
+        }
+    });
+}
+
+function drawToxinAttackAnimation() {
+    // RADICAL DEBUG: Always draw fire animation for Toxin character
+    if (player.character && player.character.name === 'Toxin') {
+        const screenX = player.x - cameraX;
+        const testY = player.y + player.height / 2 + 5;
+        const testX = player.direction > 0 ? screenX + player.width + 25 : screenX - 15;
+        
+        // Draw fire animation instead of lime rectangle with blinking
+        if (toxinAttackSprite && toxinAttackSprite.complete && toxinAttackAnimation.visible) {
+            const fireWidth = player.direction > 0 ? 30 : 30; // 30 pixels for both sides
+            if (player.direction > 0) {
+                // Facing right - flip the sprite horizontally
+                ctx.save();
+                ctx.scale(-1, 1);
+                ctx.drawImage(toxinAttackSprite, -testX - fireWidth, testY, fireWidth, 15);
+                ctx.restore();
+            } else {
+                // Facing left - normal sprite
+                ctx.drawImage(toxinAttackSprite, testX, testY, fireWidth, 15);
+            }
+        } else if (!toxinAttackSprite || !toxinAttackSprite.complete) {
+            const fireWidth = player.direction > 0 ? 30 : 30; // 30 pixels for both sides
+            ctx.fillStyle = 'lime';
+            ctx.fillRect(testX, testY, fireWidth, 15);
+        }
+    }
+}
+
 function drawBlueSphereProjectiles() {
     blueSphereProjectiles.forEach(projectile => {
         const screenX = projectile.x - cameraX;
@@ -1536,6 +1859,10 @@ function gameLoop() {
         drawFriendlyEnemies();
         drawFireProjectiles();
         drawArrowProjectiles();
+        drawToxinProjectiles();
+        console.log('🎮 About to call drawToxinAttackAnimation');
+        drawToxinAttackAnimation();
+        console.log('🎮 drawToxinAttackAnimation called');
         drawBlueSphereProjectiles();
         drawPlayer();
         
@@ -1587,6 +1914,9 @@ loadHyperspaceBackground(); // Load hyperspace background image
 loadOrigamiSprite(); // Load Origami sprite
 loadFireEnemySprite(); // Load fire enemy sprite
 loadArrowSprite(); // Load arrow sprite for Troub
+loadToxinAttackSprite(); // Load Toxin attack animation sprite
+loadToxinBulletSprite(); // Load Toxin bullet sprite
+loadMachineGunSound(); // Load machine gun sound
 // Don't initialize enemies at start - they will be added when entering Forest location
 gameLoop();
 
