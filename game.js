@@ -94,6 +94,12 @@ const enemySprites = {
 // Arrow sprite for Troub
 let arrowSprite = null;
 
+// Friendly enemies array
+let friendlyEnemies = [];
+
+// Blue sphere projectiles for friendly enemies
+let blueSphereProjectiles = [];
+
 // Portal sprite
 const portalSprite = new Image();
 portalSprite.crossOrigin = 'anonymous';
@@ -289,6 +295,8 @@ class Enemy {
         this.targetY = y;
         this.changeDirectionTimer = 0;
         this.aimAtPlayer = false;
+        this.friendly = false;
+        this.glowTimer = 0;
     }
     
     update(player) {
@@ -387,6 +395,28 @@ class ArrowProjectile {
         this.velocityY = velocityY;
         this.damage = 18;
         this.speed = 8; // Moderate speed for interesting gameplay
+    }
+    
+    update() {
+        this.x += this.velocityX * this.speed;
+        this.y += this.velocityY * this.speed;
+    }
+    
+    isOffScreen() {
+        return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
+class BlueSphereProjectile {
+    constructor(x, y, velocityX, velocityY) {
+        this.x = x;
+        this.y = y;
+        this.width = 20;
+        this.height = 20;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.damage = 8;
+        this.speed = 6;
     }
     
     update() {
@@ -502,20 +532,53 @@ function attack() {
                         player.attackCooldown = 15; // Normal cooldown for melee characters
                     }
     
-    // Check if special ability is active for dash attack
+    // Check if special ability is active
     if (gameState.abilityActive) {
-        // Dash forward with triple damage
-        const dashDistance = 100;
-        const dashDirection = player.direction;
-        player.x += dashDistance * dashDirection;
-        
-        // Keep player within world bounds
-        if (player.x < 0) player.x = 0;
-        if (player.x > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
-        
-        gameState.score += 30; // Triple damage
-        gameState.abilityActive = false; // Deactivate after use
-        gameState.abilityTimer = 0;
+        if (player.character.name === 'Troub') {
+            // Troub's special ability: convert closest enemy to friendly
+            let closestEnemy = null;
+            let closestDistance = Infinity;
+            
+            enemies.forEach(enemy => {
+                if (!enemy.friendly) {
+                    const dx = player.x - enemy.x;
+                    const dy = player.y - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestEnemy = enemy;
+                    }
+                }
+            });
+            
+            if (closestEnemy) {
+                closestEnemy.friendly = true;
+                friendlyEnemies.push(closestEnemy);
+                
+                // Remove from enemies array
+                const index = enemies.indexOf(closestEnemy);
+                if (index > -1) {
+                    enemies.splice(index, 1);
+                }
+            }
+            
+            gameState.abilityActive = false;
+            gameState.abilityTimer = 0;
+        } else {
+            // Default dash ability for other characters
+            const dashDistance = 100;
+            const dashDirection = player.direction;
+            player.x += dashDistance * dashDirection;
+            
+            // Keep player within world bounds
+            if (player.x < 0) player.x = 0;
+            if (player.x > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
+            
+            gameState.score += 30; // Triple damage
+            gameState.abilityActive = false; // Deactivate after use
+            gameState.abilityTimer = 0;
+        }
     } else {
         gameState.score += 10;
     }
@@ -547,8 +610,8 @@ function attack() {
                         }
                     }
                 }
-            } else if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
-                // Ranged attack - longer range
+            } else if (player.character.name === 'Toxin') {
+                // Ranged attack - longer range (Toxin only, Troub uses arrows)
                 if (dx < 300 && dy < 100) {
                     enemy.health -= player.character.attackDamage;
                     if (enemy.health <= 0) {
@@ -559,6 +622,7 @@ function attack() {
                     }
                 }
             }
+            // Troub damage is handled by arrow projectiles in updatePlayer()
         });
     }
     
@@ -571,10 +635,20 @@ function attack() {
 // Special ability
 function useSpecialAbility() {
     if (!gameState.abilityReady || !player.character) return;
-    gameState.abilityReady = false;
-    gameState.abilityActive = true;
-    gameState.hits = 0;
-    gameState.abilityTimer = 120; // 2 seconds at 60fps
+    
+    if (player.character.name === 'Troub') {
+        // Troub's special ability: convert enemy to friendly
+        gameState.abilityReady = false;
+        gameState.abilityActive = true;
+        gameState.hits = 0;
+        gameState.abilityTimer = 120; // 2 seconds at 60fps
+    } else {
+        // Default dash ability for other characters
+        gameState.abilityReady = false;
+        gameState.abilityActive = true;
+        gameState.hits = 0;
+        gameState.abilityTimer = 120; // 2 seconds at 60fps
+    }
 }
 
 // Initialize enemies for Forest location
@@ -602,7 +676,9 @@ function restartGame() {
     gameState.transitioning = false;
     fireProjectiles = [];
     arrowProjectiles = [];
+    blueSphereProjectiles = [];
     enemies = [];
+    friendlyEnemies = [];
 }
 
 // Camera system
@@ -784,6 +860,56 @@ function updatePlayer() {
     enemies.forEach(enemy => {
         enemy.update(player);
     });
+    
+    // Update friendly enemies
+    friendlyEnemies.forEach(friendlyEnemy => {
+        friendlyEnemy.update(player);
+        friendlyEnemy.glowTimer++;
+        
+        // Friendly enemies attack other enemies
+        enemies.forEach(enemy => {
+            const dx = enemy.x - friendlyEnemy.x;
+            const dy = enemy.y - friendlyEnemy.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < friendlyEnemy.attackRange && friendlyEnemy.attackCooldown === 0) {
+                friendlyEnemy.attackCooldown = 60; // 1 second at 60fps
+                
+                // Create blue sphere projectile
+                const projectileSpeed = 5;
+                const velocityX = (dx / distance) * projectileSpeed;
+                const velocityY = (dy / distance) * projectileSpeed;
+                blueSphereProjectiles.push(new BlueSphereProjectile(friendlyEnemy.x, friendlyEnemy.y, velocityX, velocityY));
+            }
+        });
+    });
+    
+    // Update blue sphere projectiles
+    blueSphereProjectiles.forEach((projectile, index) => {
+        projectile.update();
+        
+        // Check collision with enemies
+        enemies.forEach(enemy => {
+            if (projectile.x < enemy.x + enemy.width &&
+                projectile.x + projectile.width > enemy.x &&
+                projectile.y < enemy.y + enemy.height &&
+                projectile.y + projectile.height > enemy.y) {
+                enemy.health -= projectile.damage;
+                if (enemy.health <= 0) {
+                    const enemyIndex = enemies.indexOf(enemy);
+                    if (enemyIndex > -1) {
+                        enemies.splice(enemyIndex, 1);
+                    }
+                }
+                blueSphereProjectiles.splice(index, 1);
+            }
+        });
+        
+        // Remove off-screen projectiles
+        if (projectile.isOffScreen()) {
+            blueSphereProjectiles.splice(index, 1);
+        }
+    });
 
 
 }
@@ -820,10 +946,18 @@ function updateUI() {
             abilityInfo.textContent = 'GAME OVER';
             abilityInfo.style.color = '#ff0000';
         } else if (gameState.abilityReady) {
-            abilityInfo.textContent = 'SPECIAL READY!';
+            if (player.character && player.character.name === 'Troub') {
+                abilityInfo.textContent = 'CONVERT READY!';
+            } else {
+                abilityInfo.textContent = 'SPECIAL READY!';
+            }
             abilityInfo.style.color = '#ffff00';
         } else if (gameState.abilityActive) {
-            abilityInfo.textContent = 'DASH READY!';
+            if (player.character && player.character.name === 'Troub') {
+                abilityInfo.textContent = 'CONVERT ACTIVE!';
+            } else {
+                abilityInfo.textContent = 'DASH READY!';
+            }
             abilityInfo.style.color = '#00ffff';
         } else {
             abilityInfo.textContent = 'Ability: Ready';
@@ -1151,6 +1285,75 @@ function drawEnemies() {
     });
 }
 
+        function drawFriendlyEnemies() {
+            friendlyEnemies.forEach(friendlyEnemy => {
+                const screenX = friendlyEnemy.x - cameraX;
+                
+                // Only draw if friendly enemy is visible on screen
+                if (screenX > -friendlyEnemy.width && screenX < canvas.width) {
+                    // Determine enemy direction based on player position
+                    const enemyDirection = player.x > friendlyEnemy.x ? 1 : -1;
+                    
+                    // Draw friendly enemy sprite (same as regular enemy but with blue tint)
+                    if (friendlyEnemy.type === 'fire' && enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
+                        try {
+                            ctx.save();
+                            ctx.globalAlpha = 0.8;
+                            ctx.filter = 'hue-rotate(180deg)'; // Blue tint
+                            
+                            if (enemyDirection === -1) {
+                                // Flip enemy horizontally when facing left
+                                ctx.scale(-1, 1);
+                                ctx.drawImage(enemySprites.fireEnemy, -(screenX + 80), friendlyEnemy.y, 80, 60);
+                            } else {
+                                // Draw normally when facing right
+                                ctx.drawImage(enemySprites.fireEnemy, screenX, friendlyEnemy.y, 80, 60);
+                            }
+                            ctx.restore();
+                        } catch (error) {
+                            console.error('Error drawing friendly enemy sprite:', error);
+                            // Fallback to blue fire ball
+                            drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
+                        }
+                    } else {
+                        // Fallback to blue fire ball
+                        drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
+                    }
+                }
+            });
+        }
+
+function drawBlueFireBall(screenX, y, width, height) {
+    // Outer glow
+    ctx.fillStyle = 'rgba(0, 100, 255, 0.3)';
+    ctx.beginPath();
+    ctx.arc(screenX + width/2, y + height/2, width/2 + 5, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Main blue fire ball
+    ctx.fillStyle = '#0066ff';
+    ctx.beginPath();
+    ctx.arc(screenX + width/2, y + height/2, width/2, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Inner blue core
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.arc(screenX + width/2, y + height/2, width/3, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Blue particles effect
+    for (let i = 0; i < 3; i++) {
+        const angle = (Date.now() / 100 + i * 120) * Math.PI / 180;
+        const particleX = screenX + width/2 + Math.cos(angle) * (width/2 + 3);
+        const particleY = y + height/2 + Math.sin(angle) * (width/2 + 3);
+        ctx.fillStyle = '#00aaff';
+        ctx.beginPath();
+        ctx.arc(particleX, particleY, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
 function drawAnimatedFireBall(screenX, y, width, height) {
     // Outer glow
     ctx.fillStyle = 'rgba(255, 100, 0, 0.3)';
@@ -1252,6 +1455,43 @@ function drawArrowProjectiles() {
     });
 }
 
+function drawBlueSphereProjectiles() {
+    blueSphereProjectiles.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        
+        // Only draw if projectile is visible on screen
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            // Draw blue sphere projectile with glow effect
+            ctx.fillStyle = 'rgba(0, 100, 255, 0.4)';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2 + 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Main blue sphere
+            ctx.fillStyle = '#0066ff';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner blue core
+            ctx.fillStyle = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Blue trail particles
+            for (let i = 0; i < 2; i++) {
+                const trailX = screenX - projectile.velocityX * (i + 1) * 0.5;
+                const trailY = projectile.y - projectile.velocityY * (i + 1) * 0.5;
+                ctx.fillStyle = `rgba(0, 170, 255, ${0.6 - i * 0.3})`;
+                ctx.beginPath();
+                ctx.arc(trailX + projectile.width/2, trailY + projectile.height/2, 3 - i, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    });
+}
+
 function drawSplashScreen() {
     ctx.fillStyle = '#2d5a3d';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1293,8 +1533,10 @@ function gameLoop() {
         updateUI();
         drawBackground();
         drawEnemies();
+        drawFriendlyEnemies();
         drawFireProjectiles();
         drawArrowProjectiles();
+        drawBlueSphereProjectiles();
         drawPlayer();
         
         // Draw game over screen if player is dead
