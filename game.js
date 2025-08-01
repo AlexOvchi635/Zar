@@ -91,6 +91,9 @@ const enemySprites = {
     fireEnemy: null
 };
 
+// Arrow sprite for Troub
+let arrowSprite = null;
+
 // Portal sprite
 const portalSprite = new Image();
 portalSprite.crossOrigin = 'anonymous';
@@ -254,6 +257,19 @@ function loadFireEnemySprite() {
     enemySprites.fireEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeidrxvgd47fxr4x275tgj2q6lxboovbobd6hjejrdedolrr444gzpa';
 }
 
+// Load arrow sprite for Troub
+function loadArrowSprite() {
+    arrowSprite = new Image();
+    arrowSprite.crossOrigin = 'anonymous';
+    arrowSprite.onload = function() {
+        console.log('✅ Arrow sprite loaded successfully!');
+    };
+    arrowSprite.onerror = function() {
+        console.error('❌ Failed to load Arrow sprite!');
+    };
+    arrowSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreibrxc3vvsn6wnjwx2dzwi7rtlr42p53253ve6ad45i4c54lafc7s4';
+}
+
 // Enemy class
 class Enemy {
     constructor(x, y, type) {
@@ -361,9 +377,32 @@ class FireProjectile {
     }
 }
 
+class ArrowProjectile {
+    constructor(x, y, velocityX, velocityY) {
+        this.x = x;
+        this.y = y;
+        this.width = 40; // Increased from 20
+        this.height = 16; // Increased from 8
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.damage = 18;
+        this.speed = 8; // Moderate speed for interesting gameplay
+    }
+    
+    update() {
+        this.x += this.velocityX * this.speed;
+        this.y += this.velocityY * this.speed;
+    }
+    
+    isOffScreen() {
+        return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
 // Global arrays for enemies and projectiles
 let enemies = [];
 let fireProjectiles = [];
+let arrowProjectiles = [];
 
 // Locations with smooth transitions
 const locations = [
@@ -452,10 +491,16 @@ function selectCharacter(characterKey) {
 
 // Attack function
 function attack() {
-    if (!player.character || player.attackCooldown > 0 || gameState.gameOver) return;
-    
-    player.attacking = true;
-    player.attackCooldown = 15;
+                        if (!player.character || player.attackCooldown > 0 || gameState.gameOver) return;
+
+                    player.attacking = true;
+                    
+                    // Different cooldown for ranged vs melee characters
+                    if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
+                        player.attackCooldown = 30; // 0.5 seconds (30 frames at 60 FPS) for ranged characters
+                    } else {
+                        player.attackCooldown = 15; // Normal cooldown for melee characters
+                    }
     
     // Check if special ability is active for dash attack
     if (gameState.abilityActive) {
@@ -473,6 +518,48 @@ function attack() {
         gameState.abilityTimer = 0;
     } else {
         gameState.score += 10;
+    }
+    
+    // Create arrow projectile for Troub
+    if (player.character.name === 'Troub') {
+        const arrowX = player.x + (player.direction > 0 ? player.width : 0);
+        const arrowY = player.y + player.height / 2;
+        const arrowVelocityX = player.direction;
+        const arrowVelocityY = 0;
+        
+        arrowProjectiles.push(new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY));
+    }
+    
+    // Check for enemy hits based on character type
+    if (gameState.currentLocation === 1) { // Only on Forest location (second location)
+        enemies.forEach(enemy => {
+            const dx = Math.abs(player.x - enemy.x);
+            const dy = Math.abs(player.y - enemy.y);
+            
+            if (player.character.name === 'Origami' || player.character.name === 'Chameleon') {
+                // Melee attack - close range
+                if (dx < 100 && dy < 80) {
+                    enemy.health -= player.character.attackDamage;
+                    if (enemy.health <= 0) {
+                        const index = enemies.indexOf(enemy);
+                        if (index > -1) {
+                            enemies.splice(index, 1);
+                        }
+                    }
+                }
+            } else if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
+                // Ranged attack - longer range
+                if (dx < 300 && dy < 100) {
+                    enemy.health -= player.character.attackDamage;
+                    if (enemy.health <= 0) {
+                        const index = enemies.indexOf(enemy);
+                        if (index > -1) {
+                            enemies.splice(index, 1);
+                        }
+                    }
+                }
+            }
+        });
     }
     
     gameState.hits++;
@@ -514,6 +601,7 @@ function restartGame() {
     gameState.currentLocation = 0;
     gameState.transitioning = false;
     fireProjectiles = [];
+    arrowProjectiles = [];
     enemies = [];
 }
 
@@ -660,6 +748,35 @@ function updatePlayer() {
         // Remove off-screen projectiles
         if (projectile.isOffScreen()) {
             fireProjectiles.splice(index, 1);
+        }
+    });
+    
+    // Update arrow projectiles
+    arrowProjectiles.forEach((projectile, index) => {
+        projectile.update();
+        
+        // Check collision with enemies (only on Forest location)
+        if (gameState.currentLocation === 1) {
+            enemies.forEach(enemy => {
+                if (projectile.x < enemy.x + enemy.width &&
+                    projectile.x + projectile.width > enemy.x &&
+                    projectile.y < enemy.y + enemy.height &&
+                    projectile.y + projectile.height > enemy.y) {
+                    enemy.health -= projectile.damage;
+                    if (enemy.health <= 0) {
+                        const enemyIndex = enemies.indexOf(enemy);
+                        if (enemyIndex > -1) {
+                            enemies.splice(enemyIndex, 1);
+                        }
+                    }
+                    arrowProjectiles.splice(index, 1);
+                }
+            });
+        }
+        
+        // Remove off-screen projectiles
+        if (projectile.isOffScreen()) {
+            arrowProjectiles.splice(index, 1);
         }
     });
     
@@ -953,14 +1070,29 @@ function drawPlayer() {
                     ctx.stroke();
                 }
             } else {
-                // Draw normal attack
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
-                const attackX = screenX + (player.direction > 0 ? player.width : -player.character.attackRange);
-                ctx.beginPath();
-                ctx.moveTo(screenX + player.width/2, player.y + player.height/2);
-                ctx.lineTo(attackX, player.y + player.height/2);
-                ctx.stroke();
+                // Draw different attack effects based on character
+                if (player.character.name === 'Origami' || player.character.name === 'Chameleon') {
+                    // Melee attack - solid line
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 4;
+                    const attackX = screenX + (player.direction > 0 ? player.width + 80 : -80);
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + player.width/2, player.y + player.height/2);
+                    ctx.lineTo(attackX, player.y + player.height/2);
+                    ctx.stroke();
+                } else if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
+                    // Ranged attack - no visual effect (removed dashed line)
+                    // Attack logic is handled in the attack() function for arrow creation
+                } else {
+                    // Default attack
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 3;
+                    const attackX = screenX + (player.direction > 0 ? player.width : -player.character.attackRange);
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + player.width/2, player.y + player.height/2);
+                    ctx.lineTo(attackX, player.y + player.height/2);
+                    ctx.stroke();
+                }
             }
             player.attacking = false;
         }
@@ -999,7 +1131,22 @@ function drawEnemies() {
                 drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
             }
             
-                         // Health bar hidden
+            // Draw enemy health bar (only on Forest location)
+            if (gameState.currentLocation === 1) {
+                const healthBarWidth = 60;
+                const healthBarHeight = 4;
+                const healthBarX = screenX + 10;
+                const healthBarY = enemy.y - 10;
+                
+                // Health bar background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+                
+                // Health bar fill
+                const healthPercentage = enemy.health / 30; // 30 is max health
+                ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
+                ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+            }
         }
     });
 }
@@ -1072,6 +1219,39 @@ function drawFireProjectiles() {
     });
 }
 
+function drawArrowProjectiles() {
+    arrowProjectiles.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        
+        // Only draw if projectile is visible on screen
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            // Draw arrow sprite if available
+            if (arrowSprite && arrowSprite.complete) {
+                try {
+                    ctx.save();
+                    // Flip arrow based on direction
+                    if (projectile.velocityX < 0) {
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(arrowSprite, -(screenX + projectile.width), projectile.y, projectile.width, projectile.height);
+                    } else {
+                        ctx.drawImage(arrowSprite, screenX, projectile.y, projectile.width, projectile.height);
+                    }
+                    ctx.restore();
+                } catch (error) {
+                    console.error('Error drawing arrow sprite:', error);
+                    // Fallback to colored rectangle
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
+                }
+            } else {
+                // Fallback to colored rectangle
+                ctx.fillStyle = '#8B4513';
+                ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
+            }
+        }
+    });
+}
+
 function drawSplashScreen() {
     ctx.fillStyle = '#2d5a3d';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1105,6 +1285,8 @@ function gameLoop() {
     
     if (gameState.currentScreen === 'splash') {
         drawSplashScreen();
+    } else if (gameState.currentScreen === 'characterSelect') {
+        drawCharacterSelection();
     } else if (gameState.currentScreen === 'game') {
         updatePlayer();
         updateCamera();
@@ -1112,6 +1294,7 @@ function gameLoop() {
         drawBackground();
         drawEnemies();
         drawFireProjectiles();
+        drawArrowProjectiles();
         drawPlayer();
         
         // Draw game over screen if player is dead
@@ -1124,6 +1307,33 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
+// Add canvas click event listener
+canvas.addEventListener('click', function(e) {
+    if (gameState.currentScreen === 'splash') {
+        // Show character selection
+        gameState.currentScreen = 'characterSelect';
+        drawCharacterSelection();
+    } else if (gameState.currentScreen === 'characterSelect') {
+        // Handle character selection
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Character selection areas
+        if (y > 200 && y < 300) {
+            if (x > 100 && x < 200) {
+                selectCharacter('origami');
+            } else if (x > 250 && x < 350) {
+                selectCharacter('toxin');
+            } else if (x > 400 && x < 500) {
+                selectCharacter('chameleon');
+            } else if (x > 550 && x < 650) {
+                selectCharacter('troub');
+            }
+        }
+    }
+});
+
 // Start the game
 loadHomeBackground(); // Load home background image
 loadForestBackground(); // Load forest background image
@@ -1134,5 +1344,39 @@ loadPortalBackground(); // Load portal background image
 loadHyperspaceBackground(); // Load hyperspace background image
 loadOrigamiSprite(); // Load Origami sprite
 loadFireEnemySprite(); // Load fire enemy sprite
+loadArrowSprite(); // Load arrow sprite for Troub
 // Don't initialize enemies at start - they will be added when entering Forest location
-gameLoop(); 
+gameLoop();
+
+// Character selection screen
+function drawCharacterSelection() {
+    ctx.fillStyle = '#2d5a3d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Select Your Character', canvas.width / 2, 100);
+    
+    // Draw character options
+    const characters = [
+        { key: 'origami', name: 'Origami', color: '#ff6b6b' },
+        { key: 'toxin', name: 'Toxin', color: '#4ecdc4' },
+        { key: 'chameleon', name: 'Chameleon', color: '#45b7d1' },
+        { key: 'troub', name: 'Troub', color: '#96ceb4' }
+    ];
+    
+    characters.forEach((char, index) => {
+        const x = 150 + index * 150;
+        const y = 250;
+        
+        // Draw character box
+        ctx.fillStyle = char.color;
+        ctx.fillRect(x, y, 80, 80);
+        
+        // Draw character name
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Arial';
+        ctx.fillText(char.name, x + 40, y + 110);
+    });
+} 
