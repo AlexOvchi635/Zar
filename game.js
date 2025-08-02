@@ -140,7 +140,7 @@ function loadForestBackground() {
     backgroundImages.forest.onerror = function() {
         console.error('❌ Failed to load forest background!');
     };
-    backgroundImages.forest.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibfjgh5l3pyhddztwrg72ciuk2ibe44tosbmjricjng5eah4zslxi';
+    backgroundImages.forest.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load street background
@@ -153,7 +153,7 @@ function loadStreetBackground() {
     backgroundImages.street.onerror = function() {
         console.error('❌ Failed to load street background!');
     };
-    backgroundImages.street.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigfchrhk27ujz7u6i2w3rfxilyhaypxex2bngfidg6qfieugkvude';
+    backgroundImages.street.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load home background
@@ -166,7 +166,7 @@ function loadHomeBackground() {
     backgroundImages.home.onerror = function() {
         console.error('❌ Failed to load home background!');
     };
-    backgroundImages.home.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeiasucpw4kul7n56zlzfzku7qeuwrboih53uythkzherkpp6btepz4';
+    backgroundImages.home.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load castle background
@@ -179,7 +179,7 @@ function loadCastleBackground() {
     backgroundImages.castle.onerror = function() {
         console.error('❌ Failed to load castle background!');
     };
-    backgroundImages.castle.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeib2o437ujwxb24bwe3pofhuhrlfl7v55n56lq3xk6gnzq7phyzlqm';
+    backgroundImages.castle.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load island background
@@ -192,7 +192,7 @@ function loadIslandBackground() {
     backgroundImages.island.onerror = function() {
         console.error('❌ Failed to load island background!');
     };
-    backgroundImages.island.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigtlt6xnfngkjiw2drunzx2svc2hawqrarxfz6f7ckdqcdaneenme';
+    backgroundImages.island.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load portal background
@@ -205,7 +205,7 @@ function loadPortalBackground() {
     backgroundImages.portal.onerror = function() {
         console.error('❌ Failed to load portal background!');
     };
-    backgroundImages.portal.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifxqxu625vivxk4hq7waiucuxbalno6axdxftunboephwyptslksm';
+    backgroundImages.portal.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load hyperspace background
@@ -219,6 +219,280 @@ function loadHyperspaceBackground() {
         console.error('❌ Failed to load hyperspace background!');
     };
     backgroundImages.hyperspace.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+}
+
+// Load industrial tiles for hyperspace location
+let industrialTilesSprite = null;
+function loadIndustrialTiles() {
+    industrialTilesSprite = new Image();
+    industrialTilesSprite.crossOrigin = 'anonymous';
+    industrialTilesSprite.onload = function() {
+        console.log('✅ Industrial tiles loaded successfully!');
+        console.log('📏 Sprite dimensions:', industrialTilesSprite.width, 'x', industrialTilesSprite.height);
+        console.log('🎯 Total tiles:', Math.floor(industrialTilesSprite.width / 32), 'x', Math.floor(industrialTilesSprite.height / 32));
+    };
+    industrialTilesSprite.onerror = function() {
+        console.error('❌ Failed to load industrial tiles!');
+    };
+    industrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/1e66bbb00de7f27e115296865195a2340a090165/industrial_tiles.png.png';
+}
+
+// Load new industrial tileset
+let newIndustrialTilesSprite = null;
+function loadNewIndustrialTiles() {
+    newIndustrialTilesSprite = new Image();
+    newIndustrialTilesSprite.crossOrigin = 'anonymous';
+    newIndustrialTilesSprite.onload = function() {
+        console.log('✅ New Industrial tileset loaded successfully!');
+        console.log('📏 New Sprite dimensions:', newIndustrialTilesSprite.width, 'x', newIndustrialTilesSprite.height);
+        console.log('🎯 New Total tiles:', Math.floor(newIndustrialTilesSprite.width / 32), 'x', Math.floor(newIndustrialTilesSprite.height / 32));
+    };
+    newIndustrialTilesSprite.onerror = function() {
+        console.error('❌ Failed to load new industrial tileset!');
+    };
+    newIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/3d203a14819f1bb63998cc95f7c5125c7f530a7b/1_Industrial_Tileset_1.png';
+}
+
+// Load third industrial tileset
+let thirdIndustrialTilesSprite = null;
+function loadThirdIndustrialTiles() {
+    thirdIndustrialTilesSprite = new Image();
+    thirdIndustrialTilesSprite.crossOrigin = 'anonymous';
+    thirdIndustrialTilesSprite.onload = function() {
+        console.log('✅ Third Industrial tileset loaded successfully!');
+        console.log('📏 Third Sprite dimensions:', thirdIndustrialTilesSprite.width, 'x', thirdIndustrialTilesSprite.height);
+        console.log('🎯 Third Total tiles:', Math.floor(thirdIndustrialTilesSprite.width / 32), 'x', Math.floor(thirdIndustrialTilesSprite.height / 32));
+    };
+    thirdIndustrialTilesSprite.onerror = function() {
+        console.error('❌ Failed to load third industrial tileset!');
+    };
+    thirdIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/d66d0628aa5a35a9147e78aa8bddaa311aabda00/1_Industrial_Tileset_1C.png';
+}
+
+// Function to draw grid overlay on all locations
+function drawGridOverlay(screenX) {
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1;
+    ctx.font = '8px Arial';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    
+    // Draw vertical grid lines
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const smallLetters = 'abcdefghijklmnopqrstuvwxyz';
+    for (let x = 0; x < LOCATION_WIDTH; x += 32) {
+        const screenGridX = screenX + x;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.beginPath();
+            ctx.moveTo(screenGridX, 0);
+            ctx.lineTo(screenGridX, canvas.height);
+            ctx.stroke();
+        }
+    }
+    
+    // Draw horizontal grid lines
+    for (let y = 0; y < canvas.height; y += 32) {
+        ctx.beginPath();
+        ctx.moveTo(screenX, y);
+        ctx.lineTo(screenX + LOCATION_WIDTH, y);
+        ctx.stroke();
+    }
+    
+    // Draw coordinates for each cell
+    for (let y = 0; y < canvas.height; y += 32) {
+        for (let x = 0; x < LOCATION_WIDTH; x += 32) {
+            const screenGridX = screenX + x;
+            if (screenGridX >= 0 && screenGridX <= canvas.width) {
+                const letterIndex = Math.floor(x / 32);
+                const number = Math.floor(y / 32);
+                
+                let coordinate;
+                if (letterIndex < letters.length) {
+                    coordinate = letters[letterIndex] + number;
+                } else if (letterIndex < letters.length + smallLetters.length) {
+                    const smallLetterIndex = letterIndex - letters.length;
+                    coordinate = smallLetters[smallLetterIndex] + number;
+                }
+                
+                if (coordinate) {
+                    ctx.fillText(coordinate, screenGridX + 16, y + 20);
+                }
+            }
+        }
+    }
+}
+
+// Function to draw sprite 1.1 from first pack on A0-A18 coordinates
+function drawSprite1_1OnA0A18(screenX) {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // Sprite 1.1 = column 1, row 1
+    const spriteY = 1;
+    
+    // Draw sprite 1.1 on A0-A18 coordinates (first column, all rows)
+    for (let y = 0; y < 19; y++) { // A0 to A18 = 19 tiles
+        const screenY = y * tileSize;
+        const screenGridX = screenX + 0; // A column = x = 0
+        
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                industrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to show all tiles from sprite sheet
+function drawAllTiles() {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const tilesX = Math.floor(industrialTilesSprite.width / tileSize);
+    const tilesY = Math.floor(industrialTilesSprite.height / tileSize);
+    
+    console.log('🎮 Drawing all tiles:', tilesX, 'x', tilesY);
+    
+    // Calculate center position
+    const totalWidth = tilesX * (tileSize + 10);
+    const totalHeight = tilesY * (tileSize + 10);
+    const startX = (canvas.width - totalWidth) / 2;
+    const startY = (canvas.height - totalHeight) / 2;
+    
+    // Draw background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Industrial Tiles Sprite Sheet', canvas.width / 2, 50);
+    
+    for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+            const screenX = startX + x * (tileSize + 10);
+            const screenY = startY + y * (tileSize + 10);
+            
+            ctx.drawImage(
+                industrialTilesSprite,
+                x * tileSize, y * tileSize, tileSize, tileSize,
+                screenX, screenY, tileSize, tileSize
+            );
+            
+            // Draw tile coordinates
+            ctx.fillStyle = 'red';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${x},${y}`, screenX, screenY + tileSize + 10);
+        }
+    }
+    
+    // Draw instructions
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.fillText('Press any key to close', canvas.width / 2, canvas.height - 30);
+}
+
+// Function to show new industrial tileset
+function drawNewIndustrialTiles() {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const tilesX = Math.floor(newIndustrialTilesSprite.width / tileSize);
+    const tilesY = Math.floor(newIndustrialTilesSprite.height / tileSize);
+    
+    console.log('🎮 Drawing new industrial tiles:', tilesX, 'x', tilesY);
+    
+    // Calculate center position
+    const totalWidth = tilesX * (tileSize + 10);
+    const totalHeight = tilesY * (tileSize + 10);
+    const startX = (canvas.width - totalWidth) / 2;
+    const startY = (canvas.height - totalHeight) / 2;
+    
+    // Draw background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('New Industrial Tileset 1', canvas.width / 2, 50);
+    
+    for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+            const screenX = startX + x * (tileSize + 10);
+            const screenY = startY + y * (tileSize + 10);
+            
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                x * tileSize, y * tileSize, tileSize, tileSize,
+                screenX, screenY, tileSize, tileSize
+            );
+            
+            // Draw tile coordinates
+            ctx.fillStyle = 'red';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${x},${y}`, screenX, screenY + tileSize + 10);
+        }
+    }
+    
+    // Draw instructions
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.fillText('Press any key to close', canvas.width / 2, canvas.height - 30);
+}
+
+// Function to show third industrial tileset
+function drawThirdIndustrialTiles() {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const tilesX = Math.floor(thirdIndustrialTilesSprite.width / tileSize);
+    const tilesY = Math.floor(thirdIndustrialTilesSprite.height / tileSize);
+    
+    console.log('🎮 Drawing third industrial tiles:', tilesX, 'x', tilesY);
+    
+    // Calculate center position
+    const totalWidth = tilesX * (tileSize + 10);
+    const totalHeight = tilesY * (tileSize + 10);
+    const startX = (canvas.width - totalWidth) / 2;
+    const startY = (canvas.height - totalHeight) / 2;
+    
+    // Draw background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Third Industrial Tileset 1C', canvas.width / 2, 50);
+    
+    for (let y = 0; y < tilesY; y++) {
+        for (let x = 0; x < tilesX; x++) {
+            const screenX = startX + x * (tileSize + 10);
+            const screenY = startY + y * (tileSize + 10);
+            
+            ctx.drawImage(
+                thirdIndustrialTilesSprite,
+                x * tileSize, y * tileSize, tileSize, tileSize,
+                screenX, screenY, tileSize, tileSize
+            );
+            
+            // Draw tile coordinates
+            ctx.fillStyle = 'red';
+            ctx.font = '10px Arial';
+            ctx.fillText(`${x},${y}`, screenX, screenY + tileSize + 10);
+        }
+    }
+    
+    // Draw instructions
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.fillText('Press any key to close', canvas.width / 2, canvas.height - 30);
 }
 
 // Load Origami sprite
@@ -264,7 +538,7 @@ function loadOrigamiSprite() {
     characterSprites.troub.onerror = function() {
         console.error('❌ Failed to load Troub sprite!');
     };
-    characterSprites.troub.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeig6gb566ctnbwxtdhclecnnpdwutqbcg6omnaymv5ateaxbc6aqsm';
+    characterSprites.troub.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifkdtew3jfvjqc7otpsjt5jdywe7ouem43yyird7hhkchsbbiw57q';
      
 
 }
@@ -559,15 +833,11 @@ let toxinProjectiles = [];
 const locations = [
     { name: 'Дом', background: '#8B4513', enemies: [], width: 1200, hasImage: true },
     { name: 'Лес', background: '#228B22', enemies: [], width: 1200, hasImage: true },
-    { name: 'Каменная долина', background: '#696969', enemies: [], width: 1200 },
-    { name: 'Замок', background: '#4A4A4A', enemies: [], width: 1200, hasImage: true },
-    { name: 'Остров', background: '#2E8B57', enemies: [], width: 1200 },
-    { name: 'Портал', background: '#800080', enemies: [], width: 1200 },
-    { name: 'Гиперсити', background: '#FFD700', enemies: [], width: 1200 }
+    { name: 'Долина', background: '#696969', enemies: [], width: 1200 }
 ];
 
 // World dimensions
-const WORLD_WIDTH = 8400; // 7 locations × 1200px each
+const WORLD_WIDTH = 3600; // 3 locations × 1200px each
 const LOCATION_WIDTH = 1200;
 
 // Fade transition state
@@ -1232,73 +1502,205 @@ function drawBackground() {
     // Draw current location background
     if (currentLocation) {
         // Draw background images for specific locations
-        if (currentLocation.name === 'Дом' && currentLocation.hasImage && backgroundImages.home && backgroundImages.home.complete) {
-            try {
-                ctx.drawImage(backgroundImages.home, screenX, 0, LOCATION_WIDTH, canvas.height);
-            } catch (error) {
-                console.error('Error drawing home background:', error);
-                // Fallback to solid color
-                ctx.fillStyle = currentLocation.background;
-                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-            }
-        } else if (currentLocation.name === 'Лес' && currentLocation.hasImage && backgroundImages.forest && backgroundImages.forest.complete) {
-            try {
-                ctx.drawImage(backgroundImages.forest, screenX, 0, LOCATION_WIDTH, canvas.height);
-            } catch (error) {
-                console.error('Error drawing forest background:', error);
-                // Fallback to solid color
-                ctx.fillStyle = currentLocation.background;
-                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-            }
-        } else if (currentLocation.name === 'Каменная долина' && backgroundImages.street && backgroundImages.street.complete) {
-            try {
-                ctx.drawImage(backgroundImages.street, screenX, 0, LOCATION_WIDTH, canvas.height);
-            } catch (error) {
-                console.error('Error drawing street background:', error);
-                // Fallback to solid color
-                ctx.fillStyle = currentLocation.background;
-                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-            }
-        } else if (currentLocation.name === 'Замок' && currentLocation.hasImage && backgroundImages.castle && backgroundImages.castle.complete) {
-            try {
-                ctx.drawImage(backgroundImages.castle, screenX, 0, LOCATION_WIDTH, canvas.height);
-            } catch (error) {
-                console.error('Error drawing castle background:', error);
-                // Fallback to solid color
-                ctx.fillStyle = currentLocation.background;
-                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-            }
-        } else if (currentLocation.name === 'Остров' && backgroundImages.island && backgroundImages.island.complete) {
-            try {
-                ctx.drawImage(backgroundImages.island, screenX, 0, LOCATION_WIDTH, canvas.height);
-            } catch (error) {
-                console.error('Error drawing island background:', error);
-                // Fallback to solid color
-                ctx.fillStyle = currentLocation.background;
-                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-            }
-        } else if (currentLocation.name === 'Портал' && backgroundImages.portal && backgroundImages.portal.complete) {
-            try {
-                ctx.drawImage(backgroundImages.portal, screenX, 0, LOCATION_WIDTH, canvas.height);
-            } catch (error) {
-                console.error('Error drawing portal background:', error);
-                // Fallback to solid color
-                ctx.fillStyle = currentLocation.background;
-                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
-            }
-        } else if (currentLocation.name === 'Гиперсити' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+        if (currentLocation.name === 'Дом' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
             try {
                 ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on l0-l17 coordinates
+                drawBlackSprite1_2OnL0L17(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B0-k0 coordinates
+                drawBlackSprite1_2OnB0K0(screenX);
             } catch (error) {
                 console.error('Error drawing hyperspace background:', error);
                 // Fallback to solid color
                 ctx.fillStyle = currentLocation.background;
                 ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
             }
+        } else if (currentLocation.name === 'Лес' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+            try {
+                ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on l0-l17 coordinates
+                drawBlackSprite1_2OnL0L17(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B0-k0 coordinates
+                drawBlackSprite1_2OnB0K0(screenX);
+            } catch (error) {
+                console.error('Error drawing hyperspace background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            }
+        } else if (currentLocation.name === 'Долина' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+            try {
+                ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on l0-l17 coordinates
+                drawBlackSprite1_2OnL0L17(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B0-k0 coordinates
+                drawBlackSprite1_2OnB0K0(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            } catch (error) {
+                console.error('Error drawing hyperspace background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            }
+
+        } else if (currentLocation.name === 'Замок' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+            try {
+                ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            } catch (error) {
+                console.error('Error drawing hyperspace background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            }
+        } else if (currentLocation.name === 'Остров' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+            try {
+                ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            } catch (error) {
+                console.error('Error drawing hyperspace background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Sprite removed from A0-A18 coordinates
+            }
+        } else if (currentLocation.name === 'Портал' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
+            try {
+                ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+                
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+            } catch (error) {
+                console.error('Error drawing hyperspace background:', error);
+                // Fallback to solid color
+                ctx.fillStyle = currentLocation.background;
+                ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+                
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
+            }
+
         } else {
             // Draw solid color background
             ctx.fillStyle = currentLocation.background;
             ctx.fillRect(screenX, 0, LOCATION_WIDTH, canvas.height);
+            
+            // Draw grid overlay for all locations
+            drawGridOverlay(screenX);
+            
+            // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+            drawBlackSprite1_2OnA0A18(screenX);
+            
+            // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+            drawBlackSprite1_2OnB18_L18(screenX);
+            
+            // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+            drawBlackSprite1_2OnM18_L18(screenX);
+            
+            // Draw sprite 1.1 on A0-A18 coordinates
+            drawSprite1_1OnA0A18(screenX);
         }
         
         // Ground hidden
@@ -1871,6 +2273,21 @@ function gameLoop() {
             drawGameOverScreen();
         }
         updateFade();
+        
+        // Press T to show all tiles
+        if (keys['KeyT']) {
+            drawAllTiles();
+        }
+        
+        // Press Y to show new industrial tileset
+        if (keys['KeyY']) {
+            drawNewIndustrialTiles();
+        }
+        
+        // Press U to show third industrial tileset
+        if (keys['KeyU']) {
+            drawThirdIndustrialTiles();
+        }
     }
     
     requestAnimationFrame(gameLoop);
@@ -1910,7 +2327,10 @@ loadStreetBackground(); // Load street background image
 loadCastleBackground(); // Load castle background image
 loadIslandBackground(); // Load island background image
 loadPortalBackground(); // Load portal background image
-loadHyperspaceBackground(); // Load hyperspace background image
+    loadHyperspaceBackground(); // Load hyperspace background image
+    loadIndustrialTiles(); // Load industrial tiles for hyperspace
+    loadNewIndustrialTiles(); // Load new industrial tileset
+    loadThirdIndustrialTiles(); // Load third industrial tileset
 loadOrigamiSprite(); // Load Origami sprite
 loadFireEnemySprite(); // Load fire enemy sprite
 loadArrowSprite(); // Load arrow sprite for Troub
@@ -1951,4 +2371,110 @@ function drawCharacterSelection() {
         ctx.font = '16px Arial';
         ctx.fillText(char.name, x + 40, y + 110);
     });
+}
+
+// Function to draw black sprite 1.2 from first pack on A0-A18 coordinates
+function drawBlackSprite1_2OnA0A18(screenX) {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1; // column 1
+    const spriteY = 2; // row 2 (1.2)
+    for (let y = 0; y < 19; y++) {
+        const screenY = y * tileSize;
+        const screenGridX = screenX + 0;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                industrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw black sprite 1.2 from first pack on B18-l18 coordinates (включая l18)
+function drawBlackSprite1_2OnB18_L18(screenX) {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1; // column 1
+    const spriteY = 2; // row 2 (1.2)
+    // B-l = columns 1-37 (B=1, l=37) - покрываем до l18
+    for (let col = 1; col <= 37; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 18 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                industrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw black sprite 1.2 from first pack on M18 до конца локации
+function drawBlackSprite1_2OnM18_L18(screenX) {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1
+    const spriteY = 2; // row 2 (1.2)
+    
+    // M18 до конца локации (M=12, конец=37)
+    const maxCols = Math.floor(1200 / tileSize); // 37 колонок
+    for (let col = 12; col < maxCols; col++) { // M=12 до конца
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 18 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                industrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw black sprite 1.2 from first pack on l0-l17 coordinates
+function drawBlackSprite1_2OnL0L17(screenX) {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1
+    const spriteY = 2; // row 2 (1.2)
+    
+    // l0-l17 (l=37, строки 0-17)
+    for (let y = 0; y <= 17; y++) {
+        const screenY = y * tileSize;
+        const screenGridX = screenX + 37 * tileSize; // l = колонка 37
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                industrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw black sprite 1.2 from first pack on B0-k0 coordinates
+function drawBlackSprite1_2OnB0K0(screenX) {
+    if (!industrialTilesSprite || !industrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1
+    const spriteY = 2; // row 2 (1.2)
+    
+    // B0-k0 (B=1, k=36, строка 0)
+    for (let col = 1; col <= 36; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 0 * tileSize; // строка 0
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                industrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
 } 
