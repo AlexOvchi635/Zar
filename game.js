@@ -1215,19 +1215,69 @@ function updatePlayer() {
     player.velocityY += 0.8;
     
     // Update position
-    player.x += player.velocityX;
-    player.y += player.velocityY;
+    const newX = player.x + player.velocityX;
+    const newY = player.y + player.velocityY;
+    
+    // Check sprite collisions
+    const collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation);
     
     // World bounds - full world width
-    if (player.x < 0) player.x = 0;
-    if (player.x > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
+    if (newX < 0) player.x = 0;
+    else if (newX > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
+    else player.x = newX;
     
-    // Ground level (raised to match red line in screenshot)
-    const groundLevel = canvas.height - 40;
-    if (player.y > groundLevel - player.height) {
-        player.y = groundLevel - player.height;
-        player.velocityY = 0;
-        player.onGround = true;
+    // Handle sprite collisions
+    if (collisionResult.collision) {
+        if (collisionResult.type === 'wall') {
+            // Wall collision - stop horizontal movement
+            player.velocityX = 0;
+        } else if (collisionResult.type === 'platform') {
+            // Platform collision - player can stand on it
+            player.y = collisionResult.y;
+            player.velocityY = 0;
+            player.onGround = true;
+        }
+    } else {
+        // No sprite collision, update Y position
+        player.y = newY;
+        
+        // Check for platform collisions when falling
+        if (player.velocityY > 0) { // Only check when falling down
+            // Check multiple points along the fall path
+            let landedOnPlatform = false;
+            for (let checkY = player.y; checkY <= player.y + player.velocityY; checkY += 2) {
+                const fallCollisionResult = checkSpriteCollisions(player.x, checkY, player.width, player.height, gameState.currentLocation);
+                if (fallCollisionResult.collision && fallCollisionResult.type === 'platform') {
+                    player.y = fallCollisionResult.y;
+                    player.velocityY = 0;
+                    player.onGround = true;
+                    landedOnPlatform = true;
+                    break;
+                }
+            }
+            
+            if (!landedOnPlatform) {
+                // Ground level (raised to match red line in screenshot)
+                const groundLevel = canvas.height - 40;
+                if (player.y > groundLevel - player.height) {
+                    player.y = groundLevel - player.height;
+                    player.velocityY = 0;
+                    player.onGround = true;
+                } else {
+                    player.onGround = false;
+                }
+            }
+        } else {
+            // Ground level (raised to match red line in screenshot)
+            const groundLevel = canvas.height - 40;
+            if (player.y > groundLevel - player.height) {
+                player.y = groundLevel - player.height;
+                player.velocityY = 0;
+                player.onGround = true;
+            } else {
+                player.onGround = false;
+            }
+        }
     }
     
     // Update cooldowns
@@ -1523,6 +1573,72 @@ function drawBackground() {
                 
                 // Draw black sprite 1.2 from first pack on B0-k0 coordinates
                 drawBlackSprite1_2OnB0K0(screenX);
+                
+                // Draw sprite 4.0 from new industrial tileset on B1 coordinates
+                drawSprite4_0OnB1(screenX);
+                
+                // Draw sprite 1.3 from new industrial tileset on C1-j1 coordinates
+                drawSprite1_3OnC1J1(screenX);
+                
+                // Draw sprite 5.0 from new industrial tileset on k1 coordinates
+                drawSprite5_0OnK1(screenX);
+                
+                // Draw sprite 4.1 from new industrial tileset on B2-B14 coordinates
+                drawSprite4_1OnB2B14(screenX);
+                
+                // Draw sprite 1.2 from new industrial tileset on B16-F16 coordinates
+                drawSprite1_2OnB16F16(screenX);
+                
+                // Draw sprite 1.2 from new industrial tileset on B17-F17 coordinates
+                drawSprite1_2OnB17F17(screenX);
+                
+                // Draw sprite 4.3 from new industrial tileset on B1-B14 coordinates
+                drawSprite4_3OnB1B14(screenX);
+                
+                // Draw sprite 4.1 from new industrial tileset on B15 coordinates
+                drawSprite4_1OnB15(screenX);
+                
+                // Draw sprite 0.3 from new industrial tileset on G17 coordinates
+                drawSprite0_3OnG17(screenX);
+                
+                // Draw sprite 1.3 from new industrial tileset on H17-j17 coordinates
+                drawSprite1_3OnH17J17(screenX);
+                
+                // Draw sprite 0.0 from new industrial tileset on G16 coordinates
+                drawSprite0_0OnG16(screenX);
+                
+                // Draw sprite 1.0 from new industrial tileset on H16-j16 coordinates
+                drawSprite1_0OnH16J16(screenX);
+                
+                // Draw sprite 1.1 from new industrial tileset on C15 coordinates
+                drawSprite1_1OnC15(screenX);
+                
+                // Draw sprite 1.1 from new industrial tileset on D15-E15 coordinates
+                drawSprite1_1OnD15E15(screenX);
+                
+                // Draw sprite 2.1 from new industrial tileset on F15 coordinates
+                drawSprite2_1OnF15(screenX);
+                
+                // Draw sprite 0.0 from new industrial tileset on I12 coordinates
+                drawSprite0_0OnI12(screenX);
+                
+                // Draw sprite 1.0 from new industrial tileset on J12 coordinates
+                drawSprite1_0OnJ12(screenX);
+                
+                // Draw sprite 2.0 from new industrial tileset on K12 coordinates
+                drawSprite2_0OnK12(screenX);
+                
+                // Draw sprite 0.0 from new industrial tileset on M10 coordinates
+                drawSprite0_0OnM10(screenX);
+                
+                // Draw sprite 1.0 from new industrial tileset on N10-d10 coordinates
+                drawSprite1_0OnN10D10(screenX);
+                
+                // Draw sprite 2.0 from new industrial tileset on 17th coordinate from N10
+                drawSprite3_0OnE10(screenX);
+                
+                // Draw sprite 5.2 from new industrial tileset on M11 for 16 cells to the right
+                drawSprite5_2OnM11For16Cells(screenX);
             } catch (error) {
                 console.error('Error drawing hyperspace background:', error);
                 // Fallback to solid color
@@ -2477,4 +2593,626 @@ function drawBlackSprite1_2OnB0K0(screenX) {
             );
         }
     }
+}
+
+// Function to draw sprite 4.0 from new industrial tileset on B1 coordinates
+function drawSprite4_0OnB1(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 4; // column 4 (спрайт 4.0)
+    const spriteY = 0; // row 0 (спрайт 4.0)
+    
+    // B1 (B=1, 1=1) - одна клетка
+    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+    const screenY = 1 * tileSize; // строка 1
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.3 from new industrial tileset on C1-j1 coordinates
+function drawSprite1_3OnC1J1(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.3)
+    const spriteY = 3; // row 3 (спрайт 1.3)
+    
+    // C1-j1 (C=2, j=35, строка 1)
+    for (let col = 2; col <= 35; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 1 * tileSize; // строка 1
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 5.0 from new industrial tileset on k1 coordinates
+function drawSprite5_0OnK1(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 5; // column 5 (спрайт 5.0)
+    const spriteY = 0; // row 0 (спрайт 5.0)
+    
+    // k1 (k=36, 1=1) - одна клетка
+    const screenGridX = screenX + 36 * tileSize; // k = колонка 36
+    const screenY = 1 * tileSize; // строка 1
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 4.1 from new industrial tileset on B2-B14 coordinates
+function drawSprite4_1OnB2B14(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 4; // column 4 (спрайт 4.1)
+    const spriteY = 1; // row 1 (спрайт 4.1)
+    
+    // B2-B14 (B=1, строки 2-14) - вертикальный столбец
+    for (let row = 2; row <= 14; row++) {
+        const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+        const screenY = row * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 1.2 from new industrial tileset on B16-F16 coordinates
+function drawSprite1_2OnB16F16(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.2)
+    const spriteY = 2; // row 2 (спрайт 1.2)
+    
+    // B16-F16 (B=1, F=5, строка 16) - горизонтальная линия
+    for (let col = 1; col <= 5; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 16 * tileSize; // строка 16
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 1.2 from new industrial tileset on B17-F17 coordinates
+function drawSprite1_2OnB17F17(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.2)
+    const spriteY = 2; // row 2 (спрайт 1.2)
+    
+    // B17-F17 (B=1, F=5, строка 17) - горизонтальная линия
+    for (let col = 1; col <= 5; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 17 * tileSize; // строка 17
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 4.3 from new industrial tileset on B1-B14 coordinates
+function drawSprite4_3OnB1B14(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 4; // column 4 (спрайт 4.3)
+    const spriteY = 3; // row 3 (спрайт 4.3)
+    
+    // B1-B14 (B=1, строки 1-14) - вертикальный столбец
+    for (let row = 1; row <= 14; row++) {
+        const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+        const screenY = row * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 4.1 from new industrial tileset on B15 coordinates
+function drawSprite4_1OnB15(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 4; // column 4 (спрайт 4.1)
+    const spriteY = 1; // row 1 (спрайт 4.1)
+    
+    // B15 (B=1, 15=15) - одна клетка
+    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+    const screenY = 15 * tileSize; // строка 15
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.3 from new industrial tileset on G17 coordinates
+function drawSprite0_3OnG17(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.3)
+    const spriteY = 3; // row 3 (спрайт 0.3)
+    
+    // G17 (G=6, 17=17) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 17 * tileSize; // строка 17
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.3 from new industrial tileset on H17-j17 coordinates
+function drawSprite1_3OnH17J17(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.3)
+    const spriteY = 3; // row 3 (спрайт 1.3)
+    
+    // H17-j17 (H=7, j=35, строка 17) - горизонтальная линия
+    for (let col = 7; col <= 35; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 17 * tileSize; // строка 17
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 0.0 from new industrial tileset on G16 coordinates
+function drawSprite0_0OnG16(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // G16 (G=6, 16=16) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 16 * tileSize; // строка 16
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on H16-j16 coordinates
+function drawSprite1_0OnH16J16(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // H16-j16 (H=7, j=35, строка 16) - горизонтальная линия
+    for (let col = 7; col <= 35; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 16 * tileSize; // строка 16
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 1.1 from new industrial tileset on C15 coordinates
+function drawSprite1_1OnC15(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.1)
+    const spriteY = 1; // row 1 (спрайт 1.1)
+    
+    // C15 (C=2, 15=15) - одна клетка
+    const screenGridX = screenX + 2 * tileSize; // C = колонка 2
+    const screenY = 15 * tileSize; // строка 15
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.1 from new industrial tileset on D15-E15 coordinates
+function drawSprite1_1OnD15E15(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.1)
+    const spriteY = 1; // row 1 (спрайт 1.1)
+    
+    // D15-E15 (D=3, E=4, строка 15) - горизонтальная линия
+    for (let col = 3; col <= 4; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 15 * tileSize; // строка 15
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 2.1 from new industrial tileset on F15 coordinates
+function drawSprite2_1OnF15(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.1)
+    const spriteY = 1; // row 1 (спрайт 2.1)
+    
+    // F15 (F=5, 15=15) - одна клетка
+    const screenGridX = screenX + 5 * tileSize; // F = колонка 5
+    const screenY = 15 * tileSize; // строка 15
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from new industrial tileset on I12 coordinates
+function drawSprite0_0OnI12(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // I12 (I=8, 12=12) - одна клетка
+    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
+    const screenY = 12 * tileSize; // строка 12
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on J12 coordinates
+function drawSprite1_0OnJ12(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // J12 (J=9, 12=12) - одна клетка
+    const screenGridX = screenX + 9 * tileSize; // J = колонка 9
+    const screenY = 12 * tileSize; // строка 12
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.0 from new industrial tileset on K12 coordinates
+function drawSprite2_0OnK12(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // K12 (K=10, 12=12) - одна клетка
+    const screenGridX = screenX + 10 * tileSize; // K = колонка 10
+    const screenY = 12 * tileSize; // строка 12
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from new industrial tileset on M10 coordinates
+function drawSprite0_0OnM10(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // M10 (M=12, 10=10) - одна клетка
+    const screenGridX = screenX + 12 * tileSize; // M = колонка 12
+    const screenY = 10 * tileSize; // строка 10
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on N10-d10 coordinates
+function drawSprite1_0OnN10D10(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // N10 + 16 колонок вправо (N=13, до колонки 29, строка 10) - горизонтальная линия
+    for (let col = 13; col <= 29; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 10 * tileSize; // строка 10
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 3.0 from new industrial tileset on E10 coordinates
+function drawSprite3_0OnE10(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // 17-я координата от N10 (N=13, 13+17=30, 10=10) - одна клетка
+    const screenGridX = screenX + 30 * tileSize; // 17-я координата от N = колонка 30
+    const screenY = 10 * tileSize; // строка 10
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 5.2 from new industrial tileset on M11 for 16 cells to the right
+function drawSprite5_2OnM11For16Cells(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 5; // column 5 (спрайт 5.2)
+    const spriteY = 2; // row 2 (спрайт 5.2)
+    
+    // M11 до 18-й координаты (M=12, до колонки 30, строка 11) - горизонтальная линия
+    for (let col = 12; col <= 30; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 11 * tileSize; // строка 11
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to check sprite collisions for player
+function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, currentLocation) {
+    const tileSize = 32;
+    const locationStart = currentLocation * LOCATION_WIDTH;
+    
+    // Define sprite collision areas based on our added sprites
+    const collisionAreas = [];
+    
+    // Only check collisions for "Дом" location (first location)
+    if (currentLocation === 0) {
+        // Horizontal sprites (player can walk on these)
+        collisionAreas.push({
+            x: locationStart + 1 * tileSize, // B1
+            y: 1 * tileSize,
+            width: tileSize,
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 2 * tileSize, // C1-j1
+            y: 1 * tileSize,
+            width: 34 * tileSize, // C to j (2 to 35)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 36 * tileSize, // k1
+            y: 1 * tileSize,
+            width: tileSize,
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 1 * tileSize, // B2-B14
+            y: 2 * tileSize,
+            width: tileSize,
+            height: 13 * tileSize, // rows 2-14
+            type: 'vertical'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 1 * tileSize, // B16-F16
+            y: 16 * tileSize,
+            width: 5 * tileSize, // B to F (1 to 5)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 1 * tileSize, // B17-F17
+            y: 17 * tileSize,
+            width: 5 * tileSize, // B to F (1 to 5)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 1 * tileSize, // B1-B14
+            y: 1 * tileSize,
+            width: tileSize,
+            height: 14 * tileSize, // rows 1-14
+            type: 'vertical'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 1 * tileSize, // B15
+            y: 15 * tileSize,
+            width: tileSize,
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 6 * tileSize, // G17
+            y: 17 * tileSize,
+            width: tileSize,
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 7 * tileSize, // H17-j17
+            y: 17 * tileSize,
+            width: 29 * tileSize, // H to j (7 to 35)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 6 * tileSize, // G16-j16
+            y: 16 * tileSize,
+            width: 30 * tileSize, // G to j (6 to 35)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 2 * tileSize, // C15-F15
+            y: 15 * tileSize,
+            width: 4 * tileSize, // C to F (2 to 5)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 8 * tileSize, // I12-K12
+            y: 12 * tileSize,
+            width: 3 * tileSize, // I to K (8 to 10)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 12 * tileSize, // M10-e10
+            y: 10 * tileSize,
+            width: 19 * tileSize, // M to e (12 to 4)
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 30 * tileSize, // 17th coordinate from N10
+            y: 10 * tileSize,
+            width: tileSize,
+            height: tileSize,
+            type: 'horizontal'
+        });
+        
+        collisionAreas.push({
+            x: locationStart + 12 * tileSize, // M11 to 18th coordinate
+            y: 11 * tileSize,
+            width: 19 * tileSize, // M to 18th coordinate
+            height: tileSize,
+            type: 'horizontal'
+        });
+    }
+    
+    // Check collisions
+    for (const area of collisionAreas) {
+        if (playerX < area.x + area.width &&
+            playerX + playerWidth > area.x &&
+            playerY < area.y + area.height &&
+            playerY + playerHeight > area.y) {
+            
+            if (area.type === 'vertical') {
+                // Vertical sprite - acts as a wall
+                return { collision: true, type: 'wall' };
+            } else if (area.type === 'horizontal') {
+                // Horizontal sprite - player can stand on it
+                if (playerY + playerHeight <= area.y + 5) { // Small tolerance for standing
+                    return { collision: true, type: 'platform', y: area.y - playerHeight };
+                }
+            }
+        }
+    }
+    
+    return { collision: false };
 } 
