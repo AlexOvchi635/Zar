@@ -8,7 +8,8 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: url('https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiecu6i7wsyinswlrcwq7wqgkv2wtgbftvkkxur37xly6lzkk5vioi') no-repeat center center fixed;
+            background-size: cover;
             font-family: 'Arial', sans-serif;
             overflow: hidden;
             display: flex;
@@ -19,9 +20,7 @@
 
         .game-container {
             position: relative;
-            border: 3px solid #4a90e2;
             border-radius: 10px;
-            box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
             background: #000;
         }
 
@@ -237,28 +236,6 @@
 
     <script src="game.js"></script>
     
-    <!-- Open Game Button -->
-    <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
-        <button onclick="openGame()" style="
-            background: linear-gradient(45deg, #4a90e2, #2a5298);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-            transition: all 0.3s ease;
-        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-            🎮 ИГРАТЬ В ZARGATES
-        </button>
-    </div>
 
-    <script>
-        function openGame() {
-            window.open('index.html', '_blank');
-        }
-    </script>
 </body>
 </html> 
