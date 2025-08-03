@@ -44,7 +44,7 @@ let player = {
     height: 60,
     velocityX: 0,
     velocityY: 0,
-    speed: 5,
+    speed: 10,
     onGround: false,
     character: null,
     direction: 1,
@@ -1203,7 +1203,7 @@ function updatePlayer() {
     
     // Jumping
     if ((keys['KeyW'] || keys['ArrowUp']) && player.onGround) {
-        player.velocityY = -15;
+        player.velocityY = -7.5;
         player.onGround = false;
     }
     
@@ -1228,14 +1228,16 @@ function updatePlayer() {
     
     // Handle sprite collisions
     if (collisionResult.collision) {
-        if (collisionResult.type === 'wall') {
-            // Wall collision - stop horizontal movement
-            player.velocityX = 0;
-        } else if (collisionResult.type === 'platform') {
+        console.log('🛑 PLAYER BLOCKED!', collisionResult);
+        if (collisionResult.type === 'platform') {
             // Platform collision - player can stand on it
             player.y = collisionResult.y;
             player.velocityY = 0;
             player.onGround = true;
+        } else {
+            // ALL other sprites are completely blocked - no movement allowed
+            player.velocityX = 0;
+            player.velocityY = 0;
         }
     } else {
         // No sprite collision, update Y position
@@ -1247,8 +1249,8 @@ function updatePlayer() {
             let landedOnPlatform = false;
             for (let checkY = player.y; checkY <= player.y + player.velocityY; checkY += 2) {
                 const fallCollisionResult = checkSpriteCollisions(player.x, checkY, player.width, player.height, gameState.currentLocation);
-                if (fallCollisionResult.collision && fallCollisionResult.type === 'platform') {
-                    player.y = fallCollisionResult.y;
+                if (fallCollisionResult.collision) {
+                    // Hit a sprite - stop falling
                     player.velocityY = 0;
                     player.onGround = true;
                     landedOnPlatform = true;
@@ -1596,28 +1598,43 @@ function drawBackground() {
                 drawSprite4_3OnB1B14(screenX);
                 
                 // Draw sprite 4.1 from new industrial tileset on B15 coordinates
-                drawSprite4_1OnB15(screenX);
+
                 
                 // Draw sprite 0.3 from new industrial tileset on G17 coordinates
-                drawSprite0_3OnG17(screenX);
+
                 
                 // Draw sprite 1.3 from new industrial tileset on H17-j17 coordinates
                 drawSprite1_3OnH17J17(screenX);
                 
                 // Draw sprite 0.0 from new industrial tileset on G16 coordinates
-                drawSprite0_0OnG16(screenX);
+
                 
                 // Draw sprite 1.0 from new industrial tileset on H16-j16 coordinates
                 drawSprite1_0OnH16J16(screenX);
                 
                 // Draw sprite 1.1 from new industrial tileset on C15 coordinates
-                drawSprite1_1OnC15(screenX);
+
                 
                 // Draw sprite 1.1 from new industrial tileset on D15-E15 coordinates
-                drawSprite1_1OnD15E15(screenX);
+
                 
                 // Draw sprite 2.1 from new industrial tileset on F15 coordinates
-                drawSprite2_1OnF15(screenX);
+
+                
+                // Draw sprite 2.2 from new industrial tileset on B15 coordinates
+                drawSprite2_2OnB15(screenX);
+                
+                // Draw sprite 4.1 from new industrial tileset on B16 coordinates
+                drawSprite4_1OnB16(screenX);
+                
+                // Draw sprite 1.1 from new industrial tileset on C16 coordinates
+                drawSprite1_1OnC16(screenX);
+                
+                // Draw sprite 1.0 from new industrial tileset on D16-G16 coordinates
+                drawSprite1_0OnD16G16(screenX);
+                
+                // Draw sprite 1.3 from new industrial tileset on C17-G17 coordinates
+                drawSprite1_3OnC17G17(screenX);
                 
                 // Draw sprite 0.0 from new industrial tileset on I12 coordinates
                 drawSprite0_0OnI12(screenX);
@@ -2745,45 +2762,9 @@ function drawSprite4_3OnB1B14(screenX) {
     }
 }
 
-// Function to draw sprite 4.1 from new industrial tileset on B15 coordinates
-function drawSprite4_1OnB15(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 4; // column 4 (спрайт 4.1)
-    const spriteY = 1; // row 1 (спрайт 4.1)
-    
-    // B15 (B=1, 15=15) - одна клетка
-    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
-    const screenY = 15 * tileSize; // строка 15
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
 
-// Function to draw sprite 0.3 from new industrial tileset on G17 coordinates
-function drawSprite0_3OnG17(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 0; // column 0 (спрайт 0.3)
-    const spriteY = 3; // row 3 (спрайт 0.3)
-    
-    // G17 (G=6, 17=17) - одна клетка
-    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
-    const screenY = 17 * tileSize; // строка 17
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
+
+
 
 // Function to draw sprite 1.3 from new industrial tileset on H17-j17 coordinates
 function drawSprite1_3OnH17J17(screenX) {
@@ -2807,25 +2788,7 @@ function drawSprite1_3OnH17J17(screenX) {
     }
 }
 
-// Function to draw sprite 0.0 from new industrial tileset on G16 coordinates
-function drawSprite0_0OnG16(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 0; // column 0 (спрайт 0.0)
-    const spriteY = 0; // row 0 (спрайт 0.0)
-    
-    // G16 (G=6, 16=16) - одна клетка
-    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
-    const screenY = 16 * tileSize; // строка 16
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
+
 
 // Function to draw sprite 1.0 from new industrial tileset on H16-j16 coordinates
 function drawSprite1_0OnH16J16(screenX) {
@@ -2849,16 +2812,22 @@ function drawSprite1_0OnH16J16(screenX) {
     }
 }
 
-// Function to draw sprite 1.1 from new industrial tileset on C15 coordinates
-function drawSprite1_1OnC15(screenX) {
+
+
+
+
+
+
+// Function to draw sprite 2.2 from new industrial tileset on B15 coordinates
+function drawSprite2_2OnB15(screenX) {
     if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
     
     const tileSize = 32;
-    const spriteX = 1; // column 1 (спрайт 1.1)
-    const spriteY = 1; // row 1 (спрайт 1.1)
+    const spriteX = 2; // column 2 (спрайт 2.2)
+    const spriteY = 2; // row 2 (спрайт 2.2)
     
-    // C15 (C=2, 15=15) - одна клетка
-    const screenGridX = screenX + 2 * tileSize; // C = колонка 2
+    // B15 (B=1, 15=15) - одна клетка
+    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
     const screenY = 15 * tileSize; // строка 15
     if (screenGridX >= 0 && screenGridX <= canvas.width) {
         ctx.drawImage(
@@ -2869,18 +2838,58 @@ function drawSprite1_1OnC15(screenX) {
     }
 }
 
-// Function to draw sprite 1.1 from new industrial tileset on D15-E15 coordinates
-function drawSprite1_1OnD15E15(screenX) {
+// Function to draw sprite 4.1 from new industrial tileset on B16 coordinates
+function drawSprite4_1OnB16(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 4; // column 4 (спрайт 4.1)
+    const spriteY = 1; // row 1 (спрайт 4.1)
+    
+    // B16 (B=1, 16=16) - одна клетка
+    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+    const screenY = 16 * tileSize; // строка 16
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.1 from new industrial tileset on C16 coordinates
+function drawSprite1_1OnC16(screenX) {
     if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
     
     const tileSize = 32;
     const spriteX = 1; // column 1 (спрайт 1.1)
     const spriteY = 1; // row 1 (спрайт 1.1)
     
-    // D15-E15 (D=3, E=4, строка 15) - горизонтальная линия
-    for (let col = 3; col <= 4; col++) {
+    // C16 (C=2, 16=16) - одна клетка
+    const screenGridX = screenX + 2 * tileSize; // C = колонка 2
+    const screenY = 16 * tileSize; // строка 16
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on D16-G16 coordinates
+function drawSprite1_0OnD16G16(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // D16-G16 (D=3, G=6, строка 16) - горизонтальная линия
+    for (let col = 3; col <= 6; col++) {
         const screenGridX = screenX + col * tileSize;
-        const screenY = 15 * tileSize; // строка 15
+        const screenY = 16 * tileSize; // строка 16
         if (screenGridX >= 0 && screenGridX <= canvas.width) {
             ctx.drawImage(
                 newIndustrialTilesSprite,
@@ -2891,23 +2900,25 @@ function drawSprite1_1OnD15E15(screenX) {
     }
 }
 
-// Function to draw sprite 2.1 from new industrial tileset on F15 coordinates
-function drawSprite2_1OnF15(screenX) {
+// Function to draw sprite 1.3 from new industrial tileset on C17-G17 coordinates
+function drawSprite1_3OnC17G17(screenX) {
     if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
     
     const tileSize = 32;
-    const spriteX = 2; // column 2 (спрайт 2.1)
-    const spriteY = 1; // row 1 (спрайт 2.1)
+    const spriteX = 1; // column 1 (спрайт 1.3)
+    const spriteY = 3; // row 3 (спрайт 1.3)
     
-    // F15 (F=5, 15=15) - одна клетка
-    const screenGridX = screenX + 5 * tileSize; // F = колонка 5
-    const screenY = 15 * tileSize; // строка 15
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
+    // C17-G17 (C=2, G=6, строка 17) - горизонтальная линия
+    for (let col = 2; col <= 6; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 17 * tileSize; // строка 17
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
     }
 }
 
@@ -3055,160 +3066,148 @@ function drawSprite5_2OnM11For16Cells(screenX) {
     }
 }
 
+// Function to check sprite 1.2 collisions
+function checkSprite1_2Collisions(playerX, playerY, playerWidth, playerHeight, currentLocation) {
+    const tileSize = 32;
+    const locationStart = currentLocation * LOCATION_WIDTH;
+    
+    // Define all sprite 1.2 areas as barriers
+    const sprite1_2Areas = [];
+    
+    if (currentLocation === 0) { // Дом location
+        // A0-A18 (vertical barrier)
+        sprite1_2Areas.push({
+            x: locationStart + 0 * tileSize,
+            y: 0 * tileSize,
+            width: tileSize,
+            height: 19 * tileSize
+        });
+        
+        // B18-L18 (horizontal barrier)
+        sprite1_2Areas.push({
+            x: locationStart + 1 * tileSize,
+            y: 18 * tileSize,
+            width: 11 * tileSize,
+            height: tileSize
+        });
+        
+        // M18-L18 (horizontal barrier)
+        sprite1_2Areas.push({
+            x: locationStart + 12 * tileSize,
+            y: 18 * tileSize,
+            width: 11 * tileSize,
+            height: tileSize
+        });
+        
+        // l0-l17 (vertical barrier)
+        sprite1_2Areas.push({
+            x: locationStart + 37 * tileSize,
+            y: 0 * tileSize,
+            width: tileSize,
+            height: 18 * tileSize
+        });
+        
+        // B0-k0 (horizontal barrier)
+        sprite1_2Areas.push({
+            x: locationStart + 1 * tileSize,
+            y: 0 * tileSize,
+            width: 36 * tileSize,
+            height: tileSize
+        });
+    }
+    
+    // Check collisions with sprite 1.2 areas
+    for (const area of sprite1_2Areas) {
+        if (playerX < area.x + area.width &&
+            playerX + playerWidth > area.x &&
+            playerY < area.y + area.height &&
+            playerY + playerHeight > area.y) {
+            return true; // Collision detected
+        }
+    }
+    
+    return false; // No collision
+}
+
 // Function to check sprite collisions for player
 function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, currentLocation) {
     const tileSize = 32;
     const locationStart = currentLocation * LOCATION_WIDTH;
     
-    // Define sprite collision areas based on our added sprites
-    const collisionAreas = [];
-    
     // Only check collisions for "Дом" location (first location)
     if (currentLocation === 0) {
-        // Horizontal sprites (player can walk on these)
-        collisionAreas.push({
-            x: locationStart + 1 * tileSize, // B1
-            y: 1 * tileSize,
-            width: tileSize,
-            height: tileSize,
-            type: 'horizontal'
-        });
+        // Define all sprite positions as blocked areas
+        const blockedAreas = [
+            // A0-A18 (vertical black sprite 1.2)
+            { x: 0, y: 0, width: 1, height: 19 },
+            // B15 (sprite 2.2)
+            { x: 1, y: 15, width: 1, height: 1 },
+            // B16 (sprite 4.1)
+            { x: 1, y: 16, width: 1, height: 1 },
+            // C16 (sprite 1.1)
+            { x: 2, y: 16, width: 1, height: 1 },
+            // D16-G16 (sprite 1.0)
+            { x: 3, y: 16, width: 4, height: 1 },
+            // C17-G17 (sprite 1.3)
+            { x: 2, y: 17, width: 5, height: 1 },
+            // B1
+            { x: 1, y: 1, width: 1, height: 1 },
+            // C1-j1 (horizontal)
+            { x: 2, y: 1, width: 34, height: 1 },
+            // k1
+            { x: 36, y: 1, width: 1, height: 1 },
+            // B2-B14 (vertical)
+            { x: 1, y: 2, width: 1, height: 13 },
+            // B16-F16
+            { x: 1, y: 16, width: 5, height: 1 },
+            // B17-F17
+            { x: 1, y: 17, width: 5, height: 1 },
+            // B15
+            { x: 1, y: 15, width: 1, height: 1 },
+            // H17-j17
+            { x: 7, y: 17, width: 29, height: 1 },
+
+            // I12-K12
+            { x: 8, y: 12, width: 3, height: 1 },
+            // M10-e10
+            { x: 12, y: 10, width: 19, height: 1 },
+            // 17th coordinate from N10
+            { x: 30, y: 10, width: 1, height: 1 },
+            // M11 to 18th coordinate
+            { x: 12, y: 11, width: 19, height: 1 }
+        ];
         
-        collisionAreas.push({
-            x: locationStart + 2 * tileSize, // C1-j1
-            y: 1 * tileSize,
-            width: 34 * tileSize, // C to j (2 to 35)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 36 * tileSize, // k1
-            y: 1 * tileSize,
-            width: tileSize,
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 1 * tileSize, // B2-B14
-            y: 2 * tileSize,
-            width: tileSize,
-            height: 13 * tileSize, // rows 2-14
-            type: 'vertical'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 1 * tileSize, // B16-F16
-            y: 16 * tileSize,
-            width: 5 * tileSize, // B to F (1 to 5)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 1 * tileSize, // B17-F17
-            y: 17 * tileSize,
-            width: 5 * tileSize, // B to F (1 to 5)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 1 * tileSize, // B1-B14
-            y: 1 * tileSize,
-            width: tileSize,
-            height: 14 * tileSize, // rows 1-14
-            type: 'vertical'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 1 * tileSize, // B15
-            y: 15 * tileSize,
-            width: tileSize,
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 6 * tileSize, // G17
-            y: 17 * tileSize,
-            width: tileSize,
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 7 * tileSize, // H17-j17
-            y: 17 * tileSize,
-            width: 29 * tileSize, // H to j (7 to 35)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 6 * tileSize, // G16-j16
-            y: 16 * tileSize,
-            width: 30 * tileSize, // G to j (6 to 35)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 2 * tileSize, // C15-F15
-            y: 15 * tileSize,
-            width: 4 * tileSize, // C to F (2 to 5)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 8 * tileSize, // I12-K12
-            y: 12 * tileSize,
-            width: 3 * tileSize, // I to K (8 to 10)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 12 * tileSize, // M10-e10
-            y: 10 * tileSize,
-            width: 19 * tileSize, // M to e (12 to 4)
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 30 * tileSize, // 17th coordinate from N10
-            y: 10 * tileSize,
-            width: tileSize,
-            height: tileSize,
-            type: 'horizontal'
-        });
-        
-        collisionAreas.push({
-            x: locationStart + 12 * tileSize, // M11 to 18th coordinate
-            y: 11 * tileSize,
-            width: 19 * tileSize, // M to 18th coordinate
-            height: tileSize,
-            type: 'horizontal'
-        });
-    }
-    
-    // Check collisions
-    for (const area of collisionAreas) {
-        if (playerX < area.x + area.width &&
-            playerX + playerWidth > area.x &&
-            playerY < area.y + area.height &&
-            playerY + playerHeight > area.y) {
+        // Check each blocked area
+        for (const area of blockedAreas) {
+            const areaX = locationStart + area.x * tileSize;
+            const areaY = area.y * tileSize;
+            const areaWidth = area.width * tileSize;
+            const areaHeight = area.height * tileSize;
             
-            if (area.type === 'vertical') {
-                // Vertical sprite - acts as a wall
-                return { collision: true, type: 'wall' };
-            } else if (area.type === 'horizontal') {
-                // Horizontal sprite - player can stand on it
-                if (playerY + playerHeight <= area.y + 5) { // Small tolerance for standing
-                    return { collision: true, type: 'platform', y: area.y - playerHeight };
+            // Check if player intersects with this area
+            if (playerX < areaX + areaWidth &&
+                playerX + playerWidth > areaX &&
+                playerY < areaY + areaHeight &&
+                playerY + playerHeight > areaY) {
+                
+                console.log('🚫 COLLISION DETECTED!', {
+                    playerX, playerY, playerWidth, playerHeight,
+                    areaX, areaY, areaWidth, areaHeight,
+                    area: area
+                });
+                
+                // Special case for B15-F15 platform
+                if (area.x === 1 && area.y === 15 && area.width === 5 && area.height === 1) {
+                    // Check if player is standing on top of the platform
+                    if (playerY + playerHeight <= areaY + 5) {
+                        return { collision: true, type: 'platform', y: areaY - playerHeight };
+                    } else {
+                        // Player is hitting sides or bottom - completely blocked
+                        return { collision: true, type: 'blocked' };
+                    }
+                } else {
+                    // COMPLETELY BLOCKED - no exceptions
+                    return { collision: true, type: 'blocked' };
                 }
             }
         }
