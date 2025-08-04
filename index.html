@@ -109,7 +109,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(0, 0, 0, 0.9);
-            border: 3px solid #4a90e2;
+            border: 3px solid #8a2be2;
             border-radius: 15px;
             padding: 30px;
             text-align: center;
@@ -121,20 +121,23 @@
             display: inline-block;
             margin: 10px;
             padding: 15px;
-            border: 2px solid #4a90e2;
+            border: 2px solid #8a2be2;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: rgba(74, 144, 226, 0.1);
+            background: rgba(138, 43, 226, 0.1);
+            width: 200px;
+            height: 100px;
+            vertical-align: top;
         }
 
         .character-option:hover {
-            background: rgba(74, 144, 226, 0.3);
+            background: rgba(138, 43, 226, 0.3);
             transform: scale(1.05);
         }
 
         .character-option.selected {
-            background: rgba(74, 144, 226, 0.5);
+            background: rgba(138, 43, 226, 0.5);
             border-color: #ffff00;
         }
 
@@ -142,11 +145,22 @@
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 5px;
+            color: #ffffff;
         }
 
         .character-description {
             font-size: 12px;
             color: #ccc;
+            font-weight: bold;
+        }
+
+        .character-image {
+            width: 60px;
+            height: 60px;
+            margin: 5px auto;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
 
         .game-title {
@@ -195,22 +209,25 @@
         
         <!-- Character Selection Screen -->
         <div id="characterSelect" class="character-select" style="display: none;">
-            <div class="game-title">Choose Your Hero</div>
             <div class="character-option" data-character="origami">
                 <div class="character-name">Origami</div>
                 <div class="character-description">Dash forward with triple damage</div>
+                <div class="character-image" id="origami-image"></div>
             </div>
             <div class="character-option" data-character="toxin">
                 <div class="character-name">Toxin</div>
                 <div class="character-description">10 seconds of invincibility</div>
+                <div class="character-image" id="toxin-image"></div>
             </div>
             <div class="character-option" data-character="chameleon">
                 <div class="character-name">Chameleon</div>
                 <div class="character-description">Instant kill with full health</div>
+                <div class="character-image" id="chameleon-image"></div>
             </div>
             <div class="character-option" data-character="troub">
                 <div class="character-name">Troub</div>
                 <div class="character-description">Convert 2 enemies to allies</div>
+                <div class="character-image" id="troub-image"></div>
             </div>
         </div>
 
