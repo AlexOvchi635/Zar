@@ -25,6 +25,30 @@ let toxinAttackAnimation = {
     visible: false
 };
 
+// Origami attack animation variables
+let origamiAttackAnimation = {
+    active: false,
+    timer: 0,
+    blinkTimer: 0,
+    visible: false,
+    burstCount: 0,
+    burstTimer: 0,
+    burstDelay: 10, // 0.167 seconds between shots
+    maxBurstShots: 3
+};
+
+// Chameleon attack animation variables
+let chameleonAttackAnimation = {
+    active: false,
+    timer: 0,
+    blinkTimer: 0,
+    visible: false,
+    burstCount: 0,
+    burstTimer: 0,
+    burstDelay: 3, // 0.05 seconds between shots (very fast)
+    maxBurstShots: 10 // More shots per burst
+};
+
 // Toxin special ability variables
 let toxinSpecialAbility = {
     active: false,
@@ -759,7 +783,7 @@ function loadOrigamiSprite() {
     characterSprites.chameleon.onerror = function() {
         console.error('❌ Failed to load Chameleon sprite!');
     };
-    characterSprites.chameleon.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeieqrseuye7k5lkr7lgmqvsx62hpwkuj6kubvnt6w3tmku2bvqnkqi';
+    characterSprites.chameleon.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibbkig57q2ud53qacnbbybnnjhgsoljhgkzz765ggwj3eosrca3eu';
     
     // Load Troub sprite
     characterSprites.troub = new Image();
@@ -819,6 +843,26 @@ function loadToxinAttackSprite() {
     toxinAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreidqafobnux4uyqp3yhi7j5qpa74krpwvqy7jkkz6kvrupevhlx7lu';
     console.log('🔄 Loading Toxin attack sprite from:', toxinAttackSprite.src);
     console.log('🔄 Initial complete status:', toxinAttackSprite.complete);
+}
+
+// Load Origami attack sprite
+let origamiAttackSprite = null;
+function loadOrigamiAttackSprite() {
+    console.log('🔄 Starting to load Origami attack sprite...');
+    origamiAttackSprite = new Image();
+    origamiAttackSprite.crossOrigin = 'anonymous';
+    origamiAttackSprite.onload = function() {
+        console.log('✅ Origami attack sprite loaded successfully!');
+        console.log('Sprite dimensions:', origamiAttackSprite.width, 'x', origamiAttackSprite.height);
+        console.log('Sprite complete status:', origamiAttackSprite.complete);
+    };
+    origamiAttackSprite.onerror = function() {
+        console.error('❌ Failed to load Origami attack sprite!');
+        console.error('Error details:', origamiAttackSprite.src);
+    };
+    origamiAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreibriqoyyftazbdlcvlaoa7xw6owxe7ppvr2qb7ge5nq3jo44nukqu';
+    console.log('🔄 Loading Origami attack sprite from:', origamiAttackSprite.src);
+    console.log('🔄 Initial complete status:', origamiAttackSprite.complete);
 }
 
 // Load Toxin bullet sprite
@@ -1055,11 +1099,55 @@ class ToxinProjectile {
     }
 }
 
+class OrigamiProjectile {
+    constructor(x, y, velocityX, velocityY) {
+        this.x = x;
+        this.y = y;
+        this.width = 20;
+        this.height = 12;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.damage = 12; // Origami projectile damage
+        this.speed = 12; // Faster than Toxin projectiles
+    }
+    
+    update() {
+        this.x += this.velocityX * this.speed;
+        this.y += this.velocityY * this.speed;
+    }
+    
+    isOffScreen() {
+        return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
+class ChameleonProjectile {
+    constructor(x, y, velocityX, velocityY) {
+        this.x = x;
+        this.y = y;
+        this.width = 16;
+        this.height = 8;
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+        this.damage = 3; // Очень маленький урон
+        this.speed = 16; // Очень высокая скорость
+    }
+    update() {
+        this.x += this.velocityX * this.speed;
+        this.y += this.velocityY * this.speed;
+    }
+    isOffScreen() {
+        return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
 // Global arrays for enemies and projectiles
 let enemies = [];
 let fireProjectiles = [];
 let arrowProjectiles = [];
 let toxinProjectiles = [];
+let origamiProjectiles = [];
+let chameleonProjectiles = [];
 
 // Locations with smooth transitions
 const locations = [
@@ -1265,6 +1353,62 @@ function attack() {
                     toxinAttackAnimation.visible = true;
                     console.log('🎯 Toxin attack animation activated - Direction:', player.direction, 'Active:', toxinAttackAnimation.active, 'Visible:', toxinAttackAnimation.visible);
                 }
+                
+                // Create chameleon projectile for Chameleon
+                if (player.character.name === 'Chameleon') {
+                    console.log('🎯 Chameleon attack triggered - Direction:', player.direction);
+                    
+                    // Start burst fire for Chameleon
+                    if (!chameleonAttackAnimation.active) {
+                        chameleonAttackAnimation.active = true;
+                        chameleonAttackAnimation.burstCount = 0;
+                        chameleonAttackAnimation.burstTimer = 0;
+                        chameleonAttackAnimation.visible = true;
+                        console.log('🎯 Chameleon burst fire started!');
+                    }
+                    
+                    // Create projectile if burst count allows
+                    if (chameleonAttackAnimation.burstCount < chameleonAttackAnimation.maxBurstShots) {
+                        const chameleonX = player.x + (player.direction > 0 ? player.width : 0);
+                        const chameleonY = player.y + player.height / 2;
+                        const chameleonVelocityX = player.direction;
+                        const chameleonVelocityY = 0;
+                        
+                        chameleonProjectiles.push(new ChameleonProjectile(chameleonX, chameleonY, chameleonVelocityX, chameleonVelocityY));
+                        console.log('💥 Chameleon projectile created at:', chameleonX, chameleonY, 'Velocity:', chameleonVelocityX, 'Burst:', chameleonAttackAnimation.burstCount + 1);
+                        
+                        chameleonAttackAnimation.burstCount++;
+                        chameleonAttackAnimation.burstTimer = chameleonAttackAnimation.burstDelay;
+                    }
+                }
+                
+                // Create origami projectile for Origami
+                if (player.character.name === 'Origami') {
+                    console.log('🎯 Origami attack triggered - Direction:', player.direction);
+                    
+                    // Start burst fire for Origami
+                    if (!origamiAttackAnimation.active) {
+                        origamiAttackAnimation.active = true;
+                        origamiAttackAnimation.burstCount = 0;
+                        origamiAttackAnimation.burstTimer = 0;
+                        origamiAttackAnimation.visible = true;
+                        console.log('🎯 Origami burst fire started!');
+                    }
+                    
+                    // Create projectile if burst count allows
+                    if (origamiAttackAnimation.burstCount < origamiAttackAnimation.maxBurstShots) {
+                        const origamiX = player.x + (player.direction > 0 ? player.width : 0);
+                        const origamiY = player.y + player.height / 2;
+                        const origamiVelocityX = player.direction;
+                        const origamiVelocityY = 0;
+                        
+                        origamiProjectiles.push(new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY));
+                        console.log('💥 Origami projectile created at:', origamiX, origamiY, 'Velocity:', origamiVelocityX, 'Burst:', origamiAttackAnimation.burstCount + 1);
+                        
+                        origamiAttackAnimation.burstCount++;
+                        origamiAttackAnimation.burstTimer = origamiAttackAnimation.burstDelay;
+                    }
+                }
     
     // Check for enemy hits based on character type
     if (gameState.currentLocation === 1) { // Only on Forest location (second location)
@@ -1272,19 +1416,8 @@ function attack() {
             const dx = Math.abs(player.x - enemy.x);
             const dy = Math.abs(player.y - enemy.y);
             
-            if (player.character.name === 'Origami' || player.character.name === 'Chameleon') {
-                // Melee attack - close range
-                if (dx < 100 && dy < 80) {
-                    enemy.health -= player.character.attackDamage;
-                    if (enemy.health <= 0) {
-                        const index = enemies.indexOf(enemy);
-                        if (index > -1) {
-                            enemies.splice(index, 1);
-                        }
-                    }
-                }
-            }
-            // Troub and Toxin damage is handled by projectiles in updatePlayer()
+            // Chameleon damage is now handled by projectiles in updatePlayer()
+            // Troub, Toxin, and Origami damage is handled by projectiles in updatePlayer()
         });
     }
     
@@ -1345,6 +1478,7 @@ function restartGame() {
     fireProjectiles = [];
     arrowProjectiles = [];
     toxinProjectiles = [];
+    origamiProjectiles = [];
     blueSphereProjectiles = [];
     enemies = [];
     friendlyEnemies = [];
@@ -1354,6 +1488,14 @@ function restartGame() {
     toxinAttackAnimation.timer = 0;
     toxinAttackAnimation.blinkTimer = 0;
     toxinAttackAnimation.visible = false;
+    
+    // Reset origami attack animation
+    origamiAttackAnimation.active = false;
+    origamiAttackAnimation.timer = 0;
+    origamiAttackAnimation.blinkTimer = 0;
+    origamiAttackAnimation.visible = false;
+    origamiAttackAnimation.burstCount = 0;
+    origamiAttackAnimation.burstTimer = 0;
     
     // Reset toxin special ability
     toxinSpecialAbility.active = false;
@@ -1366,6 +1508,13 @@ function restartGame() {
         isMachineGunPlaying = false;
         console.log('🔇 Machine gun sound stopped on restart!');
     }
+    // Reset chameleon attack animation
+    chameleonAttackAnimation.active = false;
+    chameleonAttackAnimation.timer = 0;
+    chameleonAttackAnimation.blinkTimer = 0;
+    chameleonAttackAnimation.visible = false;
+    // Clear chameleon projectiles
+    chameleonProjectiles = [];
 }
 
 // Camera system
@@ -1386,11 +1535,11 @@ function updatePlayer() {
     if (player.x < locationStart) player.x = locationStart;
     if (player.x + player.width > locationEnd) player.x = locationEnd - player.width;
     
-         // Check portal collision (portal is between columns j and k)
-     if (gameState.currentLocation < locations.length - 1) {
-         const portalX = locationStart + (36.5 * 32) - 40; // Shifted right, more towards column k
-         const portalHeight = 120;
-         const portalY = 2 * 32; // Position at row 2 (middle position)
+             // Check portal collision (portal is between columns j and k)
+    if (gameState.currentLocation < locations.length - 1) {
+        const portalX = locationStart + (36.5 * 32) - 40; // Shifted right, more towards column k
+        const portalHeight = 120;
+                 const portalY = 2 * 32 - 8; // Position at row 2 (middle position) - moved up by 8 pixels
          
          if (
              player.x + player.width > portalX &&
@@ -1556,6 +1705,34 @@ function updatePlayer() {
                     console.log('🔄 Toxin animation update - Timer:', toxinAttackAnimation.timer, 'BlinkTimer:', toxinAttackAnimation.blinkTimer, 'Visible:', toxinAttackAnimation.visible);
                 }
                 
+                // Update origami attack animation
+                if (origamiAttackAnimation.active) {
+                    origamiAttackAnimation.burstTimer--;
+                    
+                    // Create additional projectiles during burst
+                    if (origamiAttackAnimation.burstTimer <= 0 && origamiAttackAnimation.burstCount < origamiAttackAnimation.maxBurstShots) {
+                        const origamiX = player.x + (player.direction > 0 ? player.width : 0);
+                        const origamiY = player.y + player.height / 2;
+                        const origamiVelocityX = player.direction;
+                        const origamiVelocityY = 0;
+                        
+                        origamiProjectiles.push(new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY));
+                        console.log('💥 Origami burst projectile created - Burst:', origamiAttackAnimation.burstCount + 1);
+                        
+                        origamiAttackAnimation.burstCount++;
+                        origamiAttackAnimation.burstTimer = origamiAttackAnimation.burstDelay;
+                    }
+                    
+                    // End burst after all shots or 2 seconds (120 frames)
+                    if (origamiAttackAnimation.burstCount >= origamiAttackAnimation.maxBurstShots || origamiAttackAnimation.burstTimer <= -120) {
+                        origamiAttackAnimation.active = false;
+                        origamiAttackAnimation.visible = false;
+                        origamiAttackAnimation.burstCount = 0;
+                        origamiAttackAnimation.burstTimer = 0;
+                        console.log('⏰ Origami burst fire ended');
+                    }
+                }
+                
                 // Update toxin special ability
                 if (toxinSpecialAbility.active) {
                     toxinSpecialAbility.timer--;
@@ -1682,6 +1859,64 @@ function updatePlayer() {
         }
     });
     
+    // Update origami projectiles
+    origamiProjectiles.forEach((projectile, index) => {
+        projectile.update();
+        
+        // Check collision with enemies (only on Forest location)
+        if (gameState.currentLocation === 1) {
+            enemies.forEach(enemy => {
+                if (projectile.x < enemy.x + enemy.width &&
+                    projectile.x + projectile.width > enemy.x &&
+                    projectile.y < enemy.y + enemy.height &&
+                    projectile.y + projectile.height > enemy.y) {
+                    enemy.health -= projectile.damage;
+                    if (enemy.health <= 0) {
+                        const enemyIndex = enemies.indexOf(enemy);
+                        if (enemyIndex > -1) {
+                            enemies.splice(enemyIndex, 1);
+                        }
+                    }
+                    origamiProjectiles.splice(index, 1);
+                }
+            });
+        }
+        
+        // Remove off-screen projectiles
+        if (projectile.isOffScreen()) {
+            origamiProjectiles.splice(index, 1);
+        }
+    });
+    
+    // Update chameleon projectiles
+    chameleonProjectiles.forEach((projectile, index) => {
+        projectile.update();
+        
+        // Check collision with enemies (only on Forest location)
+        if (gameState.currentLocation === 1) {
+            enemies.forEach(enemy => {
+                if (projectile.x < enemy.x + enemy.width &&
+                    projectile.x + projectile.width > enemy.x &&
+                    projectile.y < enemy.y + enemy.height &&
+                    projectile.y + projectile.height > enemy.y) {
+                    enemy.health -= projectile.damage;
+                    if (enemy.health <= 0) {
+                        const enemyIndex = enemies.indexOf(enemy);
+                        if (enemyIndex > -1) {
+                            enemies.splice(enemyIndex, 1);
+                        }
+                    }
+                    chameleonProjectiles.splice(index, 1);
+                }
+            });
+        }
+        
+        // Remove off-screen projectiles
+        if (projectile.isOffScreen()) {
+            chameleonProjectiles.splice(index, 1);
+        }
+    });
+    
     // Update enemies
     enemies.forEach(enemy => {
         enemy.update(player);
@@ -1737,7 +1972,26 @@ function updatePlayer() {
         }
     });
 
-
+    // Update chameleon attack animation
+    if (chameleonAttackAnimation.active) {
+        chameleonAttackAnimation.burstTimer--;
+        if (chameleonAttackAnimation.burstTimer <= 0 && chameleonAttackAnimation.burstCount < chameleonAttackAnimation.maxBurstShots) {
+            const chamX = player.x + (player.direction > 0 ? player.width : 0);
+            const chamY = player.y + player.height / 2;
+            const chamVelocityX = player.direction;
+            const chamVelocityY = 0;
+            chameleonProjectiles.push(new ChameleonProjectile(chamX, chamY, chamVelocityX, chamVelocityY));
+            chameleonAttackAnimation.burstCount++;
+            chameleonAttackAnimation.burstTimer = chameleonAttackAnimation.burstDelay;
+        }
+        // End burst after max shots or 0.5 секунды (30 кадров)
+        if (chameleonAttackAnimation.burstCount >= chameleonAttackAnimation.maxBurstShots || chameleonAttackAnimation.burstTimer <= -30) {
+            chameleonAttackAnimation.active = false;
+            chameleonAttackAnimation.visible = false;
+            chameleonAttackAnimation.burstCount = 0;
+            chameleonAttackAnimation.burstTimer = 0;
+        }
+    }
 }
 
 // Update camera
@@ -2040,8 +2294,7 @@ function drawBackground() {
             try {
                 ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
                 
-                // Draw grid overlay for level design
-                drawGridOverlay(screenX);
+                // Grid overlay removed
                 
                 // Draw black sprite 1.2 from first pack on A0-A18 coordinates
                 drawBlackSprite1_2OnA0A18(screenX);
@@ -2217,9 +2470,9 @@ function drawBackground() {
                  const portalPulse = Math.sin(Date.now() * 0.005) * 0.2 + 1;
                  const portalGlow = Math.sin(Date.now() * 0.01) * 0.3 + 0.7;
                  
-                 // Portal should be at the top of the grid (around rows 2-4)
-                 const portalHeight = 120;
-                 const portalY = 2 * 32; // Position at row 2 (middle position)
+                                 // Portal should be at the top of the grid (around rows 2-4)
+                const portalHeight = 120;
+                const portalY = 2 * 32 - 8; // Position at row 2 (middle position) - moved up by 8 pixels
                  
                  if (portalSprite.complete) {
                      // Draw main portal
@@ -2371,16 +2624,10 @@ function drawPlayer() {
                 }
             } else {
                 // Draw different attack effects based on character
-                if (player.character.name === 'Origami' || player.character.name === 'Chameleon') {
-                    // Melee attack - solid line
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = 4;
-                    const attackX = screenX + (player.direction > 0 ? player.width + 80 : -80);
-                    ctx.beginPath();
-                    ctx.moveTo(screenX + player.width/2, player.y + player.height/2);
-                    ctx.lineTo(attackX, player.y + player.height/2);
-                    ctx.stroke();
-                } else if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
+                            if (player.character.name === 'Origami' || player.character.name === 'Chameleon') {
+                // Мelee attack - solid line (удалено для Origami и Chameleon)
+                // Белая линия атаки удалена для обоих персонажей
+            } else if (player.character.name === 'Toxin' || player.character.name === 'Troub') {
                     // Ranged attack - no visual effect (removed dashed line)
                     // Attack logic is handled in the attack() function for arrow creation
                 } else {
@@ -2654,6 +2901,33 @@ function drawToxinProjectiles() {
     });
 }
 
+function drawOrigamiProjectiles() {
+    origamiProjectiles.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        // Only draw if projectile is visible on screen
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            if (origamiAttackSprite && origamiAttackSprite.complete) {
+                try {
+                    ctx.save();
+                    if (projectile.velocityX < 0) {
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(origamiAttackSprite, -(screenX + projectile.width), projectile.y - 1, projectile.width, projectile.height);
+                    } else {
+                        ctx.drawImage(origamiAttackSprite, screenX, projectile.y - 1, projectile.width, projectile.height);
+                    }
+                    ctx.restore();
+                } catch (error) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.fillRect(screenX, projectile.y - 1, projectile.width, projectile.height);
+                }
+            } else {
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillRect(screenX, projectile.y - 1, projectile.width, projectile.height);
+            }
+        }
+    });
+}
+
 function drawToxinAttackAnimation() {
     // RADICAL DEBUG: Always draw fire animation for Toxin character
     if (player.character && player.character.name === 'Toxin') {
@@ -2786,6 +3060,8 @@ function gameLoop() {
         drawFireProjectiles();
         drawArrowProjectiles();
         drawToxinProjectiles();
+        drawOrigamiProjectiles();
+        drawChameleonProjectiles();
         console.log('🎮 About to call drawToxinAttackAnimation');
         drawToxinAttackAnimation();
         console.log('🎮 drawToxinAttackAnimation called');
@@ -2888,8 +3164,10 @@ loadOrigamiSprite(); // Load Origami sprite
 loadFireEnemySprite(); // Load fire enemy sprite
 loadArrowSprite(); // Load arrow sprite for Troub
 loadToxinAttackSprite(); // Load Toxin attack animation sprite
+loadOrigamiAttackSprite(); // Load Origami attack animation sprite
 loadToxinBulletSprite(); // Load Toxin bullet sprite
 loadMachineGunSound(); // Load machine gun sound
+loadChameleonAttackSprite(); // Load Chameleon attack animation sprite
 // Don't initialize enemies at start - they will be added when entering Forest location
 gameLoop();
 
@@ -4535,5 +4813,49 @@ function drawPlatformIndicators(screenX) {
     
     // Restore context state
     ctx.restore();
+}
+
+function loadChameleonAttackSprite() {
+    console.log('🔄 Starting to load Chameleon attack sprite...');
+    chameleonAttackSprite = new Image();
+    chameleonAttackSprite.crossOrigin = 'anonymous';
+    chameleonAttackSprite.onload = function() {
+        console.log('✅ Chameleon attack sprite loaded successfully!');
+        console.log('Sprite dimensions:', chameleonAttackSprite.width, 'x', chameleonAttackSprite.height);
+        console.log('Sprite complete status:', chameleonAttackSprite.complete);
+    };
+    chameleonAttackSprite.onerror = function() {
+        console.error('❌ Failed to load Chameleon attack sprite!');
+        console.error('Error details:', chameleonAttackSprite.src);
+    };
+    chameleonAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreies4udpli5erj45fylfmnhoyr7nsbzbvlpu2pqs77lh2vl6vpqtqu';
+    console.log('🔄 Loading Chameleon attack sprite from:', chameleonAttackSprite.src);
+    console.log('🔄 Initial complete status:', chameleonAttackSprite.complete);
+}
+
+function drawChameleonProjectiles() {
+    chameleonProjectiles.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            if (chameleonAttackSprite && chameleonAttackSprite.complete) {
+                try {
+                    ctx.save();
+                    if (projectile.velocityX < 0) {
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(chameleonAttackSprite, -(screenX + projectile.width), projectile.y + 1.5, projectile.width, projectile.height);
+                    } else {
+                        ctx.drawImage(chameleonAttackSprite, screenX, projectile.y + 1.5, projectile.width, projectile.height);
+                    }
+                    ctx.restore();
+                } catch (error) {
+                    ctx.fillStyle = '#00e6e6';
+                    ctx.fillRect(screenX, projectile.y + 1.5, projectile.width, projectile.height);
+                }
+            } else {
+                ctx.fillStyle = '#00e6e6';
+                ctx.fillRect(screenX, projectile.y + 1.5, projectile.width, projectile.height);
+            }
+        }
+    });
 }
 
