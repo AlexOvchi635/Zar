@@ -287,6 +287,24 @@ let splashBackgroundImage = null;
 
 // Load character selection background image
 let characterSelectionBackgroundImage = null;
+
+// Load start button image
+let startButtonImage = null;
+
+// Load ZARGATES logo image
+let zargatesLogoImage = null;
+
+// Load Origami character image
+let origamiCharacterImage = null;
+
+// Load Troub character image
+let troubCharacterImage = null;
+
+// Load Toxin character image
+let toxinCharacterImage = null;
+
+// Load Chameleon character image
+let chameleonCharacterImage = null;
 function loadFourthIndustrialTiles() {
     fourthIndustrialTilesSprite = new Image();
     fourthIndustrialTilesSprite.crossOrigin = 'anonymous';
@@ -341,6 +359,96 @@ function loadCharacterSelectionBackground() {
         console.error('🔗 URL:', characterSelectionBackgroundImage.src);
     };
     characterSelectionBackgroundImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+}
+
+// Load start button image
+function loadStartButton() {
+    startButtonImage = new Image();
+    startButtonImage.crossOrigin = 'anonymous';
+    startButtonImage.onload = function() {
+        console.log('✅ Start button image loaded successfully!');
+        console.log('📏 Start button dimensions:', startButtonImage.width, 'x', startButtonImage.height);
+    };
+    startButtonImage.onerror = function() {
+        console.error('❌ Failed to load start button image!');
+        console.error('🔗 URL:', startButtonImage.src);
+    };
+    startButtonImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiefgxgxrkgczne52lepzd6ikpdwjtmpere426turuf5p6gqjw3bhi';
+}
+
+// Load ZARGATES logo image
+function loadZargatesLogo() {
+    zargatesLogoImage = new Image();
+    zargatesLogoImage.crossOrigin = 'anonymous';
+    zargatesLogoImage.onload = function() {
+        console.log('✅ ZARGATES logo image loaded successfully!');
+        console.log('📏 ZARGATES logo dimensions:', zargatesLogoImage.width, 'x', zargatesLogoImage.height);
+    };
+    zargatesLogoImage.onerror = function() {
+        console.error('❌ Failed to load ZARGATES logo image!');
+        console.error('🔗 URL:', zargatesLogoImage.src);
+    };
+    zargatesLogoImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeieyqvrg4cpzvj66z2fkbvhiipdn45ezsaojjoueke6kmaqt5r6s3q';
+}
+
+// Load Origami character image
+function loadOrigamiCharacter() {
+    origamiCharacterImage = new Image();
+    origamiCharacterImage.crossOrigin = 'anonymous';
+    origamiCharacterImage.onload = function() {
+        console.log('✅ Origami character image loaded successfully!');
+        console.log('📏 Origami character dimensions:', origamiCharacterImage.width, 'x', origamiCharacterImage.height);
+    };
+    origamiCharacterImage.onerror = function() {
+        console.error('❌ Failed to load Origami character image!');
+        console.error('🔗 URL:', origamiCharacterImage.src);
+    };
+    origamiCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeie2tgh34uzm4f56tpkknzecvts6ny4vvgjmtv5mvinkvxyf4fcere';
+}
+
+// Load Troub character image
+function loadTroubCharacter() {
+    troubCharacterImage = new Image();
+    troubCharacterImage.crossOrigin = 'anonymous';
+    troubCharacterImage.onload = function() {
+        console.log('✅ Troub character image loaded successfully!');
+        console.log('📏 Troub character dimensions:', troubCharacterImage.width, 'x', troubCharacterImage.height);
+    };
+    troubCharacterImage.onerror = function() {
+        console.error('❌ Failed to load Troub character image!');
+        console.error('🔗 URL:', troubCharacterImage.src);
+    };
+    troubCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigynqkchgip6vipkibbyugdzuoo66reyngffuwmy4gjai3ksomijm';
+}
+
+// Load Toxin character image
+function loadToxinCharacter() {
+    toxinCharacterImage = new Image();
+    toxinCharacterImage.crossOrigin = 'anonymous';
+    toxinCharacterImage.onload = function() {
+        console.log('✅ Toxin character image loaded successfully!');
+        console.log('📏 Toxin character dimensions:', toxinCharacterImage.width, 'x', toxinCharacterImage.height);
+    };
+    toxinCharacterImage.onerror = function() {
+        console.error('❌ Failed to load Toxin character image!');
+        console.error('🔗 URL:', toxinCharacterImage.src);
+    };
+    toxinCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeid6cbdavearktbmsw7i3k6fdr3gxcknhhe4rseafxwlvkz35caep4';
+}
+
+// Load Chameleon character image
+function loadChameleonCharacter() {
+    chameleonCharacterImage = new Image();
+    chameleonCharacterImage.crossOrigin = 'anonymous';
+    chameleonCharacterImage.onload = function() {
+        console.log('✅ Chameleon character image loaded successfully!');
+        console.log('📏 Chameleon character dimensions:', chameleonCharacterImage.width, 'x', chameleonCharacterImage.height);
+    };
+    chameleonCharacterImage.onerror = function() {
+        console.error('❌ Failed to load Chameleon character image!');
+        console.error('🔗 URL:', chameleonCharacterImage.src);
+    };
+    chameleonCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeianddvrfgn7yrghegygfymiiojyfi2h47uvtgjlaziaik3cho4ohy';
 }
 
 // Function to draw grid overlay on all locations
@@ -1011,13 +1119,7 @@ document.addEventListener('keyup', (e) => {
     }
 });
 
-// Mouse click handling
-canvas.addEventListener('click', (e) => {
-    if (gameState.currentScreen === 'splash') {
-        gameState.currentScreen = 'characterSelect';
-        document.getElementById('characterSelect').style.display = 'block';
-    }
-});
+
 
 // Character selection click handling
 document.addEventListener('click', (e) => {
@@ -2595,26 +2697,37 @@ function drawBlueSphereProjectiles() {
 }
 
 function drawSplashScreen() {
-    // Draw background image if loaded, otherwise use fallback color
+    // Always start with black background to avoid green flash
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background image if loaded
     if (characterSelectionBackgroundImage && characterSelectionBackgroundImage.complete) {
         // Stretch image to cover entire canvas (may distort but covers all green areas)
         ctx.drawImage(characterSelectionBackgroundImage, 0, 0, canvas.width, canvas.height);
-    } else {
-        // Fallback to original color if image not loaded
-        ctx.fillStyle = '#2d5a3d';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
     // Add a semi-transparent overlay to make text more readable
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 48px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('ZARGATES', canvas.width / 2, canvas.height / 2 - 50);
-    ctx.font = '24px Arial';
-    ctx.fillText('Click to Start', canvas.width / 2, canvas.height / 2 + 50);
+    // Draw start button image if loaded, otherwise show text
+    if (startButtonImage && startButtonImage.complete) {
+        // Calculate button position and size - center of screen
+        const buttonWidth = 200;
+        const buttonHeight = 80;
+        const buttonX = canvas.width / 2 - buttonWidth / 2;
+        const buttonY = canvas.height / 2 - buttonHeight / 2;
+        
+        // Draw the button image
+        ctx.drawImage(startButtonImage, buttonX, buttonY, buttonWidth, buttonHeight);
+    } else {
+        // Fallback to text if image not loaded
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('START', canvas.width / 2, canvas.height / 2);
+    }
 }
 
 function drawGameOverScreen() {
@@ -2695,28 +2808,22 @@ function gameLoop() {
 
 // Add canvas click event listener
 canvas.addEventListener('click', function(e) {
+    console.log('🎯 Canvas clicked! Current screen:', gameState.currentScreen);
+    
     if (gameState.currentScreen === 'splash') {
-        // Show character selection
-        gameState.currentScreen = 'characterSelect';
-        drawCharacterSelection();
-    } else if (gameState.currentScreen === 'characterSelect') {
-        // Handle character selection
+        // Get canvas coordinates
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        // Character selection areas
-        if (y > 200 && y < 300) {
-            if (x > 100 && x < 200) {
-                selectCharacter('origami');
-            } else if (x > 250 && x < 350) {
-                selectCharacter('toxin');
-            } else if (x > 400 && x < 500) {
-                selectCharacter('chameleon');
-            } else if (x > 550 && x < 650) {
-                selectCharacter('troub');
-            }
-        }
+        console.log('🎯 Splash screen clicked at:', x, y);
+        console.log('🎯 Canvas size:', canvas.width, canvas.height);
+        console.log('🎯 Click coordinates relative to canvas:', x, y);
+        
+        // Any click on splash screen goes to character selection
+        gameState.currentScreen = 'characterSelect';
+        document.getElementById('characterSelect').style.display = 'block';
+        console.log('✅ Transitioned to character selection');
     }
 });
 
@@ -2734,6 +2841,12 @@ loadPortalBackground(); // Load portal background image
     loadFourthIndustrialTiles(); // Load fourth industrial tileset (U pack)
     loadSplashBackground(); // Load splash screen background image
     loadCharacterSelectionBackground(); // Load character selection background image
+    loadStartButton(); // Load start button image
+    loadZargatesLogo(); // Load ZARGATES logo image
+    loadOrigamiCharacter(); // Load Origami character image
+    loadTroubCharacter(); // Load Troub character image
+    loadToxinCharacter(); // Load Toxin character image
+    loadChameleonCharacter(); // Load Chameleon character image
 loadOrigamiSprite(); // Load Origami sprite
 loadFireEnemySprite(); // Load fire enemy sprite
 loadArrowSprite(); // Load arrow sprite for Troub
@@ -2745,23 +2858,51 @@ gameLoop();
 
 // Character selection screen
 function drawCharacterSelection() {
-    // Draw background image if loaded, otherwise use fallback color
+    // Always start with black background to avoid green flash
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw background image if loaded
     if (characterSelectionBackgroundImage && characterSelectionBackgroundImage.complete) {
         // Stretch image to cover entire canvas (may distort but covers all green areas)
         ctx.drawImage(characterSelectionBackgroundImage, 0, 0, canvas.width, canvas.height);
-    } else {
-        // Fallback to original color if image not loaded
-        ctx.fillStyle = '#2d5a3d';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
     // Add a semi-transparent overlay to make text more readable
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-
+    // Update Origami character image in HTML if loaded
+    if (origamiCharacterImage && origamiCharacterImage.complete) {
+        const origamiImageElement = document.getElementById('origami-image');
+        if (origamiImageElement) {
+            origamiImageElement.style.backgroundImage = `url(${origamiCharacterImage.src})`;
+        }
+    }
     
-
+    // Update Troub character image in HTML if loaded
+    if (troubCharacterImage && troubCharacterImage.complete) {
+        const troubImageElement = document.getElementById('troub-image');
+        if (troubImageElement) {
+            troubImageElement.style.backgroundImage = `url(${troubCharacterImage.src})`;
+        }
+    }
+    
+    // Update Toxin character image in HTML if loaded
+    if (toxinCharacterImage && toxinCharacterImage.complete) {
+        const toxinImageElement = document.getElementById('toxin-image');
+        if (toxinImageElement) {
+            toxinImageElement.style.backgroundImage = `url(${toxinCharacterImage.src})`;
+        }
+    }
+    
+    // Update Chameleon character image in HTML if loaded
+    if (chameleonCharacterImage && chameleonCharacterImage.complete) {
+        const chameleonImageElement = document.getElementById('chameleon-image');
+        if (chameleonImageElement) {
+            chameleonImageElement.style.backgroundImage = `url(${chameleonCharacterImage.src})`;
+        }
+    }
 }
 
 // Function to draw black sprite 1.2 from first pack on A0-A18 coordinates
