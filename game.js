@@ -403,7 +403,7 @@ function loadOrigamiCharacter() {
         console.error('❌ Failed to load Origami character image!');
         console.error('🔗 URL:', origamiCharacterImage.src);
     };
-    origamiCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeie2tgh34uzm4f56tpkknzecvts6ny4vvgjmtv5mvinkvxyf4fcere';
+    origamiCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeiexcznwao3bk66lwdpupmvgnlbqwfc6j2qqegwfwyo74ownrjwvey';
 }
 
 // Load Troub character image
@@ -448,7 +448,7 @@ function loadChameleonCharacter() {
         console.error('❌ Failed to load Chameleon character image!');
         console.error('🔗 URL:', chameleonCharacterImage.src);
     };
-    chameleonCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeianddvrfgn7yrghegygfymiiojyfi2h47uvtgjlaziaik3cho4ohy';
+    chameleonCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigssfz7ksllby2cerjfhsc5cvm3eodlnau6yjwmajn2tsukx4e7jm';
 }
 
 // Function to draw grid overlay on all locations
@@ -737,7 +737,7 @@ function loadOrigamiSprite() {
     characterSprites.origami.onerror = function() {
         console.error('❌ Failed to load Origami sprite!');
     };
-         characterSprites.origami.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeidig35myg7sui7jwrrwebubh6ukgjh4jilrhurbgslakjjgjakf4m';
+         characterSprites.origami.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibmpq5fjwhweyuoxr3ki7wj5ss4usv4x7nplbai7xc4m5ylzjlpiq';
     
     // Load Toxin sprite
     characterSprites.toxin = new Image();
@@ -1428,23 +1428,58 @@ function updatePlayer() {
     
     // Jumping
     if ((keys['KeyW'] || keys['ArrowUp']) && player.onGround) {
-        player.velocityY = -7.5;
+        player.velocityY = -12; // Максимальный прыжок 4 клетки (128 пикселей)
         player.onGround = false;
     }
     
-    // Draw ground line for reference
-    ctx.fillStyle = '#ff0000';
-    ctx.fillRect(0, canvas.height - 40, canvas.width, 2);
+
     
     // Gravity
     player.velocityY += 0.8;
     
     // Update position
-    const newX = player.x + player.velocityX;
-    const newY = player.y + player.velocityY;
+    let newX = player.x + player.velocityX;
+    let newY = player.y + player.velocityY;
     
-    // Check sprite collisions
+
+    
+    // Tile-based collision for B1-B16 wall
+    const tileSize = 32;
+    const wallLocationStart = gameState.currentLocation * LOCATION_WIDTH;
+    
+    // Check each tile of the wall individually
+    for (let row = 1; row <= 16; row++) { // B1 to B16
+        const tileX = wallLocationStart + 1 * tileSize; // B column
+        const tileY = row * tileSize;
+        
+        // Check if player is crossing the wall boundary (ultra minimal radius)
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const wallLeft = tileX;
+        const wallRight = tileX + tileSize;
+        
+        // Simple wall blocking - block any intersection with wall
+        if (newX < wallRight && newX + player.width > wallLeft &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
+            
+            console.log('🚫 TILE COLLISION! Blocked horizontal movement at B' + row);
+            // Only stop horizontal velocity and block X movement
+            player.velocityX = 0;
+            newX = player.x; // Keep current X position, don't move horizontally
+            // Allow Y movement for jumping - don't block vertical movement
+        }
+    }
+    
+    // Check sprite collisions BEFORE updating position
     const collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation);
+    
+    // Debug: log player position
+    console.log('🎮 Player position:', {
+        x: newX,
+        y: newY,
+        currentLocation: gameState.currentLocation,
+        locationStart: gameState.currentLocation * LOCATION_WIDTH
+    });
     
     // World bounds - full world width
     if (newX < 0) player.x = 0;
@@ -1463,6 +1498,8 @@ function updatePlayer() {
             // ALL other sprites are completely blocked - no movement allowed
             player.velocityX = 0;
             player.velocityY = 0;
+            // DON'T update position - keep player in current position
+            return; // Exit early, don't update position
         }
     } else {
         // No sprite collision, update Y position
@@ -1484,26 +1521,12 @@ function updatePlayer() {
             }
             
             if (!landedOnPlatform) {
-                // Ground level (raised to match red line in screenshot)
-                const groundLevel = canvas.height - 40;
-                if (player.y > groundLevel - player.height) {
-                    player.y = groundLevel - player.height;
-                    player.velocityY = 0;
-                    player.onGround = true;
-                } else {
-                    player.onGround = false;
-                }
-            }
-        } else {
-            // Ground level (raised to match red line in screenshot)
-            const groundLevel = canvas.height - 40;
-            if (player.y > groundLevel - player.height) {
-                player.y = groundLevel - player.height;
-                player.velocityY = 0;
-                player.onGround = true;
-            } else {
+                // No ground level - player should fall through
                 player.onGround = false;
             }
+        } else {
+            // No ground level - player should fall through
+            player.onGround = false;
         }
     }
     
@@ -2769,6 +2792,9 @@ function gameLoop() {
         drawBlueSphereProjectiles();
         drawPlayer();
         
+        // Draw platform indicators for first location
+        drawPlatformIndicators(cameraX);
+        
         // Draw game over screen if player is dead
         if (gameState.gameOver) {
             drawGameOverScreen();
@@ -2820,10 +2846,21 @@ canvas.addEventListener('click', function(e) {
         console.log('🎯 Canvas size:', canvas.width, canvas.height);
         console.log('🎯 Click coordinates relative to canvas:', x, y);
         
-        // Any click on splash screen goes to character selection
-        gameState.currentScreen = 'characterSelect';
-        document.getElementById('characterSelect').style.display = 'block';
-        console.log('✅ Transitioned to character selection');
+        // Calculate button area (same as in drawSplashScreen)
+        const buttonWidth = 200;
+        const buttonHeight = 80;
+        const buttonX = canvas.width / 2 - buttonWidth / 2;
+        const buttonY = canvas.height / 2 - buttonHeight / 2;
+        
+        // Check if click is within button area
+        if (x >= buttonX && x <= buttonX + buttonWidth && 
+            y >= buttonY && y <= buttonY + buttonHeight) {
+            console.log('✅ Click is within button area');
+            gameState.currentScreen = 'characterSelect';
+            document.getElementById('characterSelect').style.display = 'block';
+        } else {
+            console.log('❌ Click is outside button area');
+        }
     }
 });
 
@@ -4294,64 +4331,8 @@ function drawSprite2_3OnH12(screenX) {
 
 // Function to check sprite 1.2 collisions
 function checkSprite1_2Collisions(playerX, playerY, playerWidth, playerHeight, currentLocation) {
-    const tileSize = 32;
-    const locationStart = currentLocation * LOCATION_WIDTH;
-    
-    // Define all sprite 1.2 areas as barriers
-    const sprite1_2Areas = [];
-    
-    if (currentLocation === 0) { // Дом location
-        // A0-A18 (vertical barrier)
-        sprite1_2Areas.push({
-            x: locationStart + 0 * tileSize,
-            y: 0 * tileSize,
-            width: tileSize,
-            height: 19 * tileSize
-        });
-        
-        // B18-L18 (horizontal barrier)
-        sprite1_2Areas.push({
-            x: locationStart + 1 * tileSize,
-            y: 18 * tileSize,
-            width: 11 * tileSize,
-            height: tileSize
-        });
-        
-        // M18-L18 (horizontal barrier)
-        sprite1_2Areas.push({
-            x: locationStart + 12 * tileSize,
-            y: 18 * tileSize,
-            width: 11 * tileSize,
-            height: tileSize
-        });
-        
-        // l0-l17 (vertical barrier)
-        sprite1_2Areas.push({
-            x: locationStart + 37 * tileSize,
-            y: 0 * tileSize,
-            width: tileSize,
-            height: 18 * tileSize
-        });
-        
-        // B0-k0 (horizontal barrier)
-        sprite1_2Areas.push({
-            x: locationStart + 1 * tileSize,
-            y: 0 * tileSize,
-            width: 36 * tileSize,
-            height: tileSize
-        });
-    }
-    
-    // Check collisions with sprite 1.2 areas
-    for (const area of sprite1_2Areas) {
-        if (playerX < area.x + area.width &&
-            playerX + playerWidth > area.x &&
-            playerY < area.y + area.height &&
-            playerY + playerHeight > area.y) {
-            return true; // Collision detected
-        }
-    }
-    
+    // DISABLED - This function was creating hidden platforms
+    // Now using the new collision system instead
     return false; // No collision
 }
 
@@ -4362,46 +4343,45 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
     
     // Only check collisions for "Дом" location (first location)
     if (currentLocation === 0) {
-        // Define all sprite positions as blocked areas
-        const blockedAreas = [
-            // A0-A18 (vertical black sprite 1.2)
-            { x: 0, y: 0, width: 1, height: 19 },
-            // B15 (sprite 2.2) - REMOVED - player should be able to walk here
-            // B16 (sprite 4.1) - REMOVED - player should be able to walk here
-            // C15 (sprite 1.1) - REMOVED - player should be able to walk here
-            // D15-G15 (sprite 1.0) - REMOVED - player should be able to walk here  
-            // C16-G16 (sprite 1.3) - REMOVED - player should be able to walk here
-            // B1
-            { x: 1, y: 1, width: 1, height: 1 },
-            // C1-j1 (horizontal)
-            { x: 2, y: 1, width: 34, height: 1 },
-            // k1
-            { x: 36, y: 1, width: 1, height: 1 },
-            // B2-B14 (vertical)
-            { x: 1, y: 2, width: 1, height: 13 },
-            // B16-F16 - REMOVED - player should be able to walk here
-            // B17-F17 - REMOVED - player should be able to walk here
-            // B15 - REMOVED - player should be able to walk here
-            // H17-j17 - REMOVED - player should be able to walk here
+        // Define collision areas
+        const collisionAreas = [
+            // B1-B16 wall - completely blocked
+            { x: 1, y: 1, width: 1, height: 16, type: 'wall' },
+            // B1 to end of map wall - completely blocked
+            { x: 1, y: 1, width: 36, height: 1, type: 'wall' },
+            // W4-W10 vertical wall - completely blocked
+            { x: 22, y: 4, width: 1, height: 7, type: 'wall' },
 
-            // I12-K12
-            { x: 8, y: 12, width: 3, height: 1 },
-            // M10-e10
-            { x: 12, y: 10, width: 19, height: 1 },
-            // 17th coordinate from N10
-            { x: 30, y: 10, width: 1, height: 1 },
-            // M11 to 18th coordinate
-            { x: 12, y: 11, width: 19, height: 1 }
+            // C16-X16 platform - player can stand on this
+            { x: 2, y: 16, width: 22, height: 1, type: 'platform' },
+            // Z15-j15 platform - player can stand on this
+            { x: 25, y: 15, width: 10, height: 1, type: 'platform' },
+            // Y14 platform - player can stand on this
+            { x: 24, y: 14, width: 1, height: 1, type: 'platform' },
+            // Q10-V10 platform - player can stand on this
+            { x: 16, y: 10, width: 6, height: 1, type: 'platform' },
+            // a10-c10 platform - player can stand on this
+            { x: 26, y: 10, width: 3, height: 1, type: 'platform' },
+            // X10-Z10 platform - player can stand on this
+            { x: 23, y: 10, width: 3, height: 1, type: 'platform' },
+            // k13 platform - player can stand on this
+            { x: 36, y: 13, width: 1, height: 1, type: 'platform' },
+            // k14 platform - player can stand on this
+            { x: 36, y: 15, width: 1, height: 1, type: 'platform' },
+            // j15 platform - player can stand on this
+            { x: 35, y: 14, width: 1, height: 1, type: 'platform' },
+            // k15 platform - player can stand on this
+            { x: 36, y: 15, width: 1, height: 1, type: 'platform' }
         ];
         
-        // Check each blocked area
-        for (const area of blockedAreas) {
+        // Check each collision area
+        for (const area of collisionAreas) {
             const areaX = locationStart + area.x * tileSize;
             const areaY = area.y * tileSize;
             const areaWidth = area.width * tileSize;
             const areaHeight = area.height * tileSize;
             
-            // Check if player intersects with this area
+            // Simple AABB collision detection
             if (playerX < areaX + areaWidth &&
                 playerX + playerWidth > areaX &&
                 playerY < areaY + areaHeight &&
@@ -4413,17 +4393,11 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
                     area: area
                 });
                 
-                // Special case for B15-F15 platform
-                if (area.x === 1 && area.y === 15 && area.width === 5 && area.height === 1) {
-                    // Check if player is standing on top of the platform
-                    if (playerY + playerHeight <= areaY + 5) {
-                        return { collision: true, type: 'platform', y: areaY - playerHeight };
-                    } else {
-                        // Player is hitting sides or bottom - completely blocked
-                        return { collision: true, type: 'blocked' };
-                    }
-                } else {
-                    // COMPLETELY BLOCKED - no exceptions
+                if (area.type === 'platform') {
+                    // Platform collision - player can stand on it
+                    return { collision: true, type: 'platform', y: areaY - playerHeight };
+                } else if (area.type === 'wall') {
+                    // Wall collision - completely blocked
                     return { collision: true, type: 'blocked' };
                 }
             }
@@ -4432,3 +4406,134 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
     
     return { collision: false };
 } 
+
+// Function to draw platform indicators for the first location
+function drawPlatformIndicators(screenX) {
+    if (gameState.currentLocation !== 0) return; // Only for "Дом" location
+    
+    const ctx = canvas.getContext('2d');
+    const tileSize = 32;
+    
+    // Save current context state
+    ctx.save();
+    
+    // Set semi-transparent green color for platforms
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+    
+    // Define all platforms where player can stand
+    const platforms = [
+        // C16-X16 platform (horizontal) - player can stand on this
+        { x: 2, y: 16, width: 22, height: 1 },
+        // Z15-j15 platform - player can stand on this
+        { x: 25, y: 15, width: 10, height: 1 },
+        // Y14 platform - player can stand on this
+        { x: 24, y: 14, width: 1, height: 1 },
+        // Q10-V10 platform - player can stand on this
+        { x: 16, y: 10, width: 6, height: 1 },
+        // a10-c10 platform - player can stand on this
+        { x: 26, y: 10, width: 3, height: 1 },
+        // X10-Z10 platform - player can stand on this
+        { x: 23, y: 10, width: 3, height: 1 },
+        // k13 platform - player can stand on this
+        { x: 36, y: 13, width: 1, height: 1 },
+        // k14 platform - player can stand on this
+        { x: 36, y: 15, width: 1, height: 1 },
+        // j15 platform - player can stand on this
+        { x: 35, y: 14, width: 1, height: 1 },
+        // k15 platform - player can stand on this
+        { x: 36, y: 15, width: 1, height: 1 }
+    ];
+    
+    // Draw each platform
+    for (const platform of platforms) {
+        const x = screenX + platform.x * tileSize;
+        const y = platform.y * tileSize;
+        const width = platform.width * tileSize;
+        const height = platform.height * tileSize;
+        
+        ctx.fillRect(x, y, width, height);
+        
+        // Debug: log platform positions
+        console.log('🟢 Platform drawn:', { x, y, width, height, screenX, platform });
+    }
+    
+    // Draw wall blocks in red to show they are blocked
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+    const wallBlocks = [
+        // B1-B16 wall blocks
+        { x: 1, y: 1, width: 1, height: 1 },
+        { x: 1, y: 2, width: 1, height: 1 },
+        { x: 1, y: 3, width: 1, height: 1 },
+        { x: 1, y: 4, width: 1, height: 1 },
+        { x: 1, y: 5, width: 1, height: 1 },
+        { x: 1, y: 6, width: 1, height: 1 },
+        { x: 1, y: 7, width: 1, height: 1 },
+        { x: 1, y: 8, width: 1, height: 1 },
+        { x: 1, y: 9, width: 1, height: 1 },
+        { x: 1, y: 10, width: 1, height: 1 },
+        { x: 1, y: 11, width: 1, height: 1 },
+        { x: 1, y: 12, width: 1, height: 1 },
+        { x: 1, y: 13, width: 1, height: 1 },
+        { x: 1, y: 14, width: 1, height: 1 },
+        { x: 1, y: 15, width: 1, height: 1 },
+        { x: 1, y: 16, width: 1, height: 1 },
+        // B1 to end of map wall blocks
+        { x: 1, y: 1, width: 1, height: 1 },
+        { x: 2, y: 1, width: 1, height: 1 },
+        { x: 3, y: 1, width: 1, height: 1 },
+        { x: 4, y: 1, width: 1, height: 1 },
+        { x: 5, y: 1, width: 1, height: 1 },
+        { x: 6, y: 1, width: 1, height: 1 },
+        { x: 7, y: 1, width: 1, height: 1 },
+        { x: 8, y: 1, width: 1, height: 1 },
+        { x: 9, y: 1, width: 1, height: 1 },
+        { x: 10, y: 1, width: 1, height: 1 },
+        { x: 11, y: 1, width: 1, height: 1 },
+        { x: 12, y: 1, width: 1, height: 1 },
+        { x: 13, y: 1, width: 1, height: 1 },
+        { x: 14, y: 1, width: 1, height: 1 },
+        { x: 15, y: 1, width: 1, height: 1 },
+        { x: 16, y: 1, width: 1, height: 1 },
+        { x: 17, y: 1, width: 1, height: 1 },
+        { x: 18, y: 1, width: 1, height: 1 },
+        { x: 19, y: 1, width: 1, height: 1 },
+        { x: 20, y: 1, width: 1, height: 1 },
+        { x: 21, y: 1, width: 1, height: 1 },
+        { x: 22, y: 1, width: 1, height: 1 },
+        { x: 23, y: 1, width: 1, height: 1 },
+        { x: 24, y: 1, width: 1, height: 1 },
+        { x: 25, y: 1, width: 1, height: 1 },
+        { x: 26, y: 1, width: 1, height: 1 },
+        { x: 27, y: 1, width: 1, height: 1 },
+        { x: 28, y: 1, width: 1, height: 1 },
+        { x: 29, y: 1, width: 1, height: 1 },
+        { x: 30, y: 1, width: 1, height: 1 },
+        { x: 31, y: 1, width: 1, height: 1 },
+        { x: 32, y: 1, width: 1, height: 1 },
+        { x: 33, y: 1, width: 1, height: 1 },
+        { x: 34, y: 1, width: 1, height: 1 },
+        { x: 35, y: 1, width: 1, height: 1 },
+        { x: 36, y: 1, width: 1, height: 1 },
+        // W4-W10 vertical wall blocks
+        { x: 22, y: 4, width: 1, height: 1 },
+        { x: 22, y: 5, width: 1, height: 1 },
+        { x: 22, y: 6, width: 1, height: 1 },
+        { x: 22, y: 7, width: 1, height: 1 },
+        { x: 22, y: 8, width: 1, height: 1 },
+        { x: 22, y: 9, width: 1, height: 1 },
+        { x: 22, y: 10, width: 1, height: 1 }
+    ];
+    
+    for (const block of wallBlocks) {
+        const x = screenX + block.x * tileSize;
+        const y = block.y * tileSize;
+        const width = block.width * tileSize;
+        const height = block.height * tileSize;
+        
+        ctx.fillRect(x, y, width, height);
+    }
+    
+    // Restore context state
+    ctx.restore();
+}
+
