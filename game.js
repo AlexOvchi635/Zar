@@ -1539,7 +1539,7 @@ function updatePlayer() {
     if (gameState.currentLocation < locations.length - 1) {
         const portalX = locationStart + (36.5 * 32) - 40; // Shifted right, more towards column k
         const portalHeight = 120;
-                 const portalY = 2 * 32 - 8; // Position at row 2 (middle position) - moved up by 8 pixels
+                 const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
          
          if (
              player.x + player.width > portalX &&
@@ -2138,16 +2138,38 @@ function drawBackground() {
                 // Draw sprite 1.3 from new industrial tileset on C17-G17 coordinates
                 drawSprite1_3OnC17G17(screenX);
                 
-                // Draw sprite 0.0 from new industrial tileset on I12 coordinates
-                drawSprite0_0OnI12(screenX);
+                // Draw sprite 0.0 from new industrial tileset on M12 coordinates
+                drawSprite0_0OnM12(screenX);
                 
-                // Draw sprite 1.0 from new industrial tileset on J12 coordinates
-                drawSprite1_0OnJ12(screenX);
+                // Draw sprite 1.0 from new industrial tileset on N12 coordinates
+                drawSprite1_0OnN12(screenX);
                 
-                // Draw sprite 2.0 from new industrial tileset on K12 coordinates
-                drawSprite2_0OnK12(screenX);
+                // Draw sprite 2.0 from new industrial tileset on O12 coordinates
+                drawSprite2_0OnO12(screenX);
                 
-
+                // Draw sprite 0.0 from new industrial tileset on I14 coordinates
+                drawSprite0_0OnI14(screenX);
+                
+                // Draw sprite 1.0 from new industrial tileset on J14 coordinates
+                drawSprite1_0OnJ14(screenX);
+                
+                // Draw sprite 2.0 from new industrial tileset on K14 coordinates
+                drawSprite2_0OnK14(screenX);
+                
+                // Draw sprite 0.0 from new industrial tileset on C7 coordinates
+                drawSprite0_0OnC7(screenX);
+                
+                // Draw sprite 1.0 from new industrial tileset on D7-N7 coordinates
+                drawSprite1_0OnD7N7(screenX);
+                
+                // Draw sprite 2.0 from new industrial tileset on O7 coordinates
+                drawSprite2_0OnO7(screenX);
+                
+                // Draw sprite 0.0 from third industrial tileset on b7 coordinates
+                drawSprite0_0OnB7(screenX);
+                
+                // Draw sprite 2.0 from third industrial tileset on c7 coordinates
+                drawSprite2_0OnC7(screenX);
                 
                 // Draw sprite 0.3 from new industrial tileset on B17 coordinates
                 drawSprite0_3OnB17(screenX);
@@ -2472,7 +2494,7 @@ function drawBackground() {
                  
                                  // Portal should be at the top of the grid (around rows 2-4)
                 const portalHeight = 120;
-                const portalY = 2 * 32 - 8; // Position at row 2 (middle position) - moved up by 8 pixels
+                const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
                  
                  if (portalSprite.complete) {
                      // Draw main portal
@@ -3636,65 +3658,11 @@ function drawSprite1_3OnC17G17(screenX) {
     }
 }
 
-// Function to draw sprite 0.0 from new industrial tileset on I12 coordinates
-function drawSprite0_0OnI12(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 0; // column 0 (спрайт 0.0)
-    const spriteY = 0; // row 0 (спрайт 0.0)
-    
-    // I12 (I=8, 12=12) - одна клетка
-    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
-    const screenY = 12 * tileSize; // строка 12
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
 
-// Function to draw sprite 1.0 from new industrial tileset on J12 coordinates
-function drawSprite1_0OnJ12(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 1; // column 1 (спрайт 1.0)
-    const spriteY = 0; // row 0 (спрайт 1.0)
-    
-    // J12 (J=9, 12=12) - одна клетка
-    const screenGridX = screenX + 9 * tileSize; // J = колонка 9
-    const screenY = 12 * tileSize; // строка 12
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
 
-// Function to draw sprite 2.0 from new industrial tileset on K12 coordinates
-function drawSprite2_0OnK12(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 2; // column 2 (спрайт 2.0)
-    const spriteY = 0; // row 0 (спрайт 2.0)
-    
-    // K12 (K=10, 12=12) - одна клетка
-    const screenGridX = screenX + 10 * tileSize; // K = колонка 10
-    const screenY = 12 * tileSize; // строка 12
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
+
+
+
 
 
 
@@ -4642,12 +4610,58 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 26, y: 10, width: 3, height: 1, type: 'platform' },
             // X10-Z10 platform - player can stand on this
             { x: 23, y: 10, width: 3, height: 1, type: 'platform' },
-            // k13 platform - player can stand on this
+            // f11 platform - player can stand on this
+            { x: 31, y: 11, width: 1, height: 1, type: 'platform' },
+            // g11 platform - player can stand on this
+            { x: 32, y: 11, width: 1, height: 1, type: 'platform' },
+            // h11 platform - player can stand on this
+            { x: 33, y: 11, width: 1, height: 1, type: 'platform' },
+            // e5 platform - player can stand on this
+            { x: 30, y: 5, width: 1, height: 1, type: 'platform' },
+            // f5 platform - player can stand on this
+            { x: 31, y: 5, width: 1, height: 1, type: 'platform' },
+            // g5 platform - player can stand on this
+            { x: 32, y: 5, width: 1, height: 1, type: 'platform' },
+            // h5 platform - player can stand on this
+            { x: 33, y: 5, width: 1, height: 1, type: 'platform' },
+            // i5 platform - player can stand on this
+            { x: 34, y: 5, width: 1, height: 1, type: 'platform' },
+            // j5 platform - player can stand on this
+            { x: 35, y: 5, width: 1, height: 1, type: 'platform' },
+            // k5 platform - player can stand on this
+            { x: 36, y: 5, width: 1, height: 1, type: 'platform' },
+            // Y15 platform - player can stand on this
+            { x: 24, y: 15, width: 1, height: 1, type: 'platform' },
+            // M12 platform - player can stand on this
+            { x: 12, y: 12, width: 1, height: 1, type: 'platform' },
+            // N12 platform - player can stand on this
+            { x: 13, y: 12, width: 1, height: 1, type: 'platform' },
+            // O12 platform - player can stand on this
+            { x: 14, y: 12, width: 1, height: 1, type: 'platform' },
+            // I14 platform - player can stand on this
+            { x: 8, y: 14, width: 1, height: 1, type: 'platform' },
+            // J14 platform - player can stand on this
+            { x: 9, y: 14, width: 1, height: 1, type: 'platform' },
+            // K14 platform - player can stand on this
+            { x: 10, y: 14, width: 1, height: 1, type: 'platform' },
+            // C7 platform - player can stand on this
+            { x: 2, y: 7, width: 1, height: 1, type: 'platform' },
+            // D7-N7 platform - player can stand on this
+            { x: 3, y: 7, width: 11, height: 1, type: 'platform' },
+            // O7 platform - player can stand on this
+            { x: 14, y: 7, width: 1, height: 1, type: 'platform' },
+            // b7 platform - player can stand on this
+            { x: 27, y: 7, width: 1, height: 1, type: 'platform' },
+            // c7 platform - player can stand on this
+            { x: 28, y: 7, width: 1, height: 1, type: 'platform' },
+                        // k13 platform - player can stand on this
             { x: 36, y: 13, width: 1, height: 1, type: 'platform' },
+            // k14 platform - player can stand on this
+            { x: 36, y: 14, width: 1, height: 1, type: 'platform' },
             // k14 platform - player can stand on this
             { x: 36, y: 15, width: 1, height: 1, type: 'platform' },
             // j15 platform - player can stand on this
-            { x: 35, y: 14, width: 1, height: 1, type: 'platform' },
+            { x: 35, y: 15, width: 1, height: 1, type: 'platform' },
             // k15 platform - player can stand on this
             { x: 36, y: 15, width: 1, height: 1, type: 'platform' }
         ];
@@ -4712,12 +4726,58 @@ function drawPlatformIndicators(screenX) {
         { x: 26, y: 10, width: 3, height: 1 },
         // X10-Z10 platform - player can stand on this
         { x: 23, y: 10, width: 3, height: 1 },
-        // k13 platform - player can stand on this
+        // f11 platform - player can stand on this
+        { x: 31, y: 11, width: 1, height: 1 },
+        // g11 platform - player can stand on this
+        { x: 32, y: 11, width: 1, height: 1 },
+        // h11 platform - player can stand on this
+        { x: 33, y: 11, width: 1, height: 1 },
+        // e5 platform - player can stand on this
+        { x: 30, y: 5, width: 1, height: 1 },
+        // f5 platform - player can stand on this
+        { x: 31, y: 5, width: 1, height: 1 },
+        // g5 platform - player can stand on this
+        { x: 32, y: 5, width: 1, height: 1 },
+        // h5 platform - player can stand on this
+        { x: 33, y: 5, width: 1, height: 1 },
+        // i5 platform - player can stand on this
+        { x: 34, y: 5, width: 1, height: 1 },
+        // j5 platform - player can stand on this
+        { x: 35, y: 5, width: 1, height: 1 },
+        // k5 platform - player can stand on this
+        { x: 36, y: 5, width: 1, height: 1 },
+        // Y15 platform - player can stand on this
+        { x: 24, y: 15, width: 1, height: 1 },
+        // M12 platform - player can stand on this
+        { x: 12, y: 12, width: 1, height: 1 },
+        // N12 platform - player can stand on this
+        { x: 13, y: 12, width: 1, height: 1 },
+        // O12 platform - player can stand on this
+        { x: 14, y: 12, width: 1, height: 1 },
+        // I14 platform - player can stand on this
+        { x: 8, y: 14, width: 1, height: 1 },
+        // J14 platform - player can stand on this
+        { x: 9, y: 14, width: 1, height: 1 },
+        // K14 platform - player can stand on this
+        { x: 10, y: 14, width: 1, height: 1 },
+        // C7 platform - player can stand on this
+        { x: 2, y: 7, width: 1, height: 1 },
+        // D7-N7 platform - player can stand on this
+        { x: 3, y: 7, width: 11, height: 1 },
+        // O7 platform - player can stand on this
+        { x: 14, y: 7, width: 1, height: 1 },
+        // b7 platform - player can stand on this
+        { x: 27, y: 7, width: 1, height: 1 },
+        // c7 platform - player can stand on this
+        { x: 28, y: 7, width: 1, height: 1 },
+                // k13 platform - player can stand on this
         { x: 36, y: 13, width: 1, height: 1 },
+        // k14 platform - player can stand on this
+        { x: 36, y: 14, width: 1, height: 1 },
         // k14 platform - player can stand on this
         { x: 36, y: 15, width: 1, height: 1 },
         // j15 platform - player can stand on this
-        { x: 35, y: 14, width: 1, height: 1 },
+        { x: 35, y: 15, width: 1, height: 1 },
         // k15 platform - player can stand on this
         { x: 36, y: 15, width: 1, height: 1 }
     ];
@@ -4857,5 +4917,227 @@ function drawChameleonProjectiles() {
             }
         }
     });
+}
+
+// Function to draw sprite 0.0 from new industrial tileset on M12 coordinates
+function drawSprite0_0OnM12(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // M12 (M=12, 12=12) - одна клетка
+    const screenGridX = screenX + 12 * tileSize; // M = колонка 12
+    const screenY = 12 * tileSize; // строка 12
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on N12 coordinates
+function drawSprite1_0OnN12(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // N12 (N=13, 12=12) - одна клетка
+    const screenGridX = screenX + 13 * tileSize; // N = колонка 13
+    const screenY = 12 * tileSize; // строка 12
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.0 from new industrial tileset on O12 coordinates
+function drawSprite2_0OnO12(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // O12 (O=14, 12=12) - одна клетка
+    const screenGridX = screenX + 14 * tileSize; // O = колонка 14
+    const screenY = 12 * tileSize; // строка 12
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from new industrial tileset on I14 coordinates
+function drawSprite0_0OnI14(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // I14 (I=8, 14=14) - одна клетка
+    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
+    const screenY = 14 * tileSize; // строка 14
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on J14 coordinates
+function drawSprite1_0OnJ14(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // J14 (J=9, 14=14) - одна клетка
+    const screenGridX = screenX + 9 * tileSize; // J = колонка 9
+    const screenY = 14 * tileSize; // строка 14
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.0 from new industrial tileset on K14 coordinates
+function drawSprite2_0OnK14(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // K14 (K=10, 14=14) - одна клетка
+    const screenGridX = screenX + 10 * tileSize; // K = колонка 10
+    const screenY = 14 * tileSize; // строка 14
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from new industrial tileset on C7 coordinates
+function drawSprite0_0OnC7(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // C7 (C=2, 7=7) - одна клетка
+    const screenGridX = screenX + 2 * tileSize; // C = колонка 2
+    const screenY = 7 * tileSize; // строка 7
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from new industrial tileset on D7-N7 coordinates
+function drawSprite1_0OnD7N7(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // D7-N7 (D=3, N=13, 7=7) - горизонтальная линия
+    for (let col = 3; col <= 13; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 7 * tileSize; // строка 7
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                newIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 2.0 from new industrial tileset on O7 coordinates
+function drawSprite2_0OnO7(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // O7 (O=14, 7=7) - одна клетка
+    const screenGridX = screenX + 14 * tileSize; // O = колонка 14
+    const screenY = 7 * tileSize; // строка 7
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from third industrial tileset on b7 coordinates
+function drawSprite0_0OnB7(screenX) {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // b7 (b=27, 7=7) - одна клетка
+    const screenGridX = screenX + 27 * tileSize; // b = колонка 27
+    const screenY = 7 * tileSize; // строка 7
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            thirdIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.0 from third industrial tileset on c7 coordinates
+function drawSprite2_0OnC7(screenX) {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // c7 (c=28, 7=7) - одна клетка
+    const screenGridX = screenX + 28 * tileSize; // c = колонка 28
+    const screenY = 7 * tileSize; // строка 7
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            thirdIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
 }
 
