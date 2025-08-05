@@ -306,6 +306,12 @@ function loadThirdIndustrialTiles() {
 // Load fourth industrial tileset (U pack)
 let fourthIndustrialTilesSprite = null;
 
+// Load O industrial tileset (O pack)
+let oIndustrialTilesSprite = null;
+
+// Load T industrial tileset (T pack)
+let tIndustrialTilesSprite = null;
+
 // Load splash screen background image
 let splashBackgroundImage = null;
 
@@ -353,6 +359,60 @@ function loadFourthIndustrialTiles() {
         console.error('🔗 URL:', fourthIndustrialTilesSprite.src);
     };
     fourthIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/40f3ac58a8081c4cb2a8505384bd4768586a425d/1_Industrial_Tileset_1C.png';
+}
+
+// Load O industrial tileset (O pack)
+function loadOIndustrialTiles() {
+    oIndustrialTilesSprite = new Image();
+    oIndustrialTilesSprite.crossOrigin = 'anonymous';
+    oIndustrialTilesSprite.onload = function() {
+        console.log('✅ O Industrial tileset (O) loaded successfully!');
+        console.log('📏 O Sprite dimensions:', oIndustrialTilesSprite.width, 'x', oIndustrialTilesSprite.height);
+        console.log('🎯 O Total tiles:', Math.floor(oIndustrialTilesSprite.width / 32), 'x', Math.floor(oIndustrialTilesSprite.height / 32));
+        
+        // Show all available sprites in console
+        const tilesX = Math.floor(oIndustrialTilesSprite.width / 32);
+        const tilesY = Math.floor(oIndustrialTilesSprite.height / 32);
+        console.log('🔍 Available sprites in O pack:');
+        for (let y = 0; y < tilesY; y++) {
+            for (let x = 0; x < tilesX; x++) {
+                console.log(`Sprite ${x}.${y} (column ${x}, row ${y})`);
+            }
+        }
+        console.log('🎮 O pack ready for use!');
+    };
+    oIndustrialTilesSprite.onerror = function() {
+        console.error('❌ Failed to load O industrial tileset (O)!');
+        console.error('🔗 URL:', oIndustrialTilesSprite.src);
+    };
+    oIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/40f3ac58a8081c4cb2a8505384bd4768586a425d/1_Industrial_Tileset_1C.png';
+}
+
+// Load T industrial tileset (T pack)
+function loadTIndustrialTiles() {
+    tIndustrialTilesSprite = new Image();
+    tIndustrialTilesSprite.crossOrigin = 'anonymous';
+    tIndustrialTilesSprite.onload = function() {
+        console.log('✅ T Industrial tileset (T) loaded successfully!');
+        console.log('📏 T Sprite dimensions:', tIndustrialTilesSprite.width, 'x', tIndustrialTilesSprite.height);
+        console.log('🎯 T Total tiles:', Math.floor(tIndustrialTilesSprite.width / 32), 'x', Math.floor(tIndustrialTilesSprite.height / 32));
+        
+        // Show all available sprites in console
+        const tilesX = Math.floor(tIndustrialTilesSprite.width / 32);
+        const tilesY = Math.floor(tIndustrialTilesSprite.height / 32);
+        console.log('🔍 Available sprites in T pack:');
+        for (let y = 0; y < tilesY; y++) {
+            for (let x = 0; x < tilesX; x++) {
+                console.log(`Sprite ${x}.${y} (column ${x}, row ${y})`);
+            }
+        }
+        console.log('🎮 T pack ready for use!');
+    };
+    tIndustrialTilesSprite.onerror = function() {
+        console.error('❌ Failed to load T industrial tileset (T)!');
+        console.error('🔗 URL:', tIndustrialTilesSprite.src);
+    };
+    tIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/40f3ac58a8081c4cb2a8505384bd4768586a425d/1_Industrial_Tileset_1C.png';
 }
 
 // Load splash screen background image
@@ -700,7 +760,6 @@ function drawThirdIndustrialTiles() {
     ctx.font = '16px Arial';
     ctx.fillText('Press any key to close', canvas.width / 2, canvas.height - 30);
 }
-
 // Function to show fourth industrial tileset (U pack)
 function drawFourthIndustrialTiles() {
     if (!fourthIndustrialTilesSprite || !fourthIndustrialTilesSprite.complete) return;
@@ -932,7 +991,7 @@ class Enemy {
         this.x = x;
         this.y = y;
         this.width = 32;
-        this.height = 32;
+        this.height = 48;
         this.type = type;
         this.health = 30;
         this.attackCooldown = 0;
@@ -947,6 +1006,7 @@ class Enemy {
         this.aimAtPlayer = false;
         this.friendly = false;
         this.glowTimer = 0;
+        this.direction = 1; // 1 = right, -1 = left
     }
     
     update(player) {
@@ -963,9 +1023,11 @@ class Enemy {
                     // Move towards player horizontally
                     const dx = player.x - this.x;
                     this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                    this.direction = dx > 0 ? 1 : -1; // Update direction based on movement
                 } else {
                     // Random horizontal movement
                     this.velocityX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
+                    this.direction = this.velocityX > 0 ? 1 : -1; // Update direction based on movement
                 }
             } else {
                 // Normal movement for fire enemies
@@ -997,13 +1059,24 @@ class Enemy {
         this.x += this.velocityX;
         this.y += this.velocityY;
         
-            // Keep within current location bounds
-    const locationStart = gameState.currentLocation * LOCATION_WIDTH;
-    const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
-    if (this.x < locationStart + 50) this.x = locationStart + 50;
-    if (this.x > locationEnd - 50) this.x = locationEnd - 50;
-    if (this.y < 50) this.y = 50;
-    if (this.y > 400) this.y = 400;
+        // Keep within current location bounds
+        const locationStart = gameState.currentLocation * LOCATION_WIDTH;
+        const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
+        
+        // Special bounds for horizontal enemies (C6-L6 area)
+        if (this.type === 'horizontal') {
+            // C column = 2 * 32 = 64, L column = 11 * 32 = 352
+            if (this.x < 64) this.x = 64;
+            if (this.x > 352 - this.width) this.x = 352 - this.width;
+            if (this.y < 50) this.y = 50;
+            if (this.y > 400) this.y = 400;
+        } else {
+            // Regular bounds for other enemies
+            if (this.x < locationStart + 50) this.x = locationStart + 50;
+            if (this.x > locationEnd - 50) this.x = locationEnd - 50;
+            if (this.y < 50) this.y = 50;
+            if (this.y > 400) this.y = 400;
+        }
         
         // Attack cooldown
         if (this.attackCooldown > 0) {
@@ -1168,12 +1241,11 @@ let chameleonProjectiles = [];
 // Locations with smooth transitions
 const locations = [
     { name: 'Дом', background: '#8B4513', enemies: [], width: 1200, hasImage: true },
-    { name: 'Лес', background: '#228B22', enemies: [], width: 1200, hasImage: true },
-    { name: 'Долина', background: '#696969', enemies: [], width: 1200 }
+    { name: 'Лес', background: '#228B22', enemies: [], width: 1200, hasImage: true }
 ];
 
 // World dimensions
-const WORLD_WIDTH = 3600; // 3 locations × 1200px each
+const WORLD_WIDTH = 2400; // 2 locations × 1200px each
 const LOCATION_WIDTH = 1200;
 
 // Fade transition state
@@ -1473,24 +1545,18 @@ function useSpecialAbility() {
 
 // Initialize enemies for Forest location
 function initializeForestEnemies() {
-    enemies = [
-        new Enemy(1250, 150, 'fire'),
-        new Enemy(1450, 200, 'fire'),
-        new Enemy(1650, 180, 'fire'),
-        new Enemy(1850, 120, 'fire')
-    ];
+    enemies = []; // No enemies in Forest location
 }
 
 // Initialize enemies for first location (C6-D6)
 function initializeDragon() {
     // Add just one enemy for testing
     enemies = [
-        new Enemy(300, 400, 'fire')  // Single enemy near player
+        new Enemy(64, 162, 'horizontal')  // Enemy positioned at C6-L6 coordinates, 30px higher - horizontal movement only
     ];
     
 
 }
-
 // Restart game
 function restartGame() {
     player.x = 100;
@@ -1567,8 +1633,8 @@ function updatePlayer() {
     if (player.x < locationStart) player.x = locationStart;
     if (player.x + player.width > locationEnd) player.x = locationEnd - player.width;
     
-             // Check portal collision (portal is between columns j and k)
-    if (gameState.currentLocation < locations.length - 1) {
+             // Check portal collision (portal is between columns j and k) - only for first location
+    if (gameState.currentLocation === 0) {
         const portalX = locationStart + (36.5 * 32) - 40; // Shifted right, more towards column k
         const portalHeight = 120;
                  const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
@@ -1903,7 +1969,7 @@ function updatePlayer() {
                     velocityY = (dy / distance) * projectileSpeed;
                 }
                 
-                fireProjectiles.push(new FireProjectile(enemy.x, enemy.y, velocityX, velocityY));
+                fireProjectiles.push(new FireProjectile(enemy.x + enemy.width/2, enemy.y + enemy.height - 13, velocityX, velocityY));
             }
         }
     });
@@ -2179,7 +2245,6 @@ function updateUI() {
         }
     }
 }
-
 // Draw functions
 function drawBackground() {
     // Draw only current location
@@ -2233,7 +2298,7 @@ function drawBackground() {
                 // Draw sprite 4.3 from new industrial tileset on B1-B14 coordinates
                 drawSprite4_3OnB1B14(screenX);
                 
-                // Draw sprite 4.1 from new industrial tileset on B15 coordinates
+                // Draw sprite 4.1 from new industrial tileset on B16 coordinates
 
                 
                 // Draw sprite 0.3 from new industrial tileset on G17 coordinates
@@ -2450,7 +2515,8 @@ function drawBackground() {
             try {
                 ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
                 
-                // Grid overlay removed
+                // Draw grid overlay for level design
+                drawGridOverlay(screenX);
                 
                 // Draw black sprite 1.2 from first pack on A0-A18 coordinates
                 drawBlackSprite1_2OnA0A18(screenX);
@@ -2466,6 +2532,80 @@ function drawBackground() {
                 
                 // Draw black sprite 1.2 from first pack on B0-k0 coordinates
                 drawBlackSprite1_2OnB0K0(screenX);
+                
+                // Draw sprite 0.0 from O industrial tileset on B1 coordinates
+                drawSprite0_0OnB1(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on C1-Z1 coordinates
+                drawSprite1_0OnC1Z1(screenX);
+                
+                // Draw sprite 2.0 from O industrial tileset on k1 coordinates
+                drawSprite2_0OnK1(screenX);
+                
+                // Draw sprite 0.1 from O industrial tileset on B2-B16 coordinates
+                drawSprite0_1OnB2B16(screenX);
+                
+                // Draw sprite 2.1 from O industrial tileset on k2-k16 coordinates
+                drawSprite2_1OnK2K16(screenX);
+                
+                // Draw sprite 1.1 from O industrial tileset on C6 coordinates
+                drawSprite1_1OnC6(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on D6 coordinates
+                drawSprite1_0OnD6(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on E6 coordinates
+                drawSprite1_0OnE6(screenX);
+                
+                // Draw sprite 2.0 from O industrial tileset on F6 coordinates
+                drawSprite2_0OnF6(screenX);
+                
+                // Draw sprite 3.1 from third industrial tileset (T) on G4 coordinates
+                drawSprite3_1OnG4(screenX);
+                
+                // Draw sprite 3.2 from third industrial tileset (T) on G5 coordinates
+                drawSprite3_2OnG5(screenX);
+                
+                // Draw sprite 3.2 from third industrial tileset (T) on G6 coordinates
+                drawSprite3_2OnG6(screenX);
+                
+                // Draw sprite 3.3 from third industrial tileset (T) on G7 coordinates
+                drawSprite3_3OnG7(screenX);
+                
+                // Draw sprite 0.0 from O industrial tileset on H4 coordinates
+                drawSprite0_0OnH4(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on I4 coordinates
+                drawSprite1_0OnI4(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on J4 coordinates
+                drawSprite1_0OnJ4(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on K4 coordinates
+                drawSprite1_0OnK4(screenX);
+                
+                // Draw sprite 2.0 from O industrial tileset on L4 coordinates
+                drawSprite2_0OnL4(screenX);
+                
+                // Draw sprite 0.2 from O industrial tileset on B17 coordinates
+                drawSprite0_2OnB17(screenX);
+                
+                // Draw sprite 1.2 from O industrial tileset on C17-J17 coordinates
+                drawSprite1_2OnC17J17(screenX);
+                
+                // Draw sprite 1.2 from O industrial tileset on K17-Y17 coordinates
+                drawSprite1_2OnK17Y17(screenX);
+                
+                // Draw sprite 2.2 from O industrial tileset on k17 coordinates
+                drawSprite2_2OnK17(screenX);
+                
+                // Draw sprite 1.1 from O industrial tileset on C16-R16 coordinates
+                drawSprite1_1OnC16R16(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on C15-R15 coordinates
+                drawSprite1_0OnC15R15(screenX);
+                
+
             } catch (error) {
                 console.error('Error drawing hyperspace background:', error);
                 // Fallback to solid color
@@ -2475,7 +2615,29 @@ function drawBackground() {
                 // Draw grid overlay for level design
                 drawGridOverlay(screenX);
                 
-                // Sprite removed from A0-A18 coordinates
+                // Draw black sprite 1.2 from first pack on A0-A18 coordinates
+                drawBlackSprite1_2OnA0A18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B18-L18 coordinates
+                drawBlackSprite1_2OnB18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on M18-L18 coordinates
+                drawBlackSprite1_2OnM18_L18(screenX);
+                
+                // Draw black sprite 1.2 from first pack on l0-l17 coordinates
+                drawBlackSprite1_2OnL0L17(screenX);
+                
+                // Draw black sprite 1.2 from first pack on B0-k0 coordinates
+                drawBlackSprite1_2OnB0K0(screenX);
+                
+                // Draw sprite 0.2 from O industrial tileset on B17 coordinates
+                drawSprite0_2OnB17(screenX);
+                
+                // Draw sprite 1.2 from O industrial tileset on C17-J17 coordinates
+                drawSprite1_2OnC17J17(screenX);
+                
+                // Draw sprite 1.2 from O industrial tileset on K17-Y17 coordinates
+                drawSprite1_2OnK17Y17(screenX);
             }
         } else if (currentLocation.name === 'Долина' && backgroundImages.hyperspace && backgroundImages.hyperspace.complete) {
             try {
@@ -2616,8 +2778,8 @@ function drawBackground() {
         
         // Ground hidden
         
-        // Draw portal between columns j and k (around rows 2-4)
-        if (gameState.currentLocation < locations.length - 1) {
+        // Draw portal between columns j and k (around rows 2-4) - only for first location
+        if (gameState.currentLocation === 0) {
             // Position portal to the right, more towards column k
             const portalX = locationX + (36.5 * 32) - 40; // Shifted right, more towards column k
             const portalScreenX = portalX - cameraX;
@@ -2808,10 +2970,10 @@ function drawEnemies() {
         
         // Only draw if enemy is visible on screen
         if (screenX > -enemy.width && screenX < canvas.width) {
-            // Draw regular fire enemies
-            if (enemy.type === 'fire') {
-                // Determine enemy direction based on player position
-                const enemyDirection = player.x > enemy.x ? 1 : -1;
+            // Draw regular fire enemies and horizontal enemies
+            if (enemy.type === 'fire' || enemy.type === 'horizontal') {
+                // Determine enemy direction based on movement direction
+                const enemyDirection = enemy.direction;
                 
                 // Draw fire enemy sprite if available
                 if (enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
@@ -2856,7 +3018,6 @@ function drawEnemies() {
         }
     });
 }
-
         function drawFriendlyEnemies() {
             friendlyEnemies.forEach(friendlyEnemy => {
                 const screenX = friendlyEnemy.x - cameraX;
@@ -3229,7 +3390,7 @@ function gameLoop() {
         drawBlueSphereProjectiles();
         drawPlayer();
         
-        // Draw platform indicators for first location
+        // Draw platform indicators for all locations
         drawPlatformIndicators(cameraX);
         
         // Draw game over screen if player is dead
@@ -3313,7 +3474,9 @@ loadPortalBackground(); // Load portal background image
     loadNewIndustrialTiles(); // Load new industrial tileset
     loadThirdIndustrialTiles(); // Load third industrial tileset
     loadFourthIndustrialTiles(); // Load fourth industrial tileset (U pack)
-    loadSplashBackground(); // Load splash screen background image
+loadOIndustrialTiles(); // Load O industrial tileset (O pack)
+loadTIndustrialTiles(); // Load T industrial tileset (T pack)
+loadSplashBackground(); // Load splash screen background image
     loadCharacterSelectionBackground(); // Load character selection background image
     loadStartButton(); // Load start button image
     loadZargatesLogo(); // Load ZARGATES logo image
@@ -3636,11 +3799,6 @@ function drawSprite4_3OnB1B14(screenX) {
         }
     }
 }
-
-
-
-
-
 // Function to draw sprite 1.3 from new industrial tileset on H17-j17 coordinates
 function drawSprite1_3OnH17J17(screenX) {
     if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
@@ -4427,7 +4585,6 @@ function drawSprite2_3OnZ3(screenX) {
         );
     }
 }
-
 // Function to draw sprite 5.3 from third industrial tileset (T) on W3 coordinates
 function drawSprite5_3OnW3(screenX) {
     if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
@@ -4726,7 +4883,7 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
     const tileSize = 32;
     const locationStart = currentLocation * LOCATION_WIDTH;
     
-    // Only check collisions for "Дом" location (first location)
+    // Check collisions for "Дом" location (first location)
     if (currentLocation === 0) {
         // Define collision areas
         const collisionAreas = [
@@ -4741,6 +4898,7 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
 
             // C16-X16 platform - player can stand on this
             { x: 2, y: 16, width: 22, height: 1, type: 'platform' },
+
             // Z15-j15 platform - player can stand on this
             { x: 25, y: 15, width: 10, height: 1, type: 'platform' },
             // Y14 platform - player can stand on this
@@ -4871,12 +5029,53 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
         }
     }
     
+    // Check collisions for "Лес" location (second location)
+    if (currentLocation === 1) {
+        // Define collision areas for second location
+        const collisionAreas = [
+            // C15-R15 platform - player can stand on this
+            { x: 2, y: 15, width: 16, height: 1, type: 'platform' }
+        ];
+        
+        // Check each collision area
+        for (const area of collisionAreas) {
+            const areaX = locationStart + area.x * tileSize;
+            const areaY = area.y * tileSize;
+            const areaWidth = area.width * tileSize;
+            const areaHeight = area.height * tileSize;
+            
+            // Simple AABB collision detection
+            if (playerX < areaX + areaWidth &&
+                playerX + playerWidth > areaX &&
+                playerY < areaY + areaHeight &&
+                playerY + playerHeight > areaY) {
+                
+                if (area.type === 'platform') {
+                    // Platform collision - only block going up through platform from below
+                    const playerBottom = playerY + playerHeight;
+                    const platformTop = areaY;
+                    
+                    // Only block if player is trying to go up through platform from below AND is very close
+                    if (playerBottom <= platformTop + 1 && playerY < areaY && playerVelocityY > 0) {
+                        return { collision: true, type: 'blocked' };
+                    }
+                    // Allow standing on top of platform
+                    else if (playerY >= areaY - playerHeight && playerY < areaY) {
+                        return { collision: true, type: 'platform', y: areaY - playerHeight };
+                    }
+                    // Otherwise, no collision - allow normal movement including jumping
+                    return { collision: false };
+                }
+            }
+        }
+    }
+    
     return { collision: false };
 } 
 
 // Function to draw platform indicators for the first location
 function drawPlatformIndicators(screenX) {
-    if (gameState.currentLocation !== 0) return; // Only for "Дом" location
+    if (gameState.currentLocation !== 0 && gameState.currentLocation !== 1) return; // Only for "Дом" and "Лес" locations
     
     const ctx = canvas.getContext('2d');
     const tileSize = 32;
@@ -4891,6 +5090,7 @@ function drawPlatformIndicators(screenX) {
     const platforms = [
         // C16-X16 platform (horizontal) - player can stand on this
         { x: 2, y: 16, width: 22, height: 1 },
+
         // Z15-j15 platform - player can stand on this
         { x: 25, y: 15, width: 10, height: 1 },
         // Y14 platform - player can stand on this
@@ -4957,17 +5157,31 @@ function drawPlatformIndicators(screenX) {
         { x: 36, y: 15, width: 1, height: 1 }
     ];
     
-    // Draw each platform
-    for (const platform of platforms) {
-        const x = screenX + platform.x * tileSize;
-        const y = platform.y * tileSize;
-        const width = platform.width * tileSize;
-        const height = platform.height * tileSize;
-        
-        ctx.fillRect(x, y, width, height);
-        
-        // Debug: log platform positions
-        console.log('🟢 Platform drawn:', { x, y, width, height, screenX, platform });
+    // Draw platforms for first location
+    if (gameState.currentLocation === 0) {
+        for (const platform of platforms) {
+            const x = screenX + platform.x * tileSize;
+            const y = platform.y * tileSize;
+            const width = platform.width * tileSize;
+            const height = platform.height * tileSize;
+            
+            ctx.fillRect(x, y, width, height);
+            
+            // Debug: log platform positions
+            console.log('🟢 Platform drawn:', { x, y, width, height, screenX, platform });
+        }
+    }
+    
+    // Draw platforms for second location
+    if (gameState.currentLocation === 1) {
+        for (const platform of platforms) {
+            const x = screenX + platform.x * tileSize;
+            const y = platform.y * tileSize;
+            const width = platform.width * tileSize;
+            const height = platform.height * tileSize;
+            
+            ctx.fillRect(x, y, width, height);
+        }
     }
     
     // Draw wall blocks in red to show they are blocked
@@ -5215,7 +5429,6 @@ function drawSprite1_0OnJ14(screenX) {
         );
     }
 }
-
 // Function to draw sprite 2.0 from new industrial tileset on K14 coordinates
 function drawSprite2_0OnK14(screenX) {
     if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
@@ -5338,3 +5551,518 @@ function drawSprite2_0OnC7(screenX) {
     }
 }
 
+// Function to draw sprite 0.2 from O industrial tileset on B17 coordinates
+function drawSprite0_2OnB17(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.2)
+    const spriteY = 2; // row 2 (спрайт 0.2)
+    
+    // B17 (B=1, 17=17) - одна клетка
+    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+    const screenY = 17 * tileSize; // строка 17
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.2 from O industrial tileset on C17-J17 coordinates
+function drawSprite1_2OnC17J17(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.2)
+    const spriteY = 2; // row 2 (спрайт 1.2)
+    
+    // C17-J17 (C=2, J=9, 17=17) - горизонтальная линия
+    for (let col = 2; col <= 9; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 17 * tileSize; // строка 17
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                oIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 2.2 from O industrial tileset on K17 coordinates
+function drawSprite2_2OnK17(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.2)
+    const spriteY = 2; // row 2 (спрайт 2.2)
+    
+    // K17 (K=10, 17=17) - одна клетка
+    const screenGridX = screenX + 10 * tileSize; // K = колонка 10
+    const screenY = 17 * tileSize; // строка 17
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.2 from O industrial tileset on K17-Y17 coordinates
+function drawSprite1_2OnK17Y17(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.2)
+    const spriteY = 2; // row 2 (спрайт 1.2)
+    
+    // K17-Y17 (K=10, Y=35, 17=17) - горизонтальная линия
+    for (let col = 10; col <= 35; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 17 * tileSize; // строка 17
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                oIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 0.1 from O industrial tileset on B2-B16 coordinates
+function drawSprite0_1OnB2B16(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.1)
+    const spriteY = 1; // row 1 (спрайт 0.1)
+    
+    // B2-B16 (B=1, строки 2-16) - вертикальный столбец
+    for (let row = 2; row <= 16; row++) {
+        const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+        const screenY = row * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                oIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 0.0 from O industrial tileset on B1 coordinates
+function drawSprite0_0OnB1(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // B1 (B=1, 1=1) - одна клетка
+    const screenGridX = screenX + 1 * tileSize; // B = колонка 1
+    const screenY = 1 * tileSize; // строка 1
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from O industrial tileset on C1-Z1 coordinates
+function drawSprite1_0OnC1Z1(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // C1-Z1 (C=2, Z=35, 1=1) - горизонтальная линия
+    for (let col = 2; col <= 35; col++) {
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 1 * tileSize; // строка 1
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                oIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 2.0 from O industrial tileset on k1 coordinates
+function drawSprite2_0OnK1(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // k1 (k=36, 1=1) - одна клетка
+    const screenGridX = screenX + 36 * tileSize; // k = колонка 36
+    const screenY = 1 * tileSize; // строка 1
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.2 from O industrial tileset on k17 coordinates
+function drawSprite2_2OnK17(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.2)
+    const spriteY = 2; // row 2 (спрайт 2.2)
+    
+    // k17 (k=36, 17=17) - одна клетка
+    const screenGridX = screenX + 36 * tileSize; // k = колонка 36
+    const screenY = 17 * tileSize; // строка 17
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.1 from O industrial tileset on k2-k16 coordinates
+function drawSprite2_1OnK2K16(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.1)
+    const spriteY = 1; // row 1 (спрайт 2.1)
+    
+    // k2-k16 (k=36, строки 2-16) - вертикальный столбец
+    for (let row = 2; row <= 16; row++) {
+        const screenGridX = screenX + 36 * tileSize; // k = колонка 36
+        const screenY = row * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(
+                oIndustrialTilesSprite,
+                spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+                screenGridX, screenY, tileSize, tileSize
+            );
+        }
+    }
+}
+
+// Function to draw sprite 1.1 from O industrial tileset on C6 coordinates
+function drawSprite1_1OnC6(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.1)
+    const spriteY = 1; // row 1 (спрайт 1.1)
+    
+    // C6 (C=2, 6=6) - одна клетка
+    const screenGridX = screenX + 2 * tileSize; // C = колонка 2
+    const screenY = 6 * tileSize; // строка 6
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from O industrial tileset on D6 coordinates
+function drawSprite1_0OnD6(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // D6 (D=3, 6=6) - одна клетка
+    const screenGridX = screenX + 3 * tileSize; // D = колонка 3
+    const screenY = 6 * tileSize; // строка 6
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from O industrial tileset on E6 coordinates
+function drawSprite1_0OnE6(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // E6 (E=4, 6=6) - одна клетка
+    const screenGridX = screenX + 4 * tileSize; // E = колонка 4
+    const screenY = 6 * tileSize; // строка 6
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.0 from O industrial tileset on F6 coordinates
+function drawSprite2_0OnF6(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // F6 (F=5, 6=6) - одна клетка
+    const screenGridX = screenX + 5 * tileSize; // F = колонка 5
+    const screenY = 6 * tileSize; // строка 6
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from O industrial tileset on H4 coordinates
+function drawSprite0_0OnH4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // H4 (H=7, 4=4) - одна клетка
+    const screenGridX = screenX + 7 * tileSize; // H = колонка 7
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from O industrial tileset on I4 coordinates
+function drawSprite1_0OnI4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // I4 (I=8, 4=4) - одна клетка
+    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from O industrial tileset on G4 coordinates
+function drawSprite0_0OnG4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // G4 (G=6, 4=4) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from O industrial tileset on K4 coordinates
+function drawSprite1_0OnK4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // K4 (K=10, 4=4) - одна клетка
+    const screenGridX = screenX + 10 * tileSize; // K = колонка 10
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 2.0 from O industrial tileset on L4 coordinates
+function drawSprite2_0OnL4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 2; // column 2 (спрайт 2.0)
+    const spriteY = 0; // row 0 (спрайт 2.0)
+    
+    // L4 (L=11, 4=4) - одна клетка
+    const screenGridX = screenX + 11 * tileSize; // L = колонка 11
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 1.0 from O industrial tileset on J4 coordinates
+function drawSprite1_0OnJ4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 1; // column 1 (спрайт 1.0)
+    const spriteY = 0; // row 0 (спрайт 1.0)
+    
+    // J4 (J=9, 4=4) - одна клетка
+    const screenGridX = screenX + 9 * tileSize; // J = колонка 9
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            oIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 3.3 from third industrial tileset (T) on G7 coordinates
+function drawSprite3_3OnG7(screenX) {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 3; // column 3 (спрайт 3.3)
+    const spriteY = 3; // row 3 (спрайт 3.3)
+    
+    // G7 (G=6, 7=7) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 7 * tileSize; // строка 7
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            thirdIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 3.2 from third industrial tileset (T) on G6 coordinates
+function drawSprite3_2OnG6(screenX) {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 3; // column 3 (спрайт 3.2)
+    const spriteY = 2; // row 2 (спрайт 3.2)
+    
+    // G6 (G=6, 6=6) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 6 * tileSize; // строка 6
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            thirdIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 3.2 from third industrial tileset (T) on G5 coordinates
+function drawSprite3_2OnG5(screenX) {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 3; // column 3 (спрайт 3.2)
+    const spriteY = 2; // row 2 (спрайт 3.2)
+    
+    // G5 (G=6, 5=5) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 5 * tileSize; // строка 5
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            thirdIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 3.1 from third industrial tileset (T) on G4 coordinates
+function drawSprite3_1OnG4(screenX) {
+    if (!thirdIndustrialTilesSprite || !thirdIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 3; // column 3 (спрайт 3.1)
+    const spriteY = 1; // row 1 (спрайт 3.1)
+    
+    // G4 (G=6, 4=4) - одна клетка
+    const screenGridX = screenX + 6 * tileSize; // G = колонка 6
+    const screenY = 4 * tileSize; // строка 4
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            thirdIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+function drawSprite1_1OnC16R16(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1;
+    for (let col = 2; col <= 17; col++) { // C=2, R=17
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 16 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+function drawSprite1_0OnC15R15(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0;
+    for (let col = 2; col <= 17; col++) { // C=2, R=17
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 15 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
