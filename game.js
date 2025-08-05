@@ -925,6 +925,8 @@ function createBeepSound() {
 }
 
 // Enemy class
+
+
 class Enemy {
     constructor(x, y, type) {
         this.x = x;
@@ -954,25 +956,39 @@ class Enemy {
             this.changeDirectionTimer = 0;
             this.aimAtPlayer = Math.random() < 0.3; // 30% chance to aim at player
             
-            if (this.aimAtPlayer) {
-                // Aim at player
-                const dx = player.x - this.x;
-                const dy = player.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance > 0) {
-                    this.velocityX = (dx / distance) * this.speed;
-                    this.velocityY = (dy / distance) * this.speed;
+            if (this.type === 'horizontal') {
+                // Horizontal movement only
+                this.velocityY = 0; // No vertical movement
+                if (this.aimAtPlayer) {
+                    // Move towards player horizontally
+                    const dx = player.x - this.x;
+                    this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                } else {
+                    // Random horizontal movement
+                    this.velocityX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
                 }
             } else {
-                // Random movement
-                this.targetX = 1200 + Math.random() * 800; // Forest area
-                this.targetY = 100 + Math.random() * 300;
-                const dx = this.targetX - this.x;
-                const dy = this.targetY - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance > 0) {
-                    this.velocityX = (dx / distance) * this.speed;
-                    this.velocityY = (dy / distance) * this.speed;
+                // Normal movement for fire enemies
+                if (this.aimAtPlayer) {
+                    // Aim at player
+                    const dx = player.x - this.x;
+                    const dy = player.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance > 0) {
+                        this.velocityX = (dx / distance) * this.speed;
+                        this.velocityY = (dy / distance) * this.speed;
+                    }
+                } else {
+                    // Random movement
+                    this.targetX = 1200 + Math.random() * 800; // Forest area
+                    this.targetY = 100 + Math.random() * 300;
+                    const dx = this.targetX - this.x;
+                    const dy = this.targetY - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance > 0) {
+                        this.velocityX = (dx / distance) * this.speed;
+                        this.velocityY = (dy / distance) * this.speed;
+                    }
                 }
             }
         }
@@ -1241,6 +1257,9 @@ function selectCharacter(characterKey) {
         gameState.currentScreen = 'game';
         document.getElementById('characterSelect').style.display = 'none';
         document.getElementById('gameUI').style.display = 'block';
+        
+        // Initialize game state
+        restartGame();
     }
 }
 
@@ -1462,6 +1481,16 @@ function initializeForestEnemies() {
     ];
 }
 
+// Initialize enemies for first location (C6-D6)
+function initializeDragon() {
+    // Add just one enemy for testing
+    enemies = [
+        new Enemy(300, 400, 'fire')  // Single enemy near player
+    ];
+    
+
+}
+
 // Restart game
 function restartGame() {
     player.x = 100;
@@ -1480,8 +1509,13 @@ function restartGame() {
     toxinProjectiles = [];
     origamiProjectiles = [];
     blueSphereProjectiles = [];
-    enemies = [];
-    friendlyEnemies = [];
+    // Clear chameleon projectiles
+    chameleonProjectiles = [];
+    
+    // Initialize dragon for first location
+    initializeDragon();
+    
+
     
     // Reset toxin attack animation
     toxinAttackAnimation.active = false;
@@ -1513,8 +1547,6 @@ function restartGame() {
     chameleonAttackAnimation.timer = 0;
     chameleonAttackAnimation.blinkTimer = 0;
     chameleonAttackAnimation.visible = false;
-    // Clear chameleon projectiles
-    chameleonProjectiles = [];
 }
 
 // Camera system
@@ -1554,7 +1586,9 @@ function updatePlayer() {
                 player.x = (gameState.currentLocation * LOCATION_WIDTH) + 50;
                 gameState.transitioning = false;
                                  // Initialize enemies for new location if needed
-                 if (gameState.currentLocation === 1) { // Лес location
+                 if (gameState.currentLocation === 0) { // First location - Dragon
+                     initializeDragon();
+                 } else if (gameState.currentLocation === 1) { // Лес location
                      initializeForestEnemies();
                  } else {
                      // Clear enemies for other locations
@@ -1601,34 +1635,119 @@ function updatePlayer() {
         const tileX = wallLocationStart + 1 * tileSize; // B column
         const tileY = row * tileSize;
         
-        // Check if player is crossing the wall boundary (ultra minimal radius)
+        // Check if player is crossing the wall boundary
         const playerLeft = newX;
         const playerRight = newX + player.width;
         const wallLeft = tileX;
         const wallRight = tileX + tileSize;
         
-        // Simple wall blocking - block any intersection with wall
+        // Block any intersection with wall (both horizontal and vertical)
         if (newX < wallRight && newX + player.width > wallLeft &&
             newY < tileY + tileSize && newY + player.height > tileY) {
             
-            console.log('🚫 TILE COLLISION! Blocked horizontal movement at B' + row);
-            // Only stop horizontal velocity and block X movement
-            player.velocityX = 0;
-            newX = player.x; // Keep current X position, don't move horizontally
-            // Allow Y movement for jumping - don't block vertical movement
+
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
         }
     }
     
-    // Check sprite collisions BEFORE updating position
-    const collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation);
+    // Tile-based collision for l1-l16 wall
+    for (let row = 1; row <= 16; row++) { // l1 to l16
+        const tileX = wallLocationStart + 37 * tileSize; // l column
+        const tileY = row * tileSize;
+        
+        // Check if player is crossing the wall boundary
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const wallLeft = tileX;
+        const wallRight = tileX + tileSize;
+        
+        // Block any intersection with wall (both horizontal and vertical)
+        if (newX < wallRight && newX + player.width > wallLeft &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
+            
+
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
+        }
+    }
     
-    // Debug: log player position
-    console.log('🎮 Player position:', {
-        x: newX,
-        y: newY,
-        currentLocation: gameState.currentLocation,
-        locationStart: gameState.currentLocation * LOCATION_WIDTH
-    });
+    // Additional strict collision check for l1-l16 wall
+    for (let row = 1; row <= 16; row++) { // l1 to l16
+        const tileX = wallLocationStart + 37 * tileSize; // l column
+        const tileY = row * tileSize;
+        
+        // Check if player is even close to the wall (prevent any entry)
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const wallLeft = tileX;
+        const wallRight = tileX + tileSize;
+        
+        // Block if player is trying to get close to the wall
+        if (playerRight >= wallLeft && playerLeft <= wallRight) {
+
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
+        }
+    }
+    
+    // Check W4-W10 wall collision (block all movement through pipes)
+    for (let row = 4; row <= 10; row++) { // W4 to W10
+        const tileX = wallLocationStart + 22 * tileSize; // W column
+        const tileY = row * tileSize;
+        
+        // Block ALL movement through pipes (cannot pass through)
+        if (newX < tileX + tileSize && newX + player.width > tileX &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
+            
+
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
+        }
+    }
+    
+    // Check k14-k15 wall collision (block all movement through walls)
+    for (let row = 14; row <= 15; row++) { // k14 to k15
+        const tileX = wallLocationStart + 36 * tileSize; // k column
+        const tileY = row * tileSize;
+        
+        // Block ALL movement through walls (cannot pass through)
+        if (newX < tileX + tileSize && newX + player.width > tileX &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
+            
+
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
+        }
+    }
+    
+    // Check Y15 wall collision (block all movement through wall)
+    const tileX = wallLocationStart + 24 * tileSize; // Y column
+    const tileY = 15 * tileSize; // row 15
+    
+    // Block ALL movement through wall (cannot pass through)
+    if (newX < tileX + tileSize && newX + player.width > tileX &&
+        newY < tileY + tileSize && newY + player.height > tileY) {
+        
+        
+        // Block only horizontal movement, allow vertical movement for jumping
+        newX = player.x; // Keep current X position
+        // Don't block Y movement - allow jumping
+    }
+    
+
+    
+
+    
+    // Check sprite collisions BEFORE updating position
+    const collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation, player.velocityY);
+    
+
     
     // World bounds - full world width
     if (newX < 0) player.x = 0;
@@ -1637,17 +1756,18 @@ function updatePlayer() {
     
     // Handle sprite collisions
     if (collisionResult.collision) {
-        console.log('🛑 PLAYER BLOCKED!', collisionResult);
         if (collisionResult.type === 'platform') {
             // Platform collision - player can stand on it
             player.y = collisionResult.y;
             player.velocityY = 0;
             player.onGround = true;
-        } else {
-            // ALL other sprites are completely blocked - no movement allowed
-            player.velocityX = 0;
-            player.velocityY = 0;
-            // DON'T update position - keep player in current position
+        } else if (collisionResult.type === 'pipe') {
+            // Pipe collision - block movement but keep velocities for jumping
+            // Don't update position but keep velocities for jumping
+            return; // Exit early, don't update position
+        } else if (collisionResult.type === 'blocked') {
+            // Blocked by wall or platform - block movement but keep velocities for jumping
+            // Don't update position - keep player in current position
             return; // Exit early, don't update position
         }
     } else {
@@ -1659,9 +1779,9 @@ function updatePlayer() {
             // Check multiple points along the fall path
             let landedOnPlatform = false;
             for (let checkY = player.y; checkY <= player.y + player.velocityY; checkY += 2) {
-                const fallCollisionResult = checkSpriteCollisions(player.x, checkY, player.width, player.height, gameState.currentLocation);
-                if (fallCollisionResult.collision) {
-                    // Hit a sprite - stop falling
+                const fallCollisionResult = checkSpriteCollisions(player.x, checkY, player.width, player.height, gameState.currentLocation, player.velocityY);
+                if (fallCollisionResult.collision && fallCollisionResult.type === 'platform') {
+                    // Hit a platform - stop falling
                     player.velocityY = 0;
                     player.onGround = true;
                     landedOnPlatform = true;
@@ -1692,17 +1812,25 @@ function updatePlayer() {
                     if (toxinAttackAnimation.blinkTimer >= 5) {
                         toxinAttackAnimation.visible = !toxinAttackAnimation.visible;
                         toxinAttackAnimation.blinkTimer = 0;
-                        console.log('💫 Toxin animation blink - Visible:', toxinAttackAnimation.visible, 'Timer:', toxinAttackAnimation.timer);
                     }
                     
                     // Deactivate animation when timer expires
                     if (toxinAttackAnimation.timer <= 0) {
                         toxinAttackAnimation.active = false;
                         toxinAttackAnimation.visible = false;
-                        console.log('⏰ Toxin animation expired');
                     }
                     
-                    console.log('🔄 Toxin animation update - Timer:', toxinAttackAnimation.timer, 'BlinkTimer:', toxinAttackAnimation.blinkTimer, 'Visible:', toxinAttackAnimation.visible);
+                    // Update toxin animation
+                    if (toxinAttackAnimation.active) {
+                        toxinAttackAnimation.timer--;
+                        toxinAttackAnimation.blinkTimer++;
+                        
+                        // Blink every 5 frames (0.083 seconds)
+                        if (toxinAttackAnimation.blinkTimer >= 5) {
+                            toxinAttackAnimation.visible = !toxinAttackAnimation.visible;
+                            toxinAttackAnimation.blinkTimer = 0;
+                        }
+                    }
                 }
                 
                 // Update origami attack animation
@@ -1717,7 +1845,6 @@ function updatePlayer() {
                         const origamiVelocityY = 0;
                         
                         origamiProjectiles.push(new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY));
-                        console.log('💥 Origami burst projectile created - Burst:', origamiAttackAnimation.burstCount + 1);
                         
                         origamiAttackAnimation.burstCount++;
                         origamiAttackAnimation.burstTimer = origamiAttackAnimation.burstDelay;
@@ -1729,7 +1856,6 @@ function updatePlayer() {
                         origamiAttackAnimation.visible = false;
                         origamiAttackAnimation.burstCount = 0;
                         origamiAttackAnimation.burstTimer = 0;
-                        console.log('⏰ Origami burst fire ended');
                     }
                 }
                 
@@ -1765,8 +1891,18 @@ function updatePlayer() {
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance > 0) {
                 const projectileSpeed = 4;
-                const velocityX = (dx / distance) * projectileSpeed;
-                const velocityY = (dy / distance) * projectileSpeed;
+                let velocityX, velocityY;
+                
+                // Horizontal enemies attack horizontally only
+                if (enemy.type === 'horizontal') {
+                    velocityX = (dx > 0 ? 1 : -1) * projectileSpeed;
+                    velocityY = 0; // No vertical movement for horizontal enemies
+                } else {
+                    // Regular enemies attack in all directions
+                    velocityX = (dx / distance) * projectileSpeed;
+                    velocityY = (dy / distance) * projectileSpeed;
+                }
+                
                 fireProjectiles.push(new FireProjectile(enemy.x, enemy.y, velocityX, velocityY));
             }
         }
@@ -1917,10 +2053,8 @@ function updatePlayer() {
         }
     });
     
-    // Update enemies
-    enemies.forEach(enemy => {
-        enemy.update(player);
-    });
+            // Update enemies
+        enemies.forEach(enemy => enemy.update(player));
     
     // Update friendly enemies
     friendlyEnemies.forEach(friendlyEnemy => {
@@ -2674,47 +2808,50 @@ function drawEnemies() {
         
         // Only draw if enemy is visible on screen
         if (screenX > -enemy.width && screenX < canvas.width) {
-            // Determine enemy direction based on player position
-            const enemyDirection = player.x > enemy.x ? 1 : -1;
-            
-            // Draw fire enemy sprite if available
-            if (enemy.type === 'fire' && enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
-                try {
-                    ctx.save();
-                                         if (enemyDirection === -1) {
-                         // Flip enemy horizontally when facing left
-                         ctx.scale(-1, 1);
-                         ctx.drawImage(enemySprites.fireEnemy, -(screenX + 80), enemy.y, 80, 60);
-                     } else {
-                         // Draw normally when facing right
-                         ctx.drawImage(enemySprites.fireEnemy, screenX, enemy.y, 80, 60);
-                     }
-                    ctx.restore();
-                } catch (error) {
-                    console.error('Error drawing fire enemy sprite:', error);
+            // Draw regular fire enemies
+            if (enemy.type === 'fire') {
+                // Determine enemy direction based on player position
+                const enemyDirection = player.x > enemy.x ? 1 : -1;
+                
+                // Draw fire enemy sprite if available
+                if (enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
+                    try {
+                        ctx.save();
+                        if (enemyDirection === -1) {
+                            // Flip enemy horizontally when facing left
+                            ctx.scale(-1, 1);
+                            ctx.drawImage(enemySprites.fireEnemy, -(screenX + 80), enemy.y, 80, 60);
+                        } else {
+                            // Draw normally when facing right
+                            ctx.drawImage(enemySprites.fireEnemy, screenX, enemy.y, 80, 60);
+                        }
+                        ctx.restore();
+                    } catch (error) {
+                        console.error('Error drawing fire enemy sprite:', error);
+                        // Fallback to animated fire ball
+                        drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
+                    }
+                } else {
                     // Fallback to animated fire ball
                     drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
                 }
-            } else {
-                // Fallback to animated fire ball
-                drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
-            }
-            
-            // Draw enemy health bar (only on Forest location)
-            if (gameState.currentLocation === 1) {
-                const healthBarWidth = 60;
-                const healthBarHeight = 4;
-                const healthBarX = screenX + 10;
-                const healthBarY = enemy.y - 10;
                 
-                // Health bar background
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-                
-                // Health bar fill
-                const healthPercentage = enemy.health / 30; // 30 is max health
-                ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
-                ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+                // Draw enemy health bar (only on Forest location)
+                if (gameState.currentLocation === 1) {
+                    const healthBarWidth = 60;
+                    const healthBarHeight = 4;
+                    const healthBarX = screenX + 10;
+                    const healthBarY = enemy.y - 10;
+                    
+                    // Health bar background
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+                    
+                    // Health bar fill
+                    const healthPercentage = enemy.health / 30; // 30 is max health
+                    ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
+                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+                }
             }
         }
     });
@@ -3077,6 +3214,10 @@ function gameLoop() {
         updateCamera();
         updateUI();
         drawBackground();
+        
+        // Update enemies
+        enemies.forEach(enemy => enemy.update(player));
+        
         drawEnemies();
         drawFriendlyEnemies();
         drawFireProjectiles();
@@ -3084,9 +3225,7 @@ function gameLoop() {
         drawToxinProjectiles();
         drawOrigamiProjectiles();
         drawChameleonProjectiles();
-        console.log('🎮 About to call drawToxinAttackAnimation');
         drawToxinAttackAnimation();
-        console.log('🎮 drawToxinAttackAnimation called');
         drawBlueSphereProjectiles();
         drawPlayer();
         
@@ -4583,7 +4722,7 @@ function checkSprite1_2Collisions(playerX, playerY, playerWidth, playerHeight, c
 }
 
 // Function to check sprite collisions for player
-function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, currentLocation) {
+function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, currentLocation, playerVelocityY) {
     const tileSize = 32;
     const locationStart = currentLocation * LOCATION_WIDTH;
     
@@ -4597,6 +4736,8 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 1, y: 1, width: 36, height: 1, type: 'wall' },
             // W4-W10 vertical wall - completely blocked
             { x: 22, y: 4, width: 1, height: 7, type: 'wall' },
+            // l1-l16 vertical wall - completely blocked
+            { x: 37, y: 1, width: 1, height: 16, type: 'wall' },
 
             // C16-X16 platform - player can stand on this
             { x: 2, y: 16, width: 22, height: 1, type: 'platform' },
@@ -4630,8 +4771,8 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 35, y: 5, width: 1, height: 1, type: 'platform' },
             // k5 platform - player can stand on this
             { x: 36, y: 5, width: 1, height: 1, type: 'platform' },
-            // Y15 platform - player can stand on this
-            { x: 24, y: 15, width: 1, height: 1, type: 'platform' },
+            // Y15 wall - completely blocked
+{ x: 24, y: 15, width: 1, height: 1, type: 'wall' },
             // M12 platform - player can stand on this
             { x: 12, y: 12, width: 1, height: 1, type: 'platform' },
             // N12 platform - player can stand on this
@@ -4656,15 +4797,34 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 28, y: 7, width: 1, height: 1, type: 'platform' },
                         // k13 platform - player can stand on this
             { x: 36, y: 13, width: 1, height: 1, type: 'platform' },
-            // k14 platform - player can stand on this
-            { x: 36, y: 14, width: 1, height: 1, type: 'platform' },
-            // k14 platform - player can stand on this
-            { x: 36, y: 15, width: 1, height: 1, type: 'platform' },
+            // k14 wall - completely blocked
+{ x: 36, y: 14, width: 1, height: 1, type: 'wall' },
+// k15 wall - completely blocked
+{ x: 36, y: 15, width: 1, height: 1, type: 'wall' },
             // j15 platform - player can stand on this
             { x: 35, y: 15, width: 1, height: 1, type: 'platform' },
             // k15 platform - player can stand on this
             { x: 36, y: 15, width: 1, height: 1, type: 'platform' }
         ];
+        
+        // Check for platforms that are under other platforms and convert them to walls
+        for (let i = 0; i < collisionAreas.length; i++) {
+            const area = collisionAreas[i];
+            if (area.type === 'platform') {
+                // Check if there's another platform directly above this one
+                for (let j = 0; j < collisionAreas.length; j++) {
+                    const otherArea = collisionAreas[j];
+                    if (otherArea.type === 'platform' && i !== j) {
+                        // Check if other platform is directly above this one
+                        if (otherArea.x === area.x && otherArea.y === area.y - 1) {
+                            // Convert this platform to wall (blocked from all sides)
+                            area.type = 'wall';
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         
         // Check each collision area
         for (const area of collisionAreas) {
@@ -4686,10 +4846,25 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
                 });
                 
                 if (area.type === 'platform') {
-                    // Platform collision - player can stand on it
-                    return { collision: true, type: 'platform', y: areaY - playerHeight };
+                    // Platform collision - only block going up through platform from below
+                    const playerBottom = playerY + playerHeight;
+                    const platformTop = areaY;
+                    
+                    // Only block if player is trying to go up through platform from below AND is very close
+                    if (playerBottom <= platformTop + 1 && playerY < areaY && playerVelocityY > 0) {
+                        return { collision: true, type: 'blocked' };
+                    }
+                    // Allow standing on top of platform
+                    else if (playerY >= areaY - playerHeight && playerY < areaY) {
+                        return { collision: true, type: 'platform', y: areaY - playerHeight };
+                    }
+                    // Otherwise, no collision - allow normal movement including jumping
+                    return { collision: false };
+                } else if (area.type === 'pipe') {
+                    // Pipe collision - block movement but keep velocities for jumping
+                    return { collision: true, type: 'pipe' };
                 } else if (area.type === 'wall') {
-                    // Wall collision - completely blocked
+                    // Wall collision - completely blocked, no movement allowed
                     return { collision: true, type: 'blocked' };
                 }
             }
@@ -4859,7 +5034,29 @@ function drawPlatformIndicators(screenX) {
         { x: 22, y: 7, width: 1, height: 1 },
         { x: 22, y: 8, width: 1, height: 1 },
         { x: 22, y: 9, width: 1, height: 1 },
-        { x: 22, y: 10, width: 1, height: 1 }
+        { x: 22, y: 10, width: 1, height: 1 },
+        // l1-l16 vertical wall blocks
+        { x: 37, y: 1, width: 1, height: 1 },
+        { x: 37, y: 2, width: 1, height: 1 },
+        { x: 37, y: 3, width: 1, height: 1 },
+        { x: 37, y: 4, width: 1, height: 1 },
+        { x: 37, y: 5, width: 1, height: 1 },
+        { x: 37, y: 6, width: 1, height: 1 },
+        { x: 37, y: 7, width: 1, height: 1 },
+        { x: 37, y: 8, width: 1, height: 1 },
+        { x: 37, y: 9, width: 1, height: 1 },
+        { x: 37, y: 10, width: 1, height: 1 },
+        { x: 37, y: 11, width: 1, height: 1 },
+        { x: 37, y: 12, width: 1, height: 1 },
+        { x: 37, y: 13, width: 1, height: 1 },
+        { x: 37, y: 14, width: 1, height: 1 },
+        { x: 37, y: 15, width: 1, height: 1 },
+        { x: 37, y: 16, width: 1, height: 1 },
+        // k14-k15 wall blocks
+        { x: 36, y: 14, width: 1, height: 1 },
+        { x: 36, y: 15, width: 1, height: 1 },
+        // Y15 wall block
+        { x: 24, y: 15, width: 1, height: 1 }
     ];
     
     for (const block of wallBlocks) {
