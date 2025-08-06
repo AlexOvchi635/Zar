@@ -1718,124 +1718,124 @@ function updatePlayer() {
     
     // Check walls only for first location (Дом)
     if (gameState.currentLocation === 0) {
-        // Check each tile of the wall individually
-        for (let row = 1; row <= 16; row++) { // B1 to B16
-            const tileX = wallLocationStart + 1 * tileSize; // B column
-            const tileY = row * tileSize;
+    // Check each tile of the wall individually
+    for (let row = 1; row <= 16; row++) { // B1 to B16
+        const tileX = wallLocationStart + 1 * tileSize; // B column
+        const tileY = row * tileSize;
+        
+        // Check if player is crossing the wall boundary
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const wallLeft = tileX;
+        const wallRight = tileX + tileSize;
+        
+        // Block any intersection with wall (both horizontal and vertical)
+        if (newX < wallRight && newX + player.width > wallLeft &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
             
-            // Check if player is crossing the wall boundary
-            const playerLeft = newX;
-            const playerRight = newX + player.width;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            // Block any intersection with wall (both horizontal and vertical)
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-                
 
-                // Block only horizontal movement, allow vertical movement for jumping
-                newX = player.x; // Keep current X position
-                // Don't block Y movement - allow jumping
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
             }
         }
     }
     
     // Tile-based collision for l1-l16 wall - ONLY FOR FIRST LOCATION
     if (gameState.currentLocation === 0) {
-        for (let row = 1; row <= 16; row++) { // l1 to l16
-            const tileX = wallLocationStart + 37 * tileSize; // l column
-            const tileY = row * tileSize;
+    for (let row = 1; row <= 16; row++) { // l1 to l16
+        const tileX = wallLocationStart + 37 * tileSize; // l column
+        const tileY = row * tileSize;
+        
+        // Check if player is crossing the wall boundary
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const wallLeft = tileX;
+        const wallRight = tileX + tileSize;
+        
+        // Block any intersection with wall (both horizontal and vertical)
+        if (newX < wallRight && newX + player.width > wallLeft &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
             
-            // Check if player is crossing the wall boundary
-            const playerLeft = newX;
-            const playerRight = newX + player.width;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            // Block any intersection with wall (both horizontal and vertical)
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-                
 
-                // Block only horizontal movement, allow vertical movement for jumping
-                newX = player.x; // Keep current X position
-                // Don't block Y movement - allow jumping
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
             }
         }
     }
     
     // Additional strict collision check for l1-l16 wall - ONLY FOR FIRST LOCATION
     if (gameState.currentLocation === 0) {
-        for (let row = 1; row <= 16; row++) { // l1 to l16
-            const tileX = wallLocationStart + 37 * tileSize; // l column
-            const tileY = row * tileSize;
-            
-            // Check if player is even close to the wall (prevent any entry)
-            const playerLeft = newX;
-            const playerRight = newX + player.width;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            // Block if player is trying to get close to the wall
-            if (playerRight >= wallLeft && playerLeft <= wallRight) {
+    for (let row = 1; row <= 16; row++) { // l1 to l16
+        const tileX = wallLocationStart + 37 * tileSize; // l column
+        const tileY = row * tileSize;
+        
+        // Check if player is even close to the wall (prevent any entry)
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const wallLeft = tileX;
+        const wallRight = tileX + tileSize;
+        
+        // Block if player is trying to get close to the wall
+        if (playerRight >= wallLeft && playerLeft <= wallRight) {
 
-                // Block only horizontal movement, allow vertical movement for jumping
-                newX = player.x; // Keep current X position
-                // Don't block Y movement - allow jumping
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
             }
         }
     }
     
     // Check W4-W10 wall collision (block all movement through pipes) - ONLY FOR FIRST LOCATION
     if (gameState.currentLocation === 0) {
-        for (let row = 4; row <= 10; row++) { // W4 to W10
-            const tileX = wallLocationStart + 22 * tileSize; // W column
-            const tileY = row * tileSize;
+    for (let row = 4; row <= 10; row++) { // W4 to W10
+        const tileX = wallLocationStart + 22 * tileSize; // W column
+        const tileY = row * tileSize;
+        
+        // Block ALL movement through pipes (cannot pass through)
+        if (newX < tileX + tileSize && newX + player.width > tileX &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
             
-            // Block ALL movement through pipes (cannot pass through)
-            if (newX < tileX + tileSize && newX + player.width > tileX &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-                
 
-                // Block only horizontal movement, allow vertical movement for jumping
-                newX = player.x; // Keep current X position
-                // Don't block Y movement - allow jumping
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
             }
         }
     }
     
     // Check k14-k15 wall collision (block all movement through walls) - ONLY FOR FIRST LOCATION
     if (gameState.currentLocation === 0) {
-        for (let row = 14; row <= 15; row++) { // k14 to k15
-            const tileX = wallLocationStart + 36 * tileSize; // k column
-            const tileY = row * tileSize;
+    for (let row = 14; row <= 15; row++) { // k14 to k15
+        const tileX = wallLocationStart + 36 * tileSize; // k column
+        const tileY = row * tileSize;
+        
+        // Block ALL movement through walls (cannot pass through)
+        if (newX < tileX + tileSize && newX + player.width > tileX &&
+            newY < tileY + tileSize && newY + player.height > tileY) {
             
-            // Block ALL movement through walls (cannot pass through)
-            if (newX < tileX + tileSize && newX + player.width > tileX &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-                
 
-                // Block only horizontal movement, allow vertical movement for jumping
-                newX = player.x; // Keep current X position
-                // Don't block Y movement - allow jumping
+            // Block only horizontal movement, allow vertical movement for jumping
+            newX = player.x; // Keep current X position
+            // Don't block Y movement - allow jumping
             }
         }
     }
     
     // Check Y15 wall collision (block all movement through wall) - ONLY FOR FIRST LOCATION
     if (gameState.currentLocation === 0) {
-        const tileX = wallLocationStart + 24 * tileSize; // Y column
-        const tileY = 15 * tileSize; // row 15
+    const tileX = wallLocationStart + 24 * tileSize; // Y column
+    const tileY = 15 * tileSize; // row 15
+    
+    // Block ALL movement through wall (cannot pass through)
+    if (newX < tileX + tileSize && newX + player.width > tileX &&
+        newY < tileY + tileSize && newY + player.height > tileY) {
         
-        // Block ALL movement through wall (cannot pass through)
-        if (newX < tileX + tileSize && newX + player.width > tileX &&
-            newY < tileY + tileSize && newY + player.height > tileY) {
-            
-            
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
+        
+        // Block only horizontal movement, allow vertical movement for jumping
+        newX = player.x; // Keep current X position
+        // Don't block Y movement - allow jumping
         }
     }
     
@@ -2637,6 +2637,53 @@ function drawBackground() {
                 drawTSprite1_3OnT7Plus(screenX);
                 drawTSprite2_1Onb6(screenX);
                 drawTSprite2_3Onb7(screenX);
+                
+                // Draw sprites from T industrial tileset - rows 8-10
+                drawTSprite0_1Onf8(screenX);
+                drawTSprite1_1Ong8(screenX);
+                drawTSprite2_1Onh8(screenX);
+                drawTSprite0_2Onf9(screenX);
+                drawTSprite1_2Ong9(screenX);
+                drawTSprite2_2Onh9(screenX);
+                drawTSprite0_2Onf10(screenX);
+                drawTSprite1_2Ong10(screenX);
+                drawTSprite2_2Onh10(screenX);
+                drawTSprite1_1Oni10(screenX);
+                drawTSprite1_1One10(screenX);
+                drawTSprite2_1Onj10(screenX);
+                drawTSprite0_1OnU10(screenX);
+                drawTSprite1_1OnV10Plus(screenX);
+                
+                // Draw sprites from T industrial tileset - row 11
+                drawTSprite0_3OnU11(screenX);
+                drawTSprite1_3OnV11Plus(screenX);
+                drawTSprite0_0OnK11(screenX);
+                drawTSprite2_0OnL11(screenX);
+                drawTSprite0_2OnZ11(screenX);
+                drawTSprite1_2Ona11(screenX);
+                drawTSprite2_2Onb11(screenX);
+                drawTSprite1_3Oni11(screenX);
+                drawTSprite5_0Onj11(screenX);
+                
+                // Draw sprites from T industrial tileset - row 12
+                drawTSprite0_0OnO12(screenX);
+                drawTSprite1_0OnP12(screenX);
+                drawTSprite1_0OnQ12(screenX);
+                drawTSprite2_0OnR12(screenX);
+                drawTSprite0_2OnZ12(screenX);
+                drawTSprite1_2Ona12(screenX);
+                drawTSprite2_2Onb12(screenX);
+                drawTSprite2_2Onj12(screenX);
+                
+                // Draw sprites from T industrial tileset - row 13
+                drawTSprite0_3OnZ13(screenX);
+                drawTSprite1_3Ona13(screenX);
+                drawTSprite2_3Onb13(screenX);
+                drawTSprite2_2Onj13(screenX);
+                
+                // Draw sprites from T industrial tileset - rows 14-15
+                drawTSprite2_2Onj14(screenX);
+                drawTSprite2_3Onj15(screenX);
                 
                 // Draw sprite 1.0 from O industrial tileset on E6 coordinates
                 drawSprite1_0OnE6(screenX);
@@ -5179,6 +5226,16 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 6, y: 6, width: 1, height: 1, type: 'platform' },
             // R6-b6 platform - horizontal line platform
             { x: 17, y: 6, width: 11, height: 1, type: 'platform' },
+            // U10-j10 platform - long horizontal platform
+            { x: 20, y: 10, width: 16, height: 1, type: 'platform' },
+            // f8-h8 platforms - individual sprite platforms
+            { x: 31, y: 8, width: 1, height: 1, type: 'platform' }, // f8
+            { x: 32, y: 8, width: 1, height: 1, type: 'platform' }, // g8
+            { x: 33, y: 8, width: 1, height: 1, type: 'platform' }, // h8
+            // K11-L11 platform - central platform row 11
+            { x: 10, y: 11, width: 2, height: 1, type: 'platform' },
+            // O12-R12 platform - central platform
+            { x: 14, y: 12, width: 4, height: 1, type: 'platform' },
             
             // WALLS
             // B1-B16 vertical wall - completely blocked
@@ -5190,7 +5247,18 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             // S2-S5 vertical wall - T pack sprite area wall
             { x: 18, y: 2, width: 1, height: 4, type: 'wall' },
             // G5 single wall
-            { x: 6, y: 5, width: 1, height: 1, type: 'wall' }
+            { x: 6, y: 5, width: 1, height: 1, type: 'wall' },
+            // f9-h9 walls - individual sprite walls
+            { x: 31, y: 9, width: 1, height: 1, type: 'wall' }, // f9
+            { x: 32, y: 9, width: 1, height: 1, type: 'wall' }, // g9
+            { x: 33, y: 9, width: 1, height: 1, type: 'wall' }, // h9
+            // Z-a-b walls rows 12-13
+            { x: 25, y: 12, width: 1, height: 1, type: 'wall' }, // Z12
+            { x: 26, y: 12, width: 1, height: 1, type: 'wall' }, // a12
+            { x: 27, y: 12, width: 1, height: 1, type: 'wall' }, // b12
+            { x: 25, y: 13, width: 1, height: 1, type: 'wall' }, // Z13
+            { x: 26, y: 13, width: 1, height: 1, type: 'wall' }, // a13
+            { x: 27, y: 13, width: 1, height: 1, type: 'wall' }  // b13
         ];
         
         // EXACT SAME logic as first location
@@ -5382,7 +5450,17 @@ function drawPlatformIndicators(screenX) {
             // G6 platform - single tile platform
             { x: 6, y: 6, width: 1, height: 1 },
             // R6-b6 platform - horizontal line platform
-            { x: 17, y: 6, width: 11, height: 1 }
+            { x: 17, y: 6, width: 11, height: 1 },
+            // U10-j10 platform - long horizontal platform
+            { x: 20, y: 10, width: 16, height: 1 },
+            // f8-h8 platforms - individual sprite platforms
+            { x: 31, y: 8, width: 1, height: 1 }, // f8
+            { x: 32, y: 8, width: 1, height: 1 }, // g8
+            { x: 33, y: 8, width: 1, height: 1 }, // h8
+            // K11-L11 platform - central platform row 11
+            { x: 10, y: 11, width: 2, height: 1 },
+            // O12-R12 platform - central platform
+            { x: 14, y: 12, width: 4, height: 1 }
         ];
         
         ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Make sure green color is set
@@ -5525,7 +5603,18 @@ function drawPlatformIndicators(screenX) {
             // S2-S5 vertical wall - T pack sprite area wall
             { x: 18, y: 2, width: 1, height: 4 },
             // G5 single wall
-            { x: 6, y: 5, width: 1, height: 1 }
+            { x: 6, y: 5, width: 1, height: 1 },
+            // f9-h9 walls - individual sprite walls
+            { x: 31, y: 9, width: 1, height: 1 }, // f9
+            { x: 32, y: 9, width: 1, height: 1 }, // g9
+            { x: 33, y: 9, width: 1, height: 1 }, // h9
+            // Z-a-b walls rows 12-13
+            { x: 25, y: 12, width: 1, height: 1 }, // Z12
+            { x: 26, y: 12, width: 1, height: 1 }, // a12
+            { x: 27, y: 12, width: 1, height: 1 }, // b12
+            { x: 25, y: 13, width: 1, height: 1 }, // Z13
+            { x: 26, y: 13, width: 1, height: 1 }, // a13
+            { x: 27, y: 13, width: 1, height: 1 }  // b13
         ];
         
         for (const wall of secondLocationWalls) {
@@ -6586,6 +6675,430 @@ function drawTSprite2_3Onb7(screenX) {
     const spriteX = 2, spriteY = 3; // Sprite 2.3
     const screenGridX = screenX + 27 * tileSize; // b=27
     const screenY = 7 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - rows 8-10
+function drawTSprite0_1Onf8(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 1; // Sprite 0.1
+    const screenGridX = screenX + 31 * tileSize; // f=31
+    const screenY = 8 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_1Ong8(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 32 * tileSize; // g=32
+    const screenY = 8 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_1Onh8(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 1; // Sprite 2.1
+    const screenGridX = screenX + 33 * tileSize; // h=33
+    const screenY = 8 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - new additions
+function drawTSprite1_1One10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 30 * tileSize; // e=30
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_1Onj10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 1; // Sprite 2.1
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_2Onf9(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 31 * tileSize; // f=31
+    const screenY = 9 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_2Ong9(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 2; // Sprite 1.2
+    const screenGridX = screenX + 32 * tileSize; // g=32
+    const screenY = 9 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_2Onh9(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 33 * tileSize; // h=33
+    const screenY = 9 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_2Onf10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 31 * tileSize; // f=31
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_2Ong10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 2; // Sprite 1.2
+    const screenGridX = screenX + 32 * tileSize; // g=32
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_2Onh10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 33 * tileSize; // h=33
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - new row 10 additions
+function drawTSprite1_1Oni10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 34 * tileSize; // i=34
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_1OnU10(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 1; // Sprite 0.1
+    const screenGridX = screenX + 20 * tileSize; // U=20
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_1OnV10Plus(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    for (let col = 21; col <= 29; col++) { // V=21, +9 cells horizontal
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 10 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+// T Pack sprite functions - row 11
+function drawTSprite0_3OnU11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 3; // Sprite 0.3
+    const screenGridX = screenX + 20 * tileSize; // U=20
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_3OnV11Plus(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 3; // Sprite 1.3
+    for (let col = 21; col <= 33; col++) { // V=21, +13 cells horizontal
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 11 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+function drawTSprite1_3Oni11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 3; // Sprite 1.3
+    const screenGridX = screenX + 34 * tileSize; // i=34
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite5_0Onj11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 5, spriteY = 0; // Sprite 5.0
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_2OnZ11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 25 * tileSize; // Z=25
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_2Ona11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 2; // Sprite 1.2
+    const screenGridX = screenX + 26 * tileSize; // a=26
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_2Onb11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 27 * tileSize; // b=27
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_0OnK11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 0; // Sprite 0.0
+    const screenGridX = screenX + 10 * tileSize; // K=10
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_0OnL11(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 0; // Sprite 2.0
+    const screenGridX = screenX + 11 * tileSize; // L=11
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - row 12
+function drawTSprite0_0OnO12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 0; // Sprite 0.0
+    const screenGridX = screenX + 14 * tileSize; // O=14
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_0OnP12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 15 * tileSize; // P=15
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_0OnQ12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 16 * tileSize; // Q=16
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_0OnR12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 0; // Sprite 2.0
+    const screenGridX = screenX + 17 * tileSize; // R=17
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - Z, a, b columns rows 12-13
+function drawTSprite0_2OnZ12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 25 * tileSize; // Z=25
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_2Ona12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 2; // Sprite 1.2
+    const screenGridX = screenX + 26 * tileSize; // a=26
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_2Onb12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 27 * tileSize; // b=27
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_3OnZ13(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 3; // Sprite 0.3
+    const screenGridX = screenX + 25 * tileSize; // Z=25
+    const screenY = 13 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_3Ona13(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 3; // Sprite 1.3
+    const screenGridX = screenX + 26 * tileSize; // a=26
+    const screenY = 13 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_3Onb13(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 3; // Sprite 2.3
+    const screenGridX = screenX + 27 * tileSize; // b=27
+    const screenY = 13 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - j column rows 12-15
+function drawTSprite2_2Onj12(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 12 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+
+
+function drawTSprite2_2Onj13(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 13 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+
+
+function drawTSprite2_2Onj14(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 14 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+
+
+function drawTSprite2_3Onj15(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 3; // Sprite 2.3
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 15 * tileSize;
     if (screenGridX >= 0 && screenGridX <= canvas.width) {
         ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
     }
