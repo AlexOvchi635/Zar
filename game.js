@@ -1,6 +1,20 @@
 // ZARGATES GAME - BASIC VERSION
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
+let canvas, ctx;
+
+// Initialize canvas and context safely
+function initializeCanvas() {
+    canvas = document.getElementById('gameCanvas');
+    if (!canvas) {
+        console.error('Canvas element not found!');
+        return false;
+    }
+    ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error('Unable to get 2D context!');
+        return false;
+    }
+    return true;
+}
 
 // Game variables
 let gameState = {
@@ -1664,6 +1678,8 @@ function updatePlayer() {
         }
     }
     
+    // Keys are working properly
+    
     // Movement
     if (keys['KeyA'] || keys['ArrowLeft']) {
         player.velocityX = -player.speed;
@@ -1673,6 +1689,10 @@ function updatePlayer() {
         player.direction = 1;
     } else {
         player.velocityX *= 0.8;
+        // Fix tiny floating point numbers
+        if (Math.abs(player.velocityX) < 0.01) {
+            player.velocityX = 0;
+        }
     }
     
     // Jumping
@@ -1692,118 +1712,131 @@ function updatePlayer() {
     
 
     
-    // Tile-based collision for B1-B16 wall
+    // Tile-based collision for B1-B16 wall - ONLY FOR FIRST LOCATION
     const tileSize = 32;
     const wallLocationStart = gameState.currentLocation * LOCATION_WIDTH;
     
-    // Check each tile of the wall individually
-    for (let row = 1; row <= 16; row++) { // B1 to B16
-        const tileX = wallLocationStart + 1 * tileSize; // B column
-        const tileY = row * tileSize;
-        
-        // Check if player is crossing the wall boundary
-        const playerLeft = newX;
-        const playerRight = newX + player.width;
-        const wallLeft = tileX;
-        const wallRight = tileX + tileSize;
-        
-        // Block any intersection with wall (both horizontal and vertical)
-        if (newX < wallRight && newX + player.width > wallLeft &&
-            newY < tileY + tileSize && newY + player.height > tileY) {
+    // Check walls only for first location (Дом)
+    if (gameState.currentLocation === 0) {
+        // Check each tile of the wall individually
+        for (let row = 1; row <= 16; row++) { // B1 to B16
+            const tileX = wallLocationStart + 1 * tileSize; // B column
+            const tileY = row * tileSize;
             
-
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
-        }
-    }
-    
-    // Tile-based collision for l1-l16 wall
-    for (let row = 1; row <= 16; row++) { // l1 to l16
-        const tileX = wallLocationStart + 37 * tileSize; // l column
-        const tileY = row * tileSize;
-        
-        // Check if player is crossing the wall boundary
-        const playerLeft = newX;
-        const playerRight = newX + player.width;
-        const wallLeft = tileX;
-        const wallRight = tileX + tileSize;
-        
-        // Block any intersection with wall (both horizontal and vertical)
-        if (newX < wallRight && newX + player.width > wallLeft &&
-            newY < tileY + tileSize && newY + player.height > tileY) {
+            // Check if player is crossing the wall boundary
+            const playerLeft = newX;
+            const playerRight = newX + player.width;
+            const wallLeft = tileX;
+            const wallRight = tileX + tileSize;
             
+            // Block any intersection with wall (both horizontal and vertical)
+            if (newX < wallRight && newX + player.width > wallLeft &&
+                newY < tileY + tileSize && newY + player.height > tileY) {
+                
 
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
+                // Block only horizontal movement, allow vertical movement for jumping
+                newX = player.x; // Keep current X position
+                // Don't block Y movement - allow jumping
+            }
         }
     }
     
-    // Additional strict collision check for l1-l16 wall
-    for (let row = 1; row <= 16; row++) { // l1 to l16
-        const tileX = wallLocationStart + 37 * tileSize; // l column
-        const tileY = row * tileSize;
-        
-        // Check if player is even close to the wall (prevent any entry)
-        const playerLeft = newX;
-        const playerRight = newX + player.width;
-        const wallLeft = tileX;
-        const wallRight = tileX + tileSize;
-        
-        // Block if player is trying to get close to the wall
-        if (playerRight >= wallLeft && playerLeft <= wallRight) {
+    // Tile-based collision for l1-l16 wall - ONLY FOR FIRST LOCATION
+    if (gameState.currentLocation === 0) {
+        for (let row = 1; row <= 16; row++) { // l1 to l16
+            const tileX = wallLocationStart + 37 * tileSize; // l column
+            const tileY = row * tileSize;
+            
+            // Check if player is crossing the wall boundary
+            const playerLeft = newX;
+            const playerRight = newX + player.width;
+            const wallLeft = tileX;
+            const wallRight = tileX + tileSize;
+            
+            // Block any intersection with wall (both horizontal and vertical)
+            if (newX < wallRight && newX + player.width > wallLeft &&
+                newY < tileY + tileSize && newY + player.height > tileY) {
+                
 
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
+                // Block only horizontal movement, allow vertical movement for jumping
+                newX = player.x; // Keep current X position
+                // Don't block Y movement - allow jumping
+            }
         }
     }
     
-    // Check W4-W10 wall collision (block all movement through pipes)
-    for (let row = 4; row <= 10; row++) { // W4 to W10
-        const tileX = wallLocationStart + 22 * tileSize; // W column
-        const tileY = row * tileSize;
+    // Additional strict collision check for l1-l16 wall - ONLY FOR FIRST LOCATION
+    if (gameState.currentLocation === 0) {
+        for (let row = 1; row <= 16; row++) { // l1 to l16
+            const tileX = wallLocationStart + 37 * tileSize; // l column
+            const tileY = row * tileSize;
+            
+            // Check if player is even close to the wall (prevent any entry)
+            const playerLeft = newX;
+            const playerRight = newX + player.width;
+            const wallLeft = tileX;
+            const wallRight = tileX + tileSize;
+            
+            // Block if player is trying to get close to the wall
+            if (playerRight >= wallLeft && playerLeft <= wallRight) {
+
+                // Block only horizontal movement, allow vertical movement for jumping
+                newX = player.x; // Keep current X position
+                // Don't block Y movement - allow jumping
+            }
+        }
+    }
+    
+    // Check W4-W10 wall collision (block all movement through pipes) - ONLY FOR FIRST LOCATION
+    if (gameState.currentLocation === 0) {
+        for (let row = 4; row <= 10; row++) { // W4 to W10
+            const tileX = wallLocationStart + 22 * tileSize; // W column
+            const tileY = row * tileSize;
+            
+            // Block ALL movement through pipes (cannot pass through)
+            if (newX < tileX + tileSize && newX + player.width > tileX &&
+                newY < tileY + tileSize && newY + player.height > tileY) {
+                
+
+                // Block only horizontal movement, allow vertical movement for jumping
+                newX = player.x; // Keep current X position
+                // Don't block Y movement - allow jumping
+            }
+        }
+    }
+    
+    // Check k14-k15 wall collision (block all movement through walls) - ONLY FOR FIRST LOCATION
+    if (gameState.currentLocation === 0) {
+        for (let row = 14; row <= 15; row++) { // k14 to k15
+            const tileX = wallLocationStart + 36 * tileSize; // k column
+            const tileY = row * tileSize;
+            
+            // Block ALL movement through walls (cannot pass through)
+            if (newX < tileX + tileSize && newX + player.width > tileX &&
+                newY < tileY + tileSize && newY + player.height > tileY) {
+                
+
+                // Block only horizontal movement, allow vertical movement for jumping
+                newX = player.x; // Keep current X position
+                // Don't block Y movement - allow jumping
+            }
+        }
+    }
+    
+    // Check Y15 wall collision (block all movement through wall) - ONLY FOR FIRST LOCATION
+    if (gameState.currentLocation === 0) {
+        const tileX = wallLocationStart + 24 * tileSize; // Y column
+        const tileY = 15 * tileSize; // row 15
         
-        // Block ALL movement through pipes (cannot pass through)
+        // Block ALL movement through wall (cannot pass through)
         if (newX < tileX + tileSize && newX + player.width > tileX &&
             newY < tileY + tileSize && newY + player.height > tileY) {
             
-
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
-        }
-    }
-    
-    // Check k14-k15 wall collision (block all movement through walls)
-    for (let row = 14; row <= 15; row++) { // k14 to k15
-        const tileX = wallLocationStart + 36 * tileSize; // k column
-        const tileY = row * tileSize;
-        
-        // Block ALL movement through walls (cannot pass through)
-        if (newX < tileX + tileSize && newX + player.width > tileX &&
-            newY < tileY + tileSize && newY + player.height > tileY) {
             
-
             // Block only horizontal movement, allow vertical movement for jumping
             newX = player.x; // Keep current X position
             // Don't block Y movement - allow jumping
         }
-    }
-    
-    // Check Y15 wall collision (block all movement through wall)
-    const tileX = wallLocationStart + 24 * tileSize; // Y column
-    const tileY = 15 * tileSize; // row 15
-    
-    // Block ALL movement through wall (cannot pass through)
-    if (newX < tileX + tileSize && newX + player.width > tileX &&
-        newY < tileY + tileSize && newY + player.height > tileY) {
-        
-        
-        // Block only horizontal movement, allow vertical movement for jumping
-        newX = player.x; // Keep current X position
-        // Don't block Y movement - allow jumping
     }
     
 
@@ -1811,7 +1844,16 @@ function updatePlayer() {
 
     
     // Check sprite collisions BEFORE updating position
+    if (gameState.currentLocation === 1) {
+        console.log('🔧 CALLING checkSpriteCollisions for second location:', {
+            newX, newY, playerWidth: player.width, playerHeight: player.height, 
+            currentLocation: gameState.currentLocation, velocityY: player.velocityY
+        });
+    }
     const collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation, player.velocityY);
+    if (gameState.currentLocation === 1) {
+        console.log('🔧 checkSpriteCollisions RESULT:', collisionResult);
+    }
     
 
     
@@ -1822,6 +1864,10 @@ function updatePlayer() {
     
     // Handle sprite collisions
     if (collisionResult.collision) {
+        if (gameState.currentLocation === 1) {
+            console.log('🎯 Collision result:', collisionResult);
+        }
+        
         if (collisionResult.type === 'platform') {
             // Platform collision - player can stand on it
             player.y = collisionResult.y;
@@ -1829,15 +1875,16 @@ function updatePlayer() {
             player.onGround = true;
         } else if (collisionResult.type === 'pipe') {
             // Pipe collision - block movement but keep velocities for jumping
-            // Don't update position but keep velocities for jumping
+            if (gameState.currentLocation === 1) console.log('🚫 PIPE COLLISION - blocking movement');
             return; // Exit early, don't update position
         } else if (collisionResult.type === 'blocked') {
             // Blocked by wall or platform - block movement but keep velocities for jumping
-            // Don't update position - keep player in current position
+            if (gameState.currentLocation === 1) console.log('🚫 BLOCKED COLLISION - blocking movement');
             return; // Exit early, don't update position
         }
     } else {
         // No sprite collision, update Y position
+        if (gameState.currentLocation === 1) console.log('✅ No collision - updating position to newY:', newY);
         player.y = newY;
         
         // Check for platform collisions when falling
@@ -3364,6 +3411,12 @@ function drawGameOverScreen() {
 
 // Main game loop
 function gameLoop() {
+    // Safety check - make sure canvas and context are initialized
+    if (!canvas || !ctx) {
+        console.error('Canvas or context not initialized!');
+        return;
+    }
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     if (gameState.currentScreen === 'splash') {
@@ -3431,69 +3484,114 @@ function gameLoop() {
 }
 
 // Add canvas click event listener
-canvas.addEventListener('click', function(e) {
-    console.log('🎯 Canvas clicked! Current screen:', gameState.currentScreen);
-    
-    if (gameState.currentScreen === 'splash') {
-        // Get canvas coordinates
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+
+
+// Initialize event listeners (called after canvas is initialized)
+function initializeEventListeners() {
+    canvas.addEventListener('click', function(e) {
+        console.log('🎯 Canvas clicked! Current screen:', gameState.currentScreen);
         
-        console.log('🎯 Splash screen clicked at:', x, y);
-        console.log('🎯 Canvas size:', canvas.width, canvas.height);
-        console.log('🎯 Click coordinates relative to canvas:', x, y);
-        
-        // Calculate button area (same as in drawSplashScreen)
-        const buttonWidth = 200;
-        const buttonHeight = 80;
-        const buttonX = canvas.width / 2 - buttonWidth / 2;
-        const buttonY = canvas.height / 2 - buttonHeight / 2;
-        
-        // Check if click is within button area
-        if (x >= buttonX && x <= buttonX + buttonWidth && 
-            y >= buttonY && y <= buttonY + buttonHeight) {
-            console.log('✅ Click is within button area');
-            gameState.currentScreen = 'characterSelect';
-            document.getElementById('characterSelect').style.display = 'block';
-        } else {
-            console.log('❌ Click is outside button area');
+        if (gameState.currentScreen === 'splash') {
+            // Get canvas coordinates
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            console.log('🎯 Splash screen clicked at:', x, y);
+            console.log('🎯 Canvas size:', canvas.width, canvas.height);
+            console.log('🎯 Click coordinates relative to canvas:', x, y);
+            
+            // Calculate button area (same as in drawSplashScreen)
+            const buttonWidth = 200;
+            const buttonHeight = 80;
+            const buttonX = canvas.width / 2 - buttonWidth / 2;
+            const buttonY = canvas.height / 2 - buttonHeight / 2;
+            
+            // Check if click is within button area
+            if (x >= buttonX && x <= buttonX + buttonWidth && 
+                y >= buttonY && y <= buttonY + buttonHeight) {
+                console.log('✅ Click is within button area');
+                gameState.currentScreen = 'characterSelect';
+                document.getElementById('characterSelect').style.display = 'block';
+            } else {
+                console.log('❌ Click is outside button area');
+            }
         }
+    });
+}
+
+// Load all game resources
+function loadGameResources() {
+    try {
+        console.log('Loading game resources...');
+        
+        // Load all background images
+        loadHomeBackground();
+        loadForestBackground();
+        loadStreetBackground();
+        loadCastleBackground();
+        loadIslandBackground();
+        loadPortalBackground();
+        loadHyperspaceBackground();
+        
+        // Load tilesets
+        loadIndustrialTiles();
+        loadNewIndustrialTiles();
+        loadThirdIndustrialTiles();
+        loadFourthIndustrialTiles();
+        loadOIndustrialTiles();
+        loadTIndustrialTiles();
+        
+        // Load splash and UI images
+        loadSplashBackground();
+        loadCharacterSelectionBackground();
+        loadStartButton();
+        loadZargatesLogo();
+        
+        // Load character images
+        loadOrigamiCharacter();
+        loadTroubCharacter();
+        loadToxinCharacter();
+        loadChameleonCharacter();
+        
+        // Load sprites
+        loadOrigamiSprite();
+        loadFireEnemySprite();
+        loadArrowSprite();
+        loadToxinAttackSprite();
+        loadOrigamiAttackSprite();
+        loadToxinBulletSprite();
+        loadChameleonAttackSprite();
+        
+        // Load sounds
+        loadMachineGunSound();
+        
+        console.log('All resources loaded successfully!');
+        return true;
+    } catch (error) {
+        console.error('Error loading game resources:', error);
+        return false;
+    }
+}
+
+// Don't initialize enemies at start - they will be added when entering Forest location
+
+// Wait for DOM to be fully loaded before starting the game
+document.addEventListener('DOMContentLoaded', function() {
+    if (initializeCanvas()) {
+        console.log('Canvas initialized successfully!');
+        initializeEventListeners();
+        console.log('Event listeners initialized!');
+        if (loadGameResources()) {
+            console.log('Game initialized successfully!');
+            gameLoop();
+        } else {
+            console.error('Failed to load game resources!');
+        }
+    } else {
+        console.error('Failed to initialize canvas!');
     }
 });
-
-// Start the game
-loadHomeBackground(); // Load home background image
-loadForestBackground(); // Load forest background image
-loadStreetBackground(); // Load street background image
-loadCastleBackground(); // Load castle background image
-loadIslandBackground(); // Load island background image
-loadPortalBackground(); // Load portal background image
-    loadHyperspaceBackground(); // Load hyperspace background image
-    loadIndustrialTiles(); // Load industrial tiles for hyperspace
-    loadNewIndustrialTiles(); // Load new industrial tileset
-    loadThirdIndustrialTiles(); // Load third industrial tileset
-    loadFourthIndustrialTiles(); // Load fourth industrial tileset (U pack)
-loadOIndustrialTiles(); // Load O industrial tileset (O pack)
-loadTIndustrialTiles(); // Load T industrial tileset (T pack)
-loadSplashBackground(); // Load splash screen background image
-    loadCharacterSelectionBackground(); // Load character selection background image
-    loadStartButton(); // Load start button image
-    loadZargatesLogo(); // Load ZARGATES logo image
-    loadOrigamiCharacter(); // Load Origami character image
-    loadTroubCharacter(); // Load Troub character image
-    loadToxinCharacter(); // Load Toxin character image
-    loadChameleonCharacter(); // Load Chameleon character image
-loadOrigamiSprite(); // Load Origami sprite
-loadFireEnemySprite(); // Load fire enemy sprite
-loadArrowSprite(); // Load arrow sprite for Troub
-loadToxinAttackSprite(); // Load Toxin attack animation sprite
-loadOrigamiAttackSprite(); // Load Origami attack animation sprite
-loadToxinBulletSprite(); // Load Toxin bullet sprite
-loadMachineGunSound(); // Load machine gun sound
-loadChameleonAttackSprite(); // Load Chameleon attack animation sprite
-// Don't initialize enemies at start - they will be added when entering Forest location
-gameLoop();
 
 // Character selection screen
 function drawCharacterSelection() {
@@ -4997,11 +5095,7 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
                 playerY < areaY + areaHeight &&
                 playerY + playerHeight > areaY) {
                 
-                console.log('🚫 COLLISION DETECTED!', {
-                    playerX, playerY, playerWidth, playerHeight,
-                    areaX, areaY, areaWidth, areaHeight,
-                    area: area
-                });
+                // Collision detected - process it
                 
                 if (area.type === 'platform') {
                     // Platform collision - only block going up through platform from below
@@ -5029,42 +5123,76 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
         }
     }
     
-    // Check collisions for "Лес" location (second location)
+    // Check collisions for "Лес" location (second location) - EXACT COPY of first location logic
     if (currentLocation === 1) {
-        // Define collision areas for second location
+        // Define collision areas - same structure as first location
         const collisionAreas = [
-            // C15-R15 platform - player can stand on this
+            // C15-R15 platform - player can stand on this (main platform)
             { x: 2, y: 15, width: 16, height: 1, type: 'platform' }
         ];
         
-        // Check each collision area
+        // EXACT SAME logic as first location
         for (const area of collisionAreas) {
             const areaX = locationStart + area.x * tileSize;
             const areaY = area.y * tileSize;
             const areaWidth = area.width * tileSize;
             const areaHeight = area.height * tileSize;
             
-            // Simple AABB collision detection
+            // Debug collision check for second location
+            if (currentLocation === 1) {
+                console.log('🎯 Checking collision with platform:', {
+                    playerX, playerY, playerWidth, playerHeight,
+                    areaX, areaY, areaWidth, areaHeight,
+                    intersectsX: playerX < areaX + areaWidth && playerX + playerWidth > areaX,
+                    intersectsY: playerY < areaY + areaHeight && playerY + playerHeight > areaY,
+                    fullIntersection: playerX < areaX + areaWidth && playerX + playerWidth > areaX && playerY < areaY + areaHeight && playerY + playerHeight > areaY
+                });
+            }
+            
+            // Simple AABB collision detection - EXACT COPY
             if (playerX < areaX + areaWidth &&
                 playerX + playerWidth > areaX &&
                 playerY < areaY + areaHeight &&
                 playerY + playerHeight > areaY) {
                 
+                // Collision detected - process it
+                
                 if (area.type === 'platform') {
-                    // Platform collision - only block going up through platform from below
+                    // Platform collision - DEBUG version
                     const playerBottom = playerY + playerHeight;
                     const platformTop = areaY;
                     
-                    // Only block if player is trying to go up through platform from below AND is very close
-                    if (playerBottom <= platformTop + 1 && playerY < areaY && playerVelocityY > 0) {
-                        return { collision: true, type: 'blocked' };
-                    }
-                    // Allow standing on top of platform
-                    else if (playerY >= areaY - playerHeight && playerY < areaY) {
+                    console.log('🔍 Platform collision check:', {
+                        playerBottom,
+                        platformTop,
+                        playerY,
+                        areaY,
+                        playerHeight,
+                        velocityY: playerVelocityY,
+                        velocityX: player.velocityX,
+                        condition_landing: playerY >= areaY - playerHeight && playerY < areaY && playerVelocityY > 0
+                    });
+                    
+                    // Allow standing on top of platform (only when actually falling/landing)
+                    if (playerY >= areaY - playerHeight && playerY < areaY && playerVelocityY > 0) {
+                        console.log('🟢 PLATFORM - landing on top');
                         return { collision: true, type: 'platform', y: areaY - playerHeight };
                     }
-                    // Otherwise, no collision - allow normal movement including jumping
-                    return { collision: false };
+                    // Check if player is standing ON the platform (not falling through it)
+                    else if (Math.abs(playerY + playerHeight - areaY) <= 2 && playerVelocityY >= 0) {
+                        console.log('🚶 PLATFORM - standing on platform, allow horizontal movement');
+                        return { collision: false }; // Allow horizontal movement
+                    }
+                    // Allow horizontal movement in all other cases
+                    else {
+                        console.log('✅ NO COLLISION - horizontal movement allowed');
+                        return { collision: false };
+                    }
+                    
+                    console.log('⚠️ NO CONDITIONS MATCHED');
+                } else if (area.type === 'wall') {
+                    // Wall collision - completely blocked, no movement allowed
+                    return { collision: true, type: 'blocked' };
                 }
             }
         }
@@ -5076,6 +5204,8 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
 // Function to draw platform indicators for the first location
 function drawPlatformIndicators(screenX) {
     if (gameState.currentLocation !== 0 && gameState.currentLocation !== 1) return; // Only for "Дом" and "Лес" locations
+    
+    console.log('🎯 Drawing platform indicators for location:', gameState.currentLocation, 'screenX:', screenX);
     
     const ctx = canvas.getContext('2d');
     const tileSize = 32;
@@ -5172,15 +5302,28 @@ function drawPlatformIndicators(screenX) {
         }
     }
     
-    // Draw platforms for second location
+    // Draw platforms for second location ("Лес")
     if (gameState.currentLocation === 1) {
-        for (const platform of platforms) {
-            const x = screenX + platform.x * tileSize;
+        console.log('🌲 Drawing platforms for second location (Лес)');
+        // Define platforms for second location
+        const secondLocationPlatforms = [
+            // C15-R15 platform - player can stand on this
+            { x: 2, y: 15, width: 16, height: 1 }
+        ];
+        
+        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Make sure green color is set
+        
+        for (const platform of secondLocationPlatforms) {
+            // Fix coordinates: screenX is already the camera offset, so use platform coordinates directly
+            const x = platform.x * tileSize;
             const y = platform.y * tileSize;
             const width = platform.width * tileSize;
             const height = platform.height * tileSize;
             
             ctx.fillRect(x, y, width, height);
+            
+            // Debug: log platform positions for second location
+            console.log('🟢 Лес Platform drawn (FIXED):', { x, y, width, height, screenX, platform });
         }
     }
     
@@ -5273,13 +5416,42 @@ function drawPlatformIndicators(screenX) {
         { x: 24, y: 15, width: 1, height: 1 }
     ];
     
-    for (const block of wallBlocks) {
-        const x = screenX + block.x * tileSize;
-        const y = block.y * tileSize;
-        const width = block.width * tileSize;
-        const height = block.height * tileSize;
+    // Draw walls only for first location
+    if (gameState.currentLocation === 0) {
+        for (const block of wallBlocks) {
+            const x = screenX + block.x * tileSize;
+            const y = block.y * tileSize;
+            const width = block.width * tileSize;
+            const height = block.height * tileSize;
+            
+            ctx.fillRect(x, y, width, height);
+        }
+    }
+    
+    // Draw walls for second location ("Лес")
+    if (gameState.currentLocation === 1) {
+        console.log('🌲 Drawing walls for second location (Лес)');
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.3)'; // Make sure red color is set
         
-        ctx.fillRect(x, y, width, height);
+        // Add some basic walls for the forest location
+        const secondLocationWalls = [
+            // Add walls around the edges to prevent falling off
+            { x: 0, y: 0, width: 1, height: 18 },  // Left wall
+            { x: 37, y: 0, width: 1, height: 18 }, // Right wall
+            { x: 0, y: 0, width: 38, height: 1 },  // Top wall
+            { x: 0, y: 17, width: 38, height: 1 }  // Bottom wall
+        ];
+        
+        for (const wall of secondLocationWalls) {
+            // Fix coordinates: use wall coordinates directly
+            const x = wall.x * tileSize;
+            const y = wall.y * tileSize;
+            const width = wall.width * tileSize;
+            const height = wall.height * tileSize;
+            
+            ctx.fillRect(x, y, width, height);
+            console.log('🔴 Лес Wall drawn (FIXED):', { x, y, width, height });
+        }
     }
     
     // Restore context state
