@@ -402,12 +402,12 @@ function loadOIndustrialTiles() {
     oIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/40f3ac58a8081c4cb2a8505384bd4768586a425d/1_Industrial_Tileset_1C.png';
 }
 
-// Load T industrial tileset (T pack)
+// Load T industrial tileset (T pack) - NEW industrial_tiles.png.png from main branch
 function loadTIndustrialTiles() {
     tIndustrialTilesSprite = new Image();
     tIndustrialTilesSprite.crossOrigin = 'anonymous';
     tIndustrialTilesSprite.onload = function() {
-        console.log('✅ T Industrial tileset (T) loaded successfully!');
+        console.log('✅ T Industrial tileset (NEW industrial_tiles.png.png) loaded successfully!');
         console.log('📏 T Sprite dimensions:', tIndustrialTilesSprite.width, 'x', tIndustrialTilesSprite.height);
         console.log('🎯 T Total tiles:', Math.floor(tIndustrialTilesSprite.width / 32), 'x', Math.floor(tIndustrialTilesSprite.height / 32));
         
@@ -426,7 +426,7 @@ function loadTIndustrialTiles() {
         console.error('❌ Failed to load T industrial tileset (T)!');
         console.error('🔗 URL:', tIndustrialTilesSprite.src);
     };
-    tIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/40f3ac58a8081c4cb2a8505384bd4768586a425d/1_Industrial_Tileset_1C.png';
+    tIndustrialTilesSprite.src = 'https://raw.githubusercontent.com/AlexOvchi635/Zar/main/industrial_tiles.png.png';
 }
 
 // Load splash screen background image
@@ -2600,6 +2600,43 @@ function drawBackground() {
                 
                 // Draw sprite 1.0 from O industrial tileset on D6 coordinates
                 drawSprite1_0OnD6(screenX);
+                
+                // Draw sprite 2.0 from O industrial tileset on R15 coordinates
+                drawSprite2_0OnR15(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on S16+ (16 cells horizontal)
+                drawSprite1_0OnS16Plus(screenX);
+                
+                // Draw sprite 2.0 from O industrial tileset on j16 coordinates
+                drawSprite2_0OnJ16(screenX);
+                
+                // Draw sprite 1.0 from O industrial tileset on i16 coordinates
+                drawSprite1_0OnI16(screenX);
+                
+                // Draw sprites from T industrial tileset - 3x3 grid M4-O6
+                drawTSprite0_1OnM4(screenX);
+                drawTSprite1_1OnN4(screenX);
+                drawTSprite2_1OnO4(screenX);
+                drawTSprite0_2OnM5(screenX);
+                drawTSprite1_2OnN5(screenX);
+                drawTSprite2_2OnO5(screenX);
+                drawTSprite0_3OnM6(screenX);
+                drawTSprite1_3OnN6(screenX);
+                drawTSprite2_3OnO6(screenX);
+                
+                // Draw sprites from T industrial tileset - S column
+                drawTSprite5_3OnS1(screenX);
+                drawTSprite3_2OnS2S5(screenX);
+                drawTSprite5_2OnS6(screenX);
+                
+                // Draw sprites from T industrial tileset - rows 6-7
+                drawTSprite0_1OnR6(screenX);
+                drawTSprite1_1OnT6Plus(screenX);
+                drawTSprite0_3OnR7(screenX);
+                drawTSprite1_3OnS7(screenX);
+                drawTSprite1_3OnT7Plus(screenX);
+                drawTSprite2_1Onb6(screenX);
+                drawTSprite2_3Onb7(screenX);
                 
                 // Draw sprite 1.0 from O industrial tileset on E6 coordinates
                 drawSprite1_0OnE6(screenX);
@@ -5127,8 +5164,33 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
     if (currentLocation === 1) {
         // Define collision areas - same structure as first location
         const collisionAreas = [
+            // PLATFORMS
             // C15-R15 platform - player can stand on this (main platform)
-            { x: 2, y: 15, width: 16, height: 1, type: 'platform' }
+            { x: 2, y: 15, width: 16, height: 1, type: 'platform' },
+            // C6-F6 platform - new upper platform
+            { x: 2, y: 6, width: 4, height: 1, type: 'platform' },
+            // G4-L4 platform - new highest platform
+            { x: 6, y: 4, width: 6, height: 1, type: 'platform' },
+            // S16-j16 platform - new bottom platform
+            { x: 18, y: 16, width: 18, height: 1, type: 'platform' },
+            // M4-O4 platform - T pack sprite area
+            { x: 12, y: 4, width: 3, height: 1, type: 'platform' },
+            // G6 platform - single tile platform
+            { x: 6, y: 6, width: 1, height: 1, type: 'platform' },
+            // R6-b6 platform - horizontal line platform
+            { x: 17, y: 6, width: 11, height: 1, type: 'platform' },
+            
+            // WALLS
+            // B1-B16 vertical wall - completely blocked
+            { x: 1, y: 1, width: 1, height: 16, type: 'wall' },
+            // C1 horizontal wall to end - completely blocked
+            { x: 2, y: 1, width: 36, height: 1, type: 'wall' },
+            // k1-k16 vertical wall - completely blocked
+            { x: 36, y: 1, width: 1, height: 16, type: 'wall' },
+            // S2-S5 vertical wall - T pack sprite area wall
+            { x: 18, y: 2, width: 1, height: 4, type: 'wall' },
+            // G5 single wall
+            { x: 6, y: 5, width: 1, height: 1, type: 'wall' }
         ];
         
         // EXACT SAME logic as first location
@@ -5307,8 +5369,20 @@ function drawPlatformIndicators(screenX) {
         console.log('🌲 Drawing platforms for second location (Лес)');
         // Define platforms for second location
         const secondLocationPlatforms = [
-            // C15-R15 platform - player can stand on this
-            { x: 2, y: 15, width: 16, height: 1 }
+            // C15-R15 platform - player can stand on this (main platform)
+            { x: 2, y: 15, width: 16, height: 1 },
+            // C6-F6 platform - new upper platform
+            { x: 2, y: 6, width: 4, height: 1 },
+            // G4-L4 platform - new highest platform
+            { x: 6, y: 4, width: 6, height: 1 },
+            // S16-j16 platform - new bottom platform
+            { x: 18, y: 16, width: 18, height: 1 },
+            // M4-O4 platform - T pack sprite area
+            { x: 12, y: 4, width: 3, height: 1 },
+            // G6 platform - single tile platform
+            { x: 6, y: 6, width: 1, height: 1 },
+            // R6-b6 platform - horizontal line platform
+            { x: 17, y: 6, width: 11, height: 1 }
         ];
         
         ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Make sure green color is set
@@ -5433,13 +5507,25 @@ function drawPlatformIndicators(screenX) {
         console.log('🌲 Drawing walls for second location (Лес)');
         ctx.fillStyle = 'rgba(255, 0, 0, 0.3)'; // Make sure red color is set
         
-        // Add some basic walls for the forest location
+        // Add walls for the forest location
         const secondLocationWalls = [
-            // Add walls around the edges to prevent falling off
+            // Edge walls to prevent falling off
             { x: 0, y: 0, width: 1, height: 18 },  // Left wall
             { x: 37, y: 0, width: 1, height: 18 }, // Right wall
             { x: 0, y: 0, width: 38, height: 1 },  // Top wall
-            { x: 0, y: 17, width: 38, height: 1 }  // Bottom wall
+            { x: 0, y: 17, width: 38, height: 1 }, // Bottom wall
+            
+            // Interior walls
+            // B1-B16 vertical wall
+            { x: 1, y: 1, width: 1, height: 16 },
+            // C1 horizontal wall to end
+            { x: 2, y: 1, width: 36, height: 1 },
+            // k1-k16 vertical wall
+            { x: 36, y: 1, width: 1, height: 16 },
+            // S2-S5 vertical wall - T pack sprite area wall
+            { x: 18, y: 2, width: 1, height: 4 },
+            // G5 single wall
+            { x: 6, y: 5, width: 1, height: 1 }
         ];
         
         for (const wall of secondLocationWalls) {
@@ -6230,11 +6316,277 @@ function drawSprite1_0OnC15R15(screenX) {
     if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
     const tileSize = 32;
     const spriteX = 1, spriteY = 0;
-    for (let col = 2; col <= 17; col++) { // C=2, R=17
+    for (let col = 2; col <= 16; col++) { // C=2, Q=16 (exclude R=17)
         const screenGridX = screenX + col * tileSize;
         const screenY = 15 * tileSize;
         if (screenGridX >= 0 && screenGridX <= canvas.width) {
             ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
         }
+    }
+}
+
+// New sprite functions for second location (Лес)
+function drawSprite2_0OnR15(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 0; // Sprite 2.0 from O pack
+    const screenGridX = screenX + 17 * tileSize; // R=17
+    const screenY = 15 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawSprite1_0OnS16Plus(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0;
+    for (let col = 18; col <= 33; col++) { // S=18, 16 cells horizontal
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 16 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+function drawSprite2_0OnJ16(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 0;
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 16 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawSprite1_0OnI16(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0;
+    const screenGridX = screenX + 34 * tileSize; // i=34
+    const screenY = 16 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - 3x3 grid M4-O6
+function drawTSprite0_1OnM4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 1; // Sprite 0.1
+    const screenGridX = screenX + 12 * tileSize; // M=12
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_1OnN4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 13 * tileSize; // N=13
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_1OnO4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 1; // Sprite 2.1
+    const screenGridX = screenX + 14 * tileSize; // O=14
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_2OnM5(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 12 * tileSize; // M=12
+    const screenY = 5 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_2OnN5(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 2; // Sprite 1.2
+    const screenGridX = screenX + 13 * tileSize; // N=13
+    const screenY = 5 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_2OnO5(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 14 * tileSize; // O=14
+    const screenY = 5 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite0_3OnM6(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 3; // Sprite 0.3
+    const screenGridX = screenX + 12 * tileSize; // M=12
+    const screenY = 6 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_3OnN6(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 3; // Sprite 1.3
+    const screenGridX = screenX + 13 * tileSize; // N=13
+    const screenY = 6 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_3OnO6(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 3; // Sprite 2.3
+    const screenGridX = screenX + 14 * tileSize; // O=14
+    const screenY = 6 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - S column
+function drawTSprite5_3OnS1(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 5, spriteY = 3; // Sprite 5.3
+    const screenGridX = screenX + 18 * tileSize; // S=18
+    const screenY = 1 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite3_2OnS2S5(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 3, spriteY = 2; // Sprite 3.2
+    for (let row = 2; row <= 5; row++) { // S2 to S5
+        const screenGridX = screenX + 18 * tileSize; // S=18
+        const screenY = row * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+function drawTSprite5_2OnS6(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 5, spriteY = 2; // Sprite 5.2
+    const screenGridX = screenX + 18 * tileSize; // S=18
+    const screenY = 6 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - rows 6-7
+function drawTSprite0_1OnR6(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 1; // Sprite 0.1
+    const screenGridX = screenX + 17 * tileSize; // R=17
+    const screenY = 6 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_1OnT6Plus(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    for (let col = 19; col <= 26; col++) { // T=19, 8 cells horizontal
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 6 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+function drawTSprite0_3OnR7(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 3; // Sprite 0.3
+    const screenGridX = screenX + 17 * tileSize; // R=17
+    const screenY = 7 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_3OnS7(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 3; // Sprite 1.3
+    const screenGridX = screenX + 18 * tileSize; // S=18
+    const screenY = 7 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_3OnT7Plus(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 3; // Sprite 1.3
+    for (let col = 19; col <= 26; col++) { // T=19, 8 cells horizontal
+        const screenGridX = screenX + col * tileSize;
+        const screenY = 7 * tileSize;
+        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+            ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+        }
+    }
+}
+
+// T Pack sprite functions - column b
+function drawTSprite2_1Onb6(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 1; // Sprite 2.1
+    const screenGridX = screenX + 27 * tileSize; // b=27
+    const screenY = 6 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_3Onb7(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 3; // Sprite 2.3
+    const screenGridX = screenX + 27 * tileSize; // b=27
+    const screenY = 7 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
     }
 }
