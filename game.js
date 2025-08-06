@@ -2613,6 +2613,15 @@ function drawBackground() {
                 // Draw sprite 1.0 from O industrial tileset on i16 coordinates
                 drawSprite1_0OnI16(screenX);
                 
+                // Draw sprites from T industrial tileset - K4-L4 row
+                drawTSprite1_0OnK4(screenX);
+                drawTSprite2_0OnL4(screenX);
+                
+                // Draw sprites from T industrial tileset - H4-J4 row
+                drawTSprite0_0OnH4(screenX);
+                drawTSprite1_0OnI4(screenX);
+                drawTSprite1_0OnJ4(screenX);
+                
                 // Draw sprites from T industrial tileset - 3x3 grid M4-O6
                 drawTSprite0_1OnM4(screenX);
                 drawTSprite1_1OnN4(screenX);
@@ -2648,6 +2657,25 @@ function drawBackground() {
                 drawTSprite0_2Onf10(screenX);
                 drawTSprite1_2Ong10(screenX);
                 drawTSprite2_2Onh10(screenX);
+                // Draw sprites from O industrial tileset - h2-h4, i2-i4, j2-j4
+                drawOSprite0_1Onh2(screenX);
+                drawOSprite1_1Oni2(screenX);
+                drawOSprite1_1Onj2(screenX);
+                drawOSprite0_1Onh3(screenX);
+                drawOSprite1_1Oni3(screenX);
+                drawOSprite1_1Onj3(screenX);
+                drawOSprite0_2Onh4(screenX);
+                drawOSprite1_2Oni4(screenX);
+                drawOSprite2_2Onj4(screenX);
+                
+                // Draw sprites from O industrial tileset - E10-H10 and E11-F11
+                drawOSprite0_0OnE10(screenX);
+                drawOSprite1_0OnF10(screenX);
+                drawOSprite1_0OnG10(screenX);
+                drawOSprite2_0OnH10(screenX);
+                drawOSprite0_2OnE11(screenX);
+                drawOSprite2_2OnF11(screenX);
+                
                 drawTSprite1_1Oni10(screenX);
                 drawTSprite1_1One10(screenX);
                 drawTSprite2_1Onj10(screenX);
@@ -2703,20 +2731,9 @@ function drawBackground() {
                 // Draw sprite 3.3 from third industrial tileset (T) on G7 coordinates
                 drawSprite3_3OnG7(screenX);
                 
-                // Draw sprite 0.0 from O industrial tileset on H4 coordinates
-                drawSprite0_0OnH4(screenX);
                 
-                // Draw sprite 1.0 from O industrial tileset on I4 coordinates
-                drawSprite1_0OnI4(screenX);
                 
-                // Draw sprite 1.0 from O industrial tileset on J4 coordinates
-                drawSprite1_0OnJ4(screenX);
                 
-                // Draw sprite 1.0 from O industrial tileset on K4 coordinates
-                drawSprite1_0OnK4(screenX);
-                
-                // Draw sprite 2.0 from O industrial tileset on L4 coordinates
-                drawSprite2_0OnL4(screenX);
                 
                 // Draw sprite 0.2 from O industrial tileset on B17 coordinates
                 drawSprite0_2OnB17(screenX);
@@ -5232,6 +5249,8 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 31, y: 8, width: 1, height: 1, type: 'platform' }, // f8
             { x: 32, y: 8, width: 1, height: 1, type: 'platform' }, // g8
             { x: 33, y: 8, width: 1, height: 1, type: 'platform' }, // h8
+            // E10-H10 platform - row 10 left side
+            { x: 4, y: 10, width: 4, height: 1, type: 'platform' },
             // K11-L11 platform - central platform row 11
             { x: 10, y: 11, width: 2, height: 1, type: 'platform' },
             // O12-R12 platform - central platform
@@ -5252,6 +5271,8 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 31, y: 9, width: 1, height: 1, type: 'wall' }, // f9
             { x: 32, y: 9, width: 1, height: 1, type: 'wall' }, // g9
             { x: 33, y: 9, width: 1, height: 1, type: 'wall' }, // h9
+            // h2-j4 wall area - right side wall block (3x3)
+            { x: 33, y: 2, width: 3, height: 3, type: 'wall' },
             // Z-a-b walls rows 12-13
             { x: 25, y: 12, width: 1, height: 1, type: 'wall' }, // Z12
             { x: 26, y: 12, width: 1, height: 1, type: 'wall' }, // a12
@@ -5457,6 +5478,8 @@ function drawPlatformIndicators(screenX) {
             { x: 31, y: 8, width: 1, height: 1 }, // f8
             { x: 32, y: 8, width: 1, height: 1 }, // g8
             { x: 33, y: 8, width: 1, height: 1 }, // h8
+            // E10-H10 platform - row 10 left side
+            { x: 4, y: 10, width: 4, height: 1 },
             // K11-L11 platform - central platform row 11
             { x: 10, y: 11, width: 2, height: 1 },
             // O12-R12 platform - central platform
@@ -5608,6 +5631,8 @@ function drawPlatformIndicators(screenX) {
             { x: 31, y: 9, width: 1, height: 1 }, // f9
             { x: 32, y: 9, width: 1, height: 1 }, // g9
             { x: 33, y: 9, width: 1, height: 1 }, // h9
+            // h2-j4 wall area - right side wall block (3x3)
+            { x: 33, y: 2, width: 3, height: 3 },
             // Z-a-b walls rows 12-13
             { x: 25, y: 12, width: 1, height: 1 }, // Z12
             { x: 26, y: 12, width: 1, height: 1 }, // a12
@@ -6188,45 +6213,9 @@ function drawSprite2_0OnF6(screenX) {
     }
 }
 
-// Function to draw sprite 0.0 from O industrial tileset on H4 coordinates
-function drawSprite0_0OnH4(screenX) {
-    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 0; // column 0 (спрайт 0.0)
-    const spriteY = 0; // row 0 (спрайт 0.0)
-    
-    // H4 (H=7, 4=4) - одна клетка
-    const screenGridX = screenX + 7 * tileSize; // H = колонка 7
-    const screenY = 4 * tileSize; // строка 4
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            oIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
 
-// Function to draw sprite 1.0 from O industrial tileset on I4 coordinates
-function drawSprite1_0OnI4(screenX) {
-    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 1; // column 1 (спрайт 1.0)
-    const spriteY = 0; // row 0 (спрайт 1.0)
-    
-    // I4 (I=8, 4=4) - одна клетка
-    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
-    const screenY = 4 * tileSize; // строка 4
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            oIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
+
+
 
 // Function to draw sprite 0.0 from O industrial tileset on G4 coordinates
 function drawSprite0_0OnG4(screenX) {
@@ -6248,65 +6237,10 @@ function drawSprite0_0OnG4(screenX) {
     }
 }
 
-// Function to draw sprite 1.0 from O industrial tileset on K4 coordinates
-function drawSprite1_0OnK4(screenX) {
-    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 1; // column 1 (спрайт 1.0)
-    const spriteY = 0; // row 0 (спрайт 1.0)
-    
-    // K4 (K=10, 4=4) - одна клетка
-    const screenGridX = screenX + 10 * tileSize; // K = колонка 10
-    const screenY = 4 * tileSize; // строка 4
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            oIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
 
-// Function to draw sprite 2.0 from O industrial tileset on L4 coordinates
-function drawSprite2_0OnL4(screenX) {
-    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 2; // column 2 (спрайт 2.0)
-    const spriteY = 0; // row 0 (спрайт 2.0)
-    
-    // L4 (L=11, 4=4) - одна клетка
-    const screenGridX = screenX + 11 * tileSize; // L = колонка 11
-    const screenY = 4 * tileSize; // строка 4
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            oIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
 
-// Function to draw sprite 1.0 from O industrial tileset on J4 coordinates
-function drawSprite1_0OnJ4(screenX) {
-    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 1; // column 1 (спрайт 1.0)
-    const spriteY = 0; // row 0 (спрайт 1.0)
-    
-    // J4 (J=9, 4=4) - одна клетка
-    const screenGridX = screenX + 9 * tileSize; // J = колонка 9
-    const screenY = 4 * tileSize; // строка 4
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            oIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
+
+
 
 // Function to draw sprite 3.3 from third industrial tileset (T) on G7 coordinates
 function drawSprite3_3OnG7(screenX) {
@@ -6940,6 +6874,231 @@ function drawTSprite2_0OnL11(screenX) {
         ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
     }
 }
+
+// O Pack sprite functions - h2-h4, i2-i4, j2-j4
+function drawOSprite0_1Onh2(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 1; // Sprite 0.1
+    const screenGridX = screenX + 33 * tileSize; // h=33
+    const screenY = 2 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_1Oni2(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 34 * tileSize; // i=34
+    const screenY = 2 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_1Onj2(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 2 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite0_1Onh3(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 1; // Sprite 0.1
+    const screenGridX = screenX + 33 * tileSize; // h=33
+    const screenY = 3 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_1Oni3(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 34 * tileSize; // i=34
+    const screenY = 3 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_1Onj3(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 1; // Sprite 1.1
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 3 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite0_2Onh4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 33 * tileSize; // h=33
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_2Oni4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 2; // Sprite 1.2
+    const screenGridX = screenX + 34 * tileSize; // i=34
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite2_2Onj4(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 35 * tileSize; // j=35
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// O Pack sprite functions - E10-H10 and E11-F11
+function drawOSprite0_0OnE10(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 0; // Sprite 0.0
+    const screenGridX = screenX + 4 * tileSize; // E=4
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_0OnF10(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 5 * tileSize; // F=5
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite1_0OnG10(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 6 * tileSize; // G=6
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite2_0OnH10(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 0; // Sprite 2.0
+    const screenGridX = screenX + 7 * tileSize; // H=7
+    const screenY = 10 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite0_2OnE11(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 2; // Sprite 0.2
+    const screenGridX = screenX + 4 * tileSize; // E=4
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawOSprite2_2OnF11(screenX) {
+    if (!oIndustrialTilesSprite || !oIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 2; // Sprite 2.2
+    const screenGridX = screenX + 5 * tileSize; // F=5
+    const screenY = 11 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(oIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - K4-L4 row
+function drawTSprite1_0OnK4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 10 * tileSize; // K=10
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite2_0OnL4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 2, spriteY = 0; // Sprite 2.0
+    const screenGridX = screenX + 11 * tileSize; // L=11
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+// T Pack sprite functions - H4-K4 row
+function drawTSprite0_0OnH4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 0, spriteY = 0; // Sprite 0.0
+    const screenGridX = screenX + 7 * tileSize; // H=7
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_0OnI4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 8 * tileSize; // I=8
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
+function drawTSprite1_0OnJ4(screenX) {
+    if (!tIndustrialTilesSprite || !tIndustrialTilesSprite.complete) return;
+    const tileSize = 32;
+    const spriteX = 1, spriteY = 0; // Sprite 1.0
+    const screenGridX = screenX + 9 * tileSize; // J=9
+    const screenY = 4 * tileSize;
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(tIndustrialTilesSprite, spriteX * tileSize, spriteY * tileSize, tileSize, tileSize, screenGridX, screenY, tileSize, tileSize);
+    }
+}
+
 
 // T Pack sprite functions - row 12
 function drawTSprite0_0OnO12(screenX) {
