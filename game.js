@@ -1896,8 +1896,8 @@ function updatePlayer() {
             }
         }
         
-        // S2-S5 vertical wall
-        for (let row = 2; row <= 5; row++) {
+        // S2-S7 vertical wall (extended)
+        for (let row = 2; row <= 7; row++) {
             const tileX = wallLocationStart + 18 * tileSize; // S column = 18
             const tileY = row * tileSize;
             const wallLeft = tileX;
@@ -1916,33 +1916,7 @@ function updatePlayer() {
         // f9-g9 pipes - now handled by checkSpriteCollisions (pipe logic)
         // h9 wall removed completely
         
-        // h2-j4 wall area (modified - excluding i2 and j3)
-        const h2j4Walls = [
-            {col: 33, row: 2}, // h2
-            {col: 33, row: 3}, // h3
-            {col: 33, row: 4}, // h4
-            // i2 removed
-            {col: 34, row: 3}, // i3
-            {col: 34, row: 4}, // i4
-            {col: 35, row: 2}, // j2
-            // j3 removed
-            {col: 35, row: 4}  // j4
-        ];
-        
-        for (const wall of h2j4Walls) {
-            const tileX = wallLocationStart + wall.col * tileSize;
-            const tileY = wall.row * tileSize;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-                console.log('🚫 H2J4-WALL COLLISION! Blocked movement at col' + wall.col + 'row' + wall.row);
-                // Block only position, DON'T reset velocities
-                newX = player.x; // Keep current X position
-                newY = player.y; // Keep current Y position
-            }
-        }
+        // h2-j4 wall area completely removed - all tiles now passable
         
         // Z12-b13 pipes - now handled by checkSpriteCollisions (pipe logic)
         
@@ -1959,59 +1933,7 @@ function updatePlayer() {
             // Don't block Y movement - allow jumping
         }
         
-        // Z12 pipe collision
-        const z12TileX = wallLocationStart + 25 * tileSize; // Z column
-        const z12TileY = 12 * tileSize; // row 12
-        if (newX < z12TileX + tileSize && newX + player.width > z12TileX &&
-            newY < z12TileY + tileSize && newY + player.height > z12TileY) {
-            console.log('🚫 Z12-PIPE COLLISION! Blocked movement at Z12');
-            newX = player.x; // Keep current X position
-        }
-        
-        // Z13 pipe collision
-        const z13TileX = wallLocationStart + 25 * tileSize; // Z column
-        const z13TileY = 13 * tileSize; // row 13
-        if (newX < z13TileX + tileSize && newX + player.width > z13TileX &&
-            newY < z13TileY + tileSize && newY + player.height > z13TileY) {
-            console.log('🚫 Z13-PIPE COLLISION! Blocked movement at Z13');
-            newX = player.x; // Keep current X position
-        }
-        
-        // a12 pipe collision
-        const a12TileX = wallLocationStart + 26 * tileSize; // a column
-        const a12TileY = 12 * tileSize; // row 12
-        if (newX < a12TileX + tileSize && newX + player.width > a12TileX &&
-            newY < a12TileY + tileSize && newY + player.height > a12TileY) {
-            console.log('🚫 a12-PIPE COLLISION! Blocked movement at a12');
-            newX = player.x; // Keep current X position
-        }
-        
-        // a13 pipe collision
-        const a13TileX = wallLocationStart + 26 * tileSize; // a column
-        const a13TileY = 13 * tileSize; // row 13
-        if (newX < a13TileX + tileSize && newX + player.width > a13TileX &&
-            newY < a13TileY + tileSize && newY + player.height > a13TileY) {
-            console.log('🚫 a13-PIPE COLLISION! Blocked movement at a13');
-            newX = player.x; // Keep current X position
-        }
-        
-        // b12 pipe collision
-        const b12TileX = wallLocationStart + 27 * tileSize; // b column
-        const b12TileY = 12 * tileSize; // row 12
-        if (newX < b12TileX + tileSize && newX + player.width > b12TileX &&
-            newY < b12TileY + tileSize && newY + player.height > b12TileY) {
-            console.log('🚫 b12-PIPE COLLISION! Blocked movement at b12');
-            newX = player.x; // Keep current X position
-        }
-        
-        // b13 pipe collision
-        const b13TileX = wallLocationStart + 27 * tileSize; // b column
-        const b13TileY = 13 * tileSize; // row 13
-        if (newX < b13TileX + tileSize && newX + player.width > b13TileX &&
-            newY < b13TileY + tileSize && newY + player.height > b13TileY) {
-            console.log('🚫 b13-PIPE COLLISION! Blocked movement at b13');
-            newX = player.x; // Keep current X position
-        }
+        // Z12-b13 removed - now passable areas
         
         // f9 pipe collision
         const f9TileX = wallLocationStart + 31 * tileSize; // f column
@@ -3733,8 +3655,8 @@ function gameLoop() {
         drawBlueSphereProjectiles();
         drawPlayer();
         
-        // Draw platform indicators for all locations
-        drawPlatformIndicators(cameraX);
+        // Draw platform indicators for all locations - HIDDEN FOR PRODUCTION
+        // drawPlatformIndicators(cameraX);
         
         // Draw game over screen if player is dead
         if (gameState.gameOver) {
@@ -5452,32 +5374,16 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 2, y: 1, width: 36, height: 1, type: 'wall' },
             // k1-k16 vertical wall - completely blocked
             { x: 36, y: 1, width: 1, height: 16, type: 'wall' },
-            // S2-S5 vertical wall - T pack sprite area wall
-            { x: 18, y: 2, width: 1, height: 4, type: 'wall' },
+            // S2-S7 vertical wall - T pack sprite area wall (extended)
+            { x: 18, y: 2, width: 1, height: 6, type: 'wall' },
             // G5 single pipe - special pipe logic
             { x: 6, y: 5, width: 1, height: 1, type: 'pipe' },
             // f9-g9 pipes - special pipe logic
             { x: 31, y: 9, width: 1, height: 1, type: 'pipe' }, // f9
             { x: 32, y: 9, width: 1, height: 1, type: 'pipe' }, // g9
             // h9 wall - keep as wall (removed from list)
-            // h2-j4 wall area - right side wall block (modified)
-            // Original 3x3 block minus i2 and j3
-            { x: 33, y: 2, width: 1, height: 1, type: 'wall' }, // h2
-            { x: 33, y: 3, width: 1, height: 1, type: 'wall' }, // h3  
-            { x: 33, y: 4, width: 1, height: 1, type: 'wall' }, // h4
-            // i2 removed (was x: 34, y: 2)
-            { x: 34, y: 3, width: 1, height: 1, type: 'wall' }, // i3
-            { x: 34, y: 4, width: 1, height: 1, type: 'wall' }, // i4
-            { x: 35, y: 2, width: 1, height: 1, type: 'wall' }, // j2
-            // j3 removed (was x: 35, y: 3)
-            { x: 35, y: 4, width: 1, height: 1, type: 'wall' }, // j4
-            // Z-a-b pipes rows 12-13 - special pipe logic
-            { x: 25, y: 12, width: 1, height: 1, type: 'pipe' }, // Z12
-            { x: 26, y: 12, width: 1, height: 1, type: 'pipe' }, // a12
-            { x: 27, y: 12, width: 1, height: 1, type: 'pipe' }, // b12
-            { x: 25, y: 13, width: 1, height: 1, type: 'pipe' }, // Z13
-            { x: 26, y: 13, width: 1, height: 1, type: 'pipe' }, // a13
-            { x: 27, y: 13, width: 1, height: 1, type: 'pipe' }  // b13
+            // h2-j4 area completely removed - all tiles now passable
+            // Z-a-b removed - now passable areas
         ];
         
         // EXACT SAME logic as first location
@@ -5821,22 +5727,13 @@ function drawPlatformIndicators(screenX) {
             { x: 2, y: 1, width: 36, height: 1 },
             // k1-k16 vertical wall
             { x: 36, y: 1, width: 1, height: 16 },
-            // S2-S5 vertical wall - T pack sprite area wall
-            { x: 18, y: 2, width: 1, height: 4 },
+            // S2-S7 vertical wall - T pack sprite area wall (extended)
+            { x: 18, y: 2, width: 1, height: 6 },
             // G5 now pipe - removed from walls
             // f9-g9 now pipes - removed from walls
             // h9 removed completely
-            // h2-j4 wall area - modified (excluding i2 and j3)
-            { x: 33, y: 2, width: 1, height: 1 }, // h2
-            { x: 33, y: 3, width: 1, height: 1 }, // h3
-            { x: 33, y: 4, width: 1, height: 1 }, // h4
-            // i2 removed
-            { x: 34, y: 3, width: 1, height: 1 }, // i3
-            { x: 34, y: 4, width: 1, height: 1 }, // i4
-            { x: 35, y: 2, width: 1, height: 1 }, // j2
-            // j3 removed
-            { x: 35, y: 4, width: 1, height: 1 }  // j4
-            // Z-a-b now pipes - removed from walls
+            // h2-j4 area completely removed - all tiles now passable (no visual indicators)
+            // Z-a-b removed - now passable areas
         ];
         
         for (const wall of secondLocationWalls) {
