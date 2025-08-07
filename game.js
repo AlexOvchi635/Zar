@@ -884,7 +884,7 @@ function loadPngEnemySprite() {
     enemySprites.pngEnemy.onerror = function() {
         console.error('❌ Failed to load PNG enemy sprite!');
     };
-    enemySprites.pngEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreigssk2uxavmfi67zmcgfjfb47qhsjuwjg4avoq446tsr2qmhzzarq';
+    enemySprites.pngEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibrqslzrlvjqiahds5u2xfvfjau6uwk2cgu5sh6m4tjx2o2i7ufru';
 }
 
 // Load Forest enemy sprite (for second location only)
@@ -978,7 +978,7 @@ class Enemy {
     constructor(x, y, type) {
         this.x = x;
         this.y = y;
-        this.width = 32;
+        this.width = 80;
         this.height = 48;
         this.type = type;
         this.health = type === 'platform_walker' ? 90 : 30; // 90 HP = 30 hits (3 damage each)
@@ -994,7 +994,9 @@ class Enemy {
         this.aimAtPlayer = false;
         this.friendly = false;
         this.glowTimer = 0;
-        this.direction = -1; // -1 = left (start facing left instead of right)
+        this.direction = -1; // -1 = left (start facing left)
+        this.defaultDirection = -1; // Default direction when idle
+        this.lastDirection = -1; // Track last direction for turn detection
         this.activated = this.type !== 'platform_walker'; // platform_walker starts inactive
         this.shooting = false; // New property for shooting
         
@@ -1052,75 +1054,11 @@ class Enemy {
                 platformY = 16 * 32; // Platform Y (row 16)
             }
                 
-                const playerOnPlatform = player.x + player.width > platformStart && 
-                                       player.x < platformEnd;
+                // This logic is now handled in the second block below
+                // to properly check shooting zones S12+, S13+, S14+, S15+
                 
-                if (playerOnPlatform) {
-                    this.activated = true;
-                    this.shooting = true; // Start shooting when player is on platform
-                    this.returningToSpawn = false; // Stop returning to spawn when player is on platform
-                } else {
-                    // Player left platform - stop attacking and start returning to spawn
-                    this.activated = false;
-                    this.shooting = false;
-                    this.returningToSpawn = true;
-                }
-                
-                if (this.activated) {
-                    // Tactical movement: maintain optimal distance from player
-                    const dx = player.x - this.x;
-                    const distance = Math.abs(dx);
-                    const optimalDistance = 150; // Optimal shooting distance
-                    const minDistance = 80; // Too close - back away
-                    const maxDistance = 200; // Too far - approach
-                    
-                    // Check if direction changed
-                    if (this.direction !== this.lastDirection) {
-                        this.turnDelay = 30; // 0.5 seconds delay after turning
-                        this.lastDirection = this.direction;
-                    }
-                    
-                    // Reduce turn delay
-                    if (this.turnDelay > 0) {
-                        this.turnDelay--;
-                    }
-                    
-                    if (distance < minDistance) {
-                        // Player too close - back away but still face player
-                        this.velocityX = (dx > 0 ? -1 : 1) * this.speed;
-                        this.direction = dx > 0 ? 1 : -1; // Always face player when shooting
-                    } else if (distance > maxDistance) {
-                        // Player too far - approach
-                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
-                        this.direction = dx > 0 ? 1 : -1; // Face player
-                    } else {
-                        // Optimal distance - stop and shoot
-                        this.velocityX = 0;
-                        this.direction = dx > 0 ? 1 : -1; // Face player
-                    }
-                    
-                    // Keep enemy within platform bounds
-                    const platformBoundsStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32);
-                    const platformBoundsEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32);
-                    if (this.x < platformBoundsStart) this.x = platformBoundsStart;
-                    if (this.x + this.width > platformBoundsEnd) this.x = platformBoundsEnd - this.width;
-                } else if (this.returningToSpawn) {
-                    // Return to spawn point
-                    const dx = this.spawnX - this.x;
-                    if (Math.abs(dx) > 2) { // If not close enough to spawn
-                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
-                        this.direction = dx > 0 ? 1 : -1; // Face spawn direction
-                    } else {
-                        // Reached spawn point
-                        this.velocityX = 0;
-                        this.returningToSpawn = false;
-                        this.direction = -1; // Default direction when idle
-                    }
-                } else {
-                    // Enemy is not activated - don't move
-                    this.velocityX = 0;
-                    this.shooting = false; // Stop shooting when not activated
-                }
+                // Movement logic is now handled in the second block below
+                // to properly check shooting zones S12+, S13+, S14+, S15+
             } else if (this.type === 'png') {
                 // PNG enemy - stationary but can attack
                 this.velocityX = 0;
@@ -1229,32 +1167,75 @@ class Enemy {
                 }
             
             // Check if player is on the platform (horizontal position only, ignore Y position for jumping)
-            const playerOnPlatform = player.x >= platformStart && player.x <= platformEnd && 
-                                   Math.abs(player.y + player.height - platformY) < 10;
+            const playerOnPlatform = player.x >= platformStart && player.x <= platformEnd;
             
-            // Check if player is in shooting zones S12-i12, S13-i13, S14-i14 (columns 18-34, rows 12-14)
+            // Check if player is in shooting zones S12+17, S13+17, S14+17, S15+17 (rows 12-32, columns 18-35)
             const shootingZoneStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
-            const shootingZoneEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
+            const shootingZoneEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // j column (end of map)
             
-            // Check if player is in any of the shooting zones (S12-i12, S13-i13, S14-i14)
-            // Only shoot if player is at the same height level (not too high above)
-            const shootingZoneY = 12 * 32; // Base Y for shooting zones (row 12)
+            // Check if player is in any of the shooting zones (S12+17, S13+17, S14+17, S15+17)
+            // Shoot if player is in the yellow zone (rows 12-32, columns 18-35)
+            const zoneStartY = 12 * 32; // Row 12
+            const zoneEndY = 32 * 32; // Row 32 (S15+17)
             const playerInShootingZone = player.x >= shootingZoneStart && player.x <= shootingZoneEnd && 
-                                       Math.abs(player.y + player.height - shootingZoneY) < 50; // Allow some height difference
+                                       player.y >= zoneStartY && player.y <= zoneEndY;
             
-            if (playerOnPlatform) {
+            if (playerInShootingZone) {
                 this.activated = true;
                 this.shooting = true;
                 this.returningToSpawn = false;
-            } else if (playerInShootingZone) {
-                // Player is in shooting zone but not on platform - still shoot
-                this.activated = true;
-                this.shooting = true;
-                this.returningToSpawn = false;
+                
+                // Tactical movement: maintain optimal distance from player
+                const dx = player.x - this.x;
+                const distance = Math.abs(dx);
+                const optimalDistance = 150; // Optimal shooting distance
+                const minDistance = 80; // Too close - back away
+                const maxDistance = 200; // Too far - approach
+                
+                // Check if direction changed
+                if (this.direction !== this.lastDirection) {
+                    this.turnDelay = 30; // 0.5 seconds delay after turning
+                    this.lastDirection = this.direction;
+                }
+                
+                // Reduce turn delay
+                if (this.turnDelay > 0) {
+                    this.turnDelay--;
+                }
+                
+                if (distance < minDistance) {
+                    // Player too close - back away but still face player
+                    this.velocityX = (dx > 0 ? -1 : 1) * this.speed;
+                    this.direction = dx > 0 ? 1 : -1; // Always face player when shooting
+                } else if (distance > maxDistance) {
+                    // Player too far - approach
+                    this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                    this.direction = dx > 0 ? 1 : -1; // Face player
+                } else {
+                    // Optimal distance - stop and shoot
+                    this.velocityX = 0;
+                    this.direction = dx > 0 ? 1 : -1; // Face player
+                }
+                
+                // Enemy can move naturally within the zone
             } else {
                 this.activated = false;
                 this.shooting = false;
                 this.returningToSpawn = true;
+                this.direction = -1; // Face left when not activated
+                
+                // Return to spawn point
+                const dx = this.spawnX - this.x;
+                if (Math.abs(dx) > 2) { // If not close enough to spawn
+                    this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                    this.direction = dx > 0 ? 1 : -1; // Face spawn direction
+                } else {
+                    // Reached spawn point
+                    this.velocityX = 0;
+                    this.returningToSpawn = false;
+                    this.direction = -1; // Face left when idle at spawn
+                    this.lastDirection = -1; // Reset last direction
+                }
             }
         }
         
@@ -1270,7 +1251,7 @@ class Enemy {
         // platform_walker enemies shoot when activated and not returning to spawn
         if (this.type === 'platform_walker') {
             if (this.shooting && this.attackCooldown === 0 && !this.returningToSpawn && this.turnDelay === 0) {
-                this.attackCooldown = 180; // 3 seconds at 60fps (3x slower)
+                this.attackCooldown = 120; // 2 seconds at 60fps
             
                 // Calculate direction to player for projectile
                 const dx = player.x - this.x;
@@ -2174,12 +2155,11 @@ function updatePlayer() {
                 
                 // Platform walker enemies shoot horizontally only
                 if (enemy.type === 'platform_walker') {
-                    // Use enemy direction like player does
-                    const enemyDirection = (dx > 0 ? 1 : -1);
-                    velocityX = enemyDirection * 0.67; // 3x slower (was 2, now 2/3)
+                    // Use enemy's actual direction (where it's facing)
+                    velocityX = enemy.direction * 0.67; // 3x slower (was 2, now 2/3)
                     velocityY = 0; // No vertical movement for platform walker
                     // Use Origami projectile for enemy (same sprite as Origami)
-                    const enemyProjectile = new OrigamiProjectile(enemy.x + enemy.width/2, enemy.y + enemy.height - 21, velocityX, velocityY);
+                    const enemyProjectile = new OrigamiProjectile(enemy.x + enemy.width/2, enemy.y + enemy.height - 23, velocityX, velocityY);
                     enemyProjectile.owner = 'enemy'; // Mark projectile as enemy's
                     origamiProjectiles.push(enemyProjectile);
                     return; // Skip fire projectile creation
@@ -3391,45 +3371,29 @@ function drawEnemies() {
                 // Determine enemy direction based on player position
                 const enemyDirection = enemy.direction;
                 
-                // Draw PNG enemy sprite if available
+                // Draw PNG enemy sprite exactly like character sprites
                 if (enemySprites.pngEnemy && enemySprites.pngEnemy.complete) {
                     try {
                         ctx.save();
                         if (enemyDirection === -1) {
                             // Flip enemy horizontally when facing left
                             ctx.scale(-1, 1);
-                            ctx.drawImage(enemySprites.pngEnemy, -(screenX + 80), enemy.y, 80, 60);
+                            ctx.drawImage(enemySprites.pngEnemy, -(screenX + 80), enemy.y, 80, 48);
                         } else {
                             // Draw normally when facing right
-                            ctx.drawImage(enemySprites.pngEnemy, screenX, enemy.y, 80, 60);
+                            ctx.drawImage(enemySprites.pngEnemy, screenX, enemy.y, 80, 48);
                         }
                         ctx.restore();
                     } catch (error) {
                         console.error('Error drawing PNG enemy sprite:', error);
-                        // Fallback to HUGE visible rectangle
-                        ctx.fillStyle = '#FF0000';  // Bright red for visibility
-                        ctx.fillRect(screenX, enemy.y, 120, 100);
-                        ctx.fillStyle = '#FFFF00';  // Yellow border
-                        ctx.strokeStyle = '#FFFF00';
-                        ctx.lineWidth = 4;
-                        ctx.strokeRect(screenX, enemy.y, 120, 100);
-                        ctx.fillStyle = '#FFFFFF';
-                        ctx.font = '16px Arial';
-                        ctx.fillText('PNG ERROR!', screenX + 10, enemy.y + 50);
-                        ctx.fillText('HERE!', screenX + 30, enemy.y + 70);
+                        // Fallback to colored rectangle
+                        ctx.fillStyle = '#FF6B6B';
+                        ctx.fillRect(screenX, enemy.y, 80, 48);
                     }
                 } else {
-                    // Fallback to HUGE visible rectangle
-                    ctx.fillStyle = '#FF0000';  // Bright red for visibility
-                    ctx.fillRect(screenX, enemy.y, 120, 100);
-                    ctx.fillStyle = '#FFFF00';  // Yellow border
-                    ctx.strokeStyle = '#FFFF00';
-                    ctx.lineWidth = 4;
-                    ctx.strokeRect(screenX, enemy.y, 120, 100);
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.font = '16px Arial';
-                    ctx.fillText('PNG ENEMY!', screenX + 10, enemy.y + 50);
-                    ctx.fillText('HERE!', screenX + 30, enemy.y + 70);
+                    // Fallback to colored rectangle while sprite loads
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(screenX, enemy.y, 80, 48);
                 }
                 
                 // Draw enemy health bar (only on Forest location)
@@ -3452,73 +3416,17 @@ function drawEnemies() {
             }
             // Draw regular fire enemies and horizontal enemies
             else if (enemy.type === 'fire' || enemy.type === 'horizontal') {
-                console.log('🔥 Drawing horizontal/fire enemy. PNG sprite loaded:', 
-                           !!(enemySprites.pngEnemy && enemySprites.pngEnemy.complete));
-                
                 // Determine enemy direction based on movement direction
                 const enemyDirection = enemy.direction;
                 
-                // Draw PNG/Forest enemy sprite if available (for horizontal enemies)
+                // Draw stable colored rectangles for all enemies
                 if (enemy.type === 'horizontal') {
-                    // Use forestEnemy for Forest location, fireEnemy for other locations
-                    const spriteToUse = gameState.currentLocation === 1 ? enemySprites.forestEnemy : enemySprites.fireEnemy;
-                    const spriteName = gameState.currentLocation === 1 ? 'FOREST' : 'FIRE';
-                    
-                    if (spriteToUse && spriteToUse.complete) {
-                        console.log('🔥 Drawing', spriteName, 'enemy sprite');
-                        
-                        // ALSO draw a big colored rectangle to make sure this code runs
-                        ctx.fillStyle = gameState.currentLocation === 1 ? '#00FF00' : '#0000FF';
-                        ctx.fillRect(screenX - 10, enemy.y - 10, 120, 100);
-                        ctx.fillStyle = '#000000';
-                        ctx.font = '16px Arial';
-                        ctx.fillText(spriteName + ' SPRITE!', screenX, enemy.y + 50);
-                        
-                        try {
-                            ctx.save();
-                            if (enemyDirection === -1) {
-                                // Flip enemy horizontally when facing left
-                                ctx.scale(-1, 1);
-                                ctx.drawImage(spriteToUse, -(screenX + 80), enemy.y, 80, 60);
-                            } else {
-                                // Draw normally when facing right
-                                ctx.drawImage(spriteToUse, screenX, enemy.y, 80, 60);
-                            }
-                            ctx.restore();
-                        } catch (error) {
-                            console.error('Error drawing enemy sprite:', error);
-                        }
-                    }
-                }
-                // Draw fire enemy sprite for fire type enemies
-                else if (enemy.type === 'fire' && enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
-                    console.log('🔥 Drawing fire enemy sprite');
-                    
-                    // ALSO draw a big blue rectangle to make sure this code runs
-                    ctx.fillStyle = '#0000FF';
-                    ctx.fillRect(screenX - 10, enemy.y - 10, 120, 100);
-                    ctx.fillStyle = '#FFFF00';
-                    ctx.font = '16px Arial';
-                    ctx.fillText('FIRE SPRITE!', screenX, enemy.y + 50);
-                    try {
-                        ctx.save();
-                        if (enemyDirection === -1) {
-                            // Flip enemy horizontally when facing left
-                            ctx.scale(-1, 1);
-                            ctx.drawImage(enemySprites.fireEnemy, -(screenX + 80), enemy.y, 80, 60);
-                        } else {
-                            // Draw normally when facing right
-                            ctx.drawImage(enemySprites.fireEnemy, screenX, enemy.y, 80, 60);
-                        }
-                        ctx.restore();
-                    } catch (error) {
-                        console.error('Error drawing fire enemy sprite:', error);
-                        // Fallback to animated fire ball
-                        drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
-                    }
-                } else {
-                    // Fallback to animated fire ball
-                    drawAnimatedFireBall(screenX, enemy.y, enemy.width, enemy.height);
+                    // Use different colors for different locations
+                    ctx.fillStyle = gameState.currentLocation === 1 ? '#00FF00' : '#0000FF';
+                    ctx.fillRect(screenX, enemy.y, 80, 48);
+                } else if (enemy.type === 'fire') {
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillRect(screenX, enemy.y, 80, 48);
                 }
                 
                 // Draw enemy health bar (only on Forest location)
@@ -3553,31 +3461,8 @@ function drawEnemies() {
                     // Determine enemy direction based on player position
                     const enemyDirection = player.x > friendlyEnemy.x ? 1 : -1;
                     
-                    // Draw friendly enemy sprite (same as regular enemy but with blue tint)
-                    if (friendlyEnemy.type === 'fire' && enemySprites.fireEnemy && enemySprites.fireEnemy.complete) {
-                        try {
-                            ctx.save();
-                            ctx.globalAlpha = 0.8;
-                            ctx.filter = 'hue-rotate(180deg)'; // Blue tint
-                            
-                            if (enemyDirection === -1) {
-                                // Flip enemy horizontally when facing left
-                                ctx.scale(-1, 1);
-                                ctx.drawImage(enemySprites.fireEnemy, -(screenX + 80), friendlyEnemy.y, 80, 60);
-                            } else {
-                                // Draw normally when facing right
-                                ctx.drawImage(enemySprites.fireEnemy, screenX, friendlyEnemy.y, 80, 60);
-                            }
-                            ctx.restore();
-                        } catch (error) {
-                            console.error('Error drawing friendly enemy sprite:', error);
-                            // Fallback to blue fire ball
-                            drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
-                        }
-                    } else {
-                        // Fallback to blue fire ball
-                        drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
-                    }
+                    // Draw friendly enemy as blue fire ball (stable)
+                    drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
                 }
             });
         }
@@ -3880,12 +3765,7 @@ function drawGameOverScreen() {
     ctx.fillStyle = '#ff0000';
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
-    
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Final Score: ${gameState.score}`, canvas.width / 2, canvas.height / 2);
-    ctx.fillText('Press R to Restart', canvas.width / 2, canvas.height / 2 + 50);
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
 }
 
 // Main game loop
@@ -3931,6 +3811,24 @@ function gameLoop() {
         
         // Draw platform indicators for all locations - HIDDEN FOR PRODUCTION
         // drawPlatformIndicators(cameraX);
+        
+        // Draw yellow box for enemy shooting zone S12+17, S13+17, S14+17, S15+17
+        if (gameState.currentLocation === 1) {
+            const ctx = canvas.getContext('2d');
+            const tileSize = 32;
+            
+            // Calculate zone coordinates
+            const zoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
+            const zoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // j column (end of map)
+            const zoneStartY = 12 * 32; // Row 12
+            const zoneEndY = 32 * 32; // Row 32 (S15+17)
+            
+            // Draw yellow box
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.3)'; // Semi-transparent yellow
+            ctx.fillRect(zoneStartX - cameraX, zoneStartY, zoneEndX - zoneStartX, zoneEndY - zoneStartY);
+            ctx.restore();
+        }
         
         // Draw game over screen if player is dead
         if (gameState.gameOver) {
