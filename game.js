@@ -23,9 +23,7 @@ let gameState = {
     score: 0,
     health: 100,
     hits: 0,
-    abilityReady: false,
-    abilityActive: false,
-    abilityTimer: 0,
+    // Special abilities removed
     currentLocation: 0,
     gameOver: false,
     transitioning: false
@@ -63,16 +61,9 @@ let chameleonAttackAnimation = {
     maxBurstShots: 10 // More shots per burst
 };
 
-// Toxin special ability variables
-let toxinSpecialAbility = {
-    active: false,
-    timer: 0,
-    duration: 600 // 10 seconds at 60fps
-};
+// Toxin special ability variables removed
 
-// Sound variables
-let machineGunSound = null;
-let isMachineGunPlaying = false;
+// Sound variables - Toxin sounds removed
 
 // Player
 let player = {
@@ -97,33 +88,29 @@ const characters = {
         name: 'Origami',
         color: '#ff6b6b',
         attackRange: 80,
-        attackDamage: 25,
-        specialAbility: 'dash',
-        specialDescription: 'Dash forward with triple damage'
+        attackDamage: 25
+        // Special abilities removed
     },
     toxin: {
         name: 'Toxin',
         color: '#4ecdc4',
         attackRange: 200,
-        attackDamage: 15,
-        specialAbility: 'combo',
-        specialDescription: '10 seconds of invincibility'
+        attackDamage: 15
+        // Special abilities removed
     },
     chameleon: {
         name: 'Chameleon',
         color: '#45b7d1',
         attackRange: 120,
-        attackDamage: 20,
-        specialAbility: 'instantKill',
-        specialDescription: 'Instant kill with full health'
+        attackDamage: 20
+        // Special abilities removed
     },
     troub: {
         name: 'Troub',
         color: '#96ceb4',
         attackRange: 300,
-        attackDamage: 18,
-        specialAbility: 'convert',
-        specialDescription: 'Convert 2 enemies to allies'
+        attackDamage: 18
+        // Special abilities removed
     }
 };
 
@@ -952,50 +939,9 @@ function loadToxinBulletSprite() {
     toxinBulletSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiccmzsystm4q3sxxkieul3mvsxq7bgr4e27o6qapxyvh4cocw7aze';
 }
 
-function loadMachineGunSound() {
-    machineGunSound = new Audio();
-    
-    // Загружаем твой звук выстрела
-    machineGunSound.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreig2td5p4mjp5jje6fop6cz7xgxln2zzbfhk77aeylrqadeuoumnl4';
-    
-    machineGunSound.volume = 0.7;
-    machineGunSound.preload = 'auto';
-    machineGunSound.loop = true; // Зацикливаем звук
-    
-    // Добавляем обработчики
-    machineGunSound.addEventListener('canplaythrough', function() {
-        console.log('✅ Звук автомата загружен успешно!');
-    });
-    
-    machineGunSound.addEventListener('error', function(e) {
-        console.log('❌ Ошибка загрузки звука:', e);
-        createBeepSound(); // Fallback если не загрузился
-    });
-    
-    // Загружаем звук
-    machineGunSound.load();
-}
+// loadMachineGunSound function removed - Toxin sounds disabled
 
-function createBeepSound() {
-    console.log('🔄 Creating fallback beep sound...');
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.type = 'square';
-    
-    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
-    
-    console.log('🔊 Fallback beep sound created!');
-}
+// createBeepSound function removed - Toxin sounds disabled
 
 // Enemy class
 
@@ -1291,22 +1237,14 @@ const keys = {};
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true;
     if (e.code === 'Space') attack();
-    if (e.code === 'KeyE') useSpecialAbility();
+    // Special abilities removed - E key disabled
     if (e.code === 'KeyR') restartGame();
 });
 
 document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
     
-    // Stop machine gun sound when spacebar is released
-    if (e.code === 'Space' && player.character && player.character.name === 'Toxin' && isMachineGunPlaying) {
-        if (machineGunSound) {
-            machineGunSound.pause();
-            machineGunSound.currentTime = 0;
-        }
-        isMachineGunPlaying = false;
-        console.log('🔇 Machine gun sound stopped!');
-    }
+    // Toxin sounds removed from spacebar release
 });
 
 
@@ -1329,15 +1267,7 @@ document.addEventListener('click', (e) => {
 // Character selection
 function selectCharacter(characterKey) {
     if (characters[characterKey]) {
-        // Stop machine gun sound if switching from Toxin
-        if (player.character && player.character.name === 'Toxin' && isMachineGunPlaying) {
-            if (machineGunSound) {
-                machineGunSound.pause();
-                machineGunSound.currentTime = 0;
-            }
-            isMachineGunPlaying = false;
-            console.log('🔇 Machine gun sound stopped on character switch!');
-        }
+        // Toxin sounds removed from character switch
         
         player.character = characters[characterKey];
         gameState.currentScreen = 'game';
@@ -1365,55 +1295,8 @@ function attack() {
                     }
     
     // Check if special ability is active
-    if (gameState.abilityActive) {
-        if (player.character.name === 'Troub') {
-            // Troub's special ability: convert closest enemy to friendly
-            let closestEnemy = null;
-            let closestDistance = Infinity;
-            
-            enemies.forEach(enemy => {
-                if (!enemy.friendly) {
-                    const dx = player.x - enemy.x;
-                    const dy = player.y - enemy.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
-                        closestEnemy = enemy;
-                    }
-                }
-            });
-            
-            if (closestEnemy) {
-                closestEnemy.friendly = true;
-                friendlyEnemies.push(closestEnemy);
-                
-                // Remove from enemies array
-                const index = enemies.indexOf(closestEnemy);
-                if (index > -1) {
-                    enemies.splice(index, 1);
-                }
-            }
-            
-            gameState.abilityActive = false;
-            gameState.abilityTimer = 0;
-        } else {
-            // Default dash ability for other characters
-            const dashDistance = 100;
-            const dashDirection = player.direction;
-            player.x += dashDistance * dashDirection;
-            
-            // Keep player within world bounds
-            if (player.x < 0) player.x = 0;
-            if (player.x > WORLD_WIDTH - player.width) player.x = WORLD_WIDTH - player.width;
-            
-            gameState.score += 30; // Triple damage
-            gameState.abilityActive = false; // Deactivate after use
-            gameState.abilityTimer = 0;
-        }
-    } else {
+    // Special abilities removed from attack function
         gameState.score += 10;
-    }
     
     // Create arrow projectile for Troub
     if (player.character.name === 'Troub') {
@@ -1437,19 +1320,7 @@ function attack() {
                     toxinProjectiles.push(new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY));
                     console.log('💥 Toxin projectile created at:', toxinX, toxinY, 'Velocity:', toxinVelocityX);
                     
-                    // Start machine gun sound (if not already playing)
-                    if (machineGunSound && machineGunSound.readyState >= 2 && !isMachineGunPlaying) {
-                        machineGunSound.currentTime = 0;
-                        machineGunSound.play().catch(e => {
-                            console.log('Sound play failed:', e);
-                            createBeepSound(); // Use fallback if main sound fails
-                        });
-                        isMachineGunPlaying = true;
-                        console.log('🔫 Machine gun sound started!');
-                    } else if (!machineGunSound || machineGunSound.readyState < 2) {
-                        console.log('⚠️ Machine gun sound not ready, using fallback');
-                        createBeepSound(); // Use fallback beep sound
-                    }
+                    // Toxin sounds removed
                     
                     // Activate attack animation
                     toxinAttackAnimation.active = true;
@@ -1527,35 +1398,10 @@ function attack() {
     }
     
     gameState.hits++;
-    if (gameState.hits >= 10 && !gameState.abilityReady) {
-        gameState.abilityReady = true;
-    }
+    // Special abilities removed - no ability ready checks
 }
 
-// Special ability
-function useSpecialAbility() {
-    if (!gameState.abilityReady || !player.character) return;
-    
-    if (player.character.name === 'Troub') {
-        // Troub's special ability: convert enemy to friendly
-        gameState.abilityReady = false;
-        gameState.abilityActive = true;
-        gameState.hits = 0;
-        gameState.abilityTimer = 120; // 2 seconds at 60fps
-    } else if (player.character.name === 'Toxin') {
-        // Toxin's special ability: 10 seconds of invincibility
-        gameState.abilityReady = false;
-        gameState.hits = 0;
-        toxinSpecialAbility.active = true;
-        toxinSpecialAbility.timer = toxinSpecialAbility.duration;
-    } else {
-        // Default dash ability for other characters
-        gameState.abilityReady = false;
-        gameState.abilityActive = true;
-        gameState.hits = 0;
-        gameState.abilityTimer = 120; // 2 seconds at 60fps
-    }
-}
+// useSpecialAbility function removed - special abilities disabled
 
 // Initialize enemies for Forest location
 function initializeForestEnemies() {
@@ -1611,17 +1457,9 @@ function restartGame() {
     origamiAttackAnimation.burstCount = 0;
     origamiAttackAnimation.burstTimer = 0;
     
-    // Reset toxin special ability
-    toxinSpecialAbility.active = false;
-    toxinSpecialAbility.timer = 0;
+    // Toxin special ability removed
     
-    // Stop machine gun sound
-    if (machineGunSound && isMachineGunPlaying) {
-        machineGunSound.pause();
-        machineGunSound.currentTime = 0;
-        isMachineGunPlaying = false;
-        console.log('🔇 Machine gun sound stopped on restart!');
-    }
+    // Toxin sounds removed from restart
     // Reset chameleon attack animation
     chameleonAttackAnimation.active = false;
     chameleonAttackAnimation.timer = 0;
@@ -1697,7 +1535,7 @@ function updatePlayer() {
     
     // Jumping
     if ((keys['KeyW'] || keys['ArrowUp']) && player.onGround) {
-        player.velocityY = -12; // Максимальный прыжок 4 клетки (128 пикселей)
+        player.velocityY = -11; // Увеличенный прыжок
         player.onGround = false;
     }
     
@@ -2083,13 +1921,7 @@ function updatePlayer() {
                     }
                 }
                 
-                // Update toxin special ability
-                if (toxinSpecialAbility.active) {
-                    toxinSpecialAbility.timer--;
-                    if (toxinSpecialAbility.timer <= 0) {
-                        toxinSpecialAbility.active = false;
-                    }
-                }
+                // Toxin special ability removed
     
     // Update current location
     gameState.currentLocation = Math.floor(player.x / LOCATION_WIDTH);
@@ -2098,8 +1930,8 @@ function updatePlayer() {
     enemies.forEach(enemy => {
         const attackResult = enemy.attack(player);
         if (attackResult.damage > 0) {
-            // Check if Toxin is in special ability mode (invincible)
-            if (!(player.character.name === 'Toxin' && toxinSpecialAbility.active)) {
+            // Toxin invincibility removed - all characters take damage
+            {
                 gameState.health -= attackResult.damage;
                 
                 // Check if player is dead
@@ -2141,8 +1973,8 @@ function updatePlayer() {
             projectile.x + projectile.width > player.x &&
             projectile.y < player.y + player.height &&
             projectile.y + projectile.height > player.y) {
-            // Check if Toxin is in special ability mode (invincible)
-            if (!(player.character.name === 'Toxin' && toxinSpecialAbility.active)) {
+            // Toxin invincibility removed - all characters take damage
+            {
                 gameState.health -= projectile.damage;
                 
                 // Check if player is dead
@@ -3120,7 +2952,8 @@ function drawPlayer() {
                  ctx.save();
                  
                  // Apply black and white effect if special ability is active
-                 if (toxinSpecialAbility.active) {
+                 // Toxin special ability visual removed
+        if (false) {
                      ctx.filter = 'grayscale(100%)';
                  }
                  
@@ -3134,7 +2967,7 @@ function drawPlayer() {
              } catch (error) {
                  console.error('Error drawing Toxin sprite:', error);
                  // Fallback to colored rectangle
-                 ctx.fillStyle = toxinSpecialAbility.active ? '#808080' : player.character.color;
+                 ctx.fillStyle = player.character.color; // Toxin special ability color removed
                  ctx.fillRect(screenX, player.y, player.width, player.height);
              }
          } else if (player.character.name === 'Chameleon' && characterSprites.chameleon && characterSprites.chameleon.complete) {
@@ -3775,8 +3608,7 @@ function loadGameResources() {
         loadToxinBulletSprite();
         loadChameleonAttackSprite();
         
-        // Load sounds
-        loadMachineGunSound();
+        // Toxin sounds removed
         
         console.log('All resources loaded successfully!');
         return true;
