@@ -997,6 +997,15 @@ class Enemy {
         this.direction = -1; // -1 = left (start facing left instead of right)
         this.activated = this.type !== 'platform_walker'; // platform_walker starts inactive
         this.shooting = false; // New property for shooting
+        
+        // Add spawn point for platform_walker enemies
+        if (this.type === 'platform_walker') {
+            this.spawnX = x;
+            this.spawnY = y;
+            this.returningToSpawn = false;
+            this.lastDirection = -1; // Track last direction for turn detection
+            this.turnDelay = 0; // Delay shooting after turning
+        }
     }
     
     update(player) {
@@ -1036,32 +1045,76 @@ class Enemy {
                     platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // C column
                     platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (4 * 32); // D column + 1 tile width
                     platformY = 6 * 32; // Platform Y
-                } else if (gameState.currentLocation === 1) {
-                    // Second location: S16-i16 platform (columns 18-34, row 16)
-                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
-                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
-                    platformY = 16 * 32; // Platform Y (row 16)
-                }
+                            } else if (gameState.currentLocation === 1) {
+                // Second location: S16-i16 platform (columns 18-34, row 16)
+                platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
+                platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
+                platformY = 16 * 32; // Platform Y (row 16)
+            }
                 
                 const playerOnPlatform = player.x + player.width > platformStart && 
-                                       player.x < platformEnd && 
-                                       Math.abs(player.y + player.height - platformY) < 10;
+                                       player.x < platformEnd;
                 
                 if (playerOnPlatform) {
                     this.activated = true;
                     this.shooting = true; // Start shooting when player is on platform
+                    this.returningToSpawn = false; // Stop returning to spawn when player is on platform
+                } else {
+                    // Player left platform - stop attacking and start returning to spawn
+                    this.activated = false;
+                    this.shooting = false;
+                    this.returningToSpawn = true;
                 }
                 
                 if (this.activated) {
-                    if (this.aimAtPlayer) {
-                        // Move towards player horizontally
-                        const dx = player.x - this.x;
+                    // Tactical movement: maintain optimal distance from player
+                    const dx = player.x - this.x;
+                    const distance = Math.abs(dx);
+                    const optimalDistance = 150; // Optimal shooting distance
+                    const minDistance = 80; // Too close - back away
+                    const maxDistance = 200; // Too far - approach
+                    
+                    // Check if direction changed
+                    if (this.direction !== this.lastDirection) {
+                        this.turnDelay = 30; // 0.5 seconds delay after turning
+                        this.lastDirection = this.direction;
+                    }
+                    
+                    // Reduce turn delay
+                    if (this.turnDelay > 0) {
+                        this.turnDelay--;
+                    }
+                    
+                    if (distance < minDistance) {
+                        // Player too close - back away but still face player
+                        this.velocityX = (dx > 0 ? -1 : 1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Always face player when shooting
+                    } else if (distance > maxDistance) {
+                        // Player too far - approach
                         this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
-                        this.direction = dx > 0 ? 1 : -1;
+                        this.direction = dx > 0 ? 1 : -1; // Face player
                     } else {
-                        // Random horizontal movement (but limited to platform)
-                        this.velocityX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
-                        this.direction = this.velocityX > 0 ? 1 : -1;
+                        // Optimal distance - stop and shoot
+                        this.velocityX = 0;
+                        this.direction = dx > 0 ? 1 : -1; // Face player
+                    }
+                    
+                    // Keep enemy within platform bounds
+                    const platformBoundsStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32);
+                    const platformBoundsEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32);
+                    if (this.x < platformBoundsStart) this.x = platformBoundsStart;
+                    if (this.x + this.width > platformBoundsEnd) this.x = platformBoundsEnd - this.width;
+                } else if (this.returningToSpawn) {
+                    // Return to spawn point
+                    const dx = this.spawnX - this.x;
+                    if (Math.abs(dx) > 2) { // If not close enough to spawn
+                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Face spawn direction
+                    } else {
+                        // Reached spawn point
+                        this.velocityX = 0;
+                        this.returningToSpawn = false;
+                        this.direction = -1; // Default direction when idle
                     }
                 } else {
                     // Enemy is not activated - don't move
@@ -1158,11 +1211,54 @@ class Enemy {
             if (this.y > 400) this.y = 400;
         }
         
-        // Update direction to always face player
+        // Update shooting state for platform_walker enemies
         if (this.type === 'platform_walker') {
-            const dx = player.x - this.x;
-            this.direction = dx > 0 ? 1 : -1; // Always face player
+            // Check if player is on the same platform
+            let platformStart, platformEnd, platformY;
+            
+            if (gameState.currentLocation === 0) {
+                // First location: C6-D6 platform (columns 2-3, row 6)
+                platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // C column
+                platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (4 * 32); // D column + 1 tile width
+                platformY = 6 * 32; // Platform Y
+                            } else if (gameState.currentLocation === 1) {
+                    // Second location: S16-i16 platform (columns 18-34, row 16)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
+                    platformY = 16 * 32; // Platform Y
+                }
+            
+            // Check if player is on the platform (horizontal position only, ignore Y position for jumping)
+            const playerOnPlatform = player.x >= platformStart && player.x <= platformEnd && 
+                                   Math.abs(player.y + player.height - platformY) < 10;
+            
+            // Check if player is in shooting zones S12-i12, S13-i13, S14-i14 (columns 18-34, rows 12-14)
+            const shootingZoneStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
+            const shootingZoneEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
+            
+            // Check if player is in any of the shooting zones (S12-i12, S13-i13, S14-i14)
+            // Only shoot if player is at the same height level (not too high above)
+            const shootingZoneY = 12 * 32; // Base Y for shooting zones (row 12)
+            const playerInShootingZone = player.x >= shootingZoneStart && player.x <= shootingZoneEnd && 
+                                       Math.abs(player.y + player.height - shootingZoneY) < 50; // Allow some height difference
+            
+            if (playerOnPlatform) {
+                this.activated = true;
+                this.shooting = true;
+                this.returningToSpawn = false;
+            } else if (playerInShootingZone) {
+                // Player is in shooting zone but not on platform - still shoot
+                this.activated = true;
+                this.shooting = true;
+                this.returningToSpawn = false;
+            } else {
+                this.activated = false;
+                this.shooting = false;
+                this.returningToSpawn = true;
+            }
         }
+        
+        // Direction is now handled in tactical movement logic above
         
         // Attack cooldown
         if (this.attackCooldown > 0) {
@@ -1171,11 +1267,11 @@ class Enemy {
     }
     
     attack(player) {
-        // platform_walker enemies shoot when activated
+        // platform_walker enemies shoot when activated and not returning to spawn
         if (this.type === 'platform_walker') {
-                            if (this.shooting && this.attackCooldown === 0) {
-                    this.attackCooldown = 180; // 3 seconds at 60fps (3x slower)
-                
+            if (this.shooting && this.attackCooldown === 0 && !this.returningToSpawn && this.turnDelay === 0) {
+                this.attackCooldown = 180; // 3 seconds at 60fps (3x slower)
+            
                 // Calculate direction to player for projectile
                 const dx = player.x - this.x;
                 const direction = dx > 0 ? 1 : -1;
@@ -1291,8 +1387,8 @@ class OrigamiProjectile {
     constructor(x, y, velocityX, velocityY) {
         this.x = x;
         this.y = y;
-        this.width = 35; // Bigger sprite
-        this.height = 20; // Bigger sprite
+        this.width = 30; // Smaller sprite
+        this.height = 16; // Smaller sprite
         this.velocityX = velocityX;
         this.velocityY = velocityY;
         this.damage = 12; // Origami projectile damage
@@ -2101,6 +2197,35 @@ function updatePlayer() {
         }
     });
     
+    // Function to check if player is on the same platform as platform_walker enemy
+    function isPlayerOnEnemyPlatform(enemy) {
+        if (enemy.type !== 'platform_walker') return true; // Other enemies can be damaged from anywhere
+        
+        const locationOffset = gameState.currentLocation * LOCATION_WIDTH;
+        let platformStart, platformEnd, platformY;
+        
+        if (gameState.currentLocation === 0) {
+            // First location: C6-D6 platform (columns 2-3, row 6)
+            platformStart = locationOffset + (2 * 32); // C column start
+            platformEnd = locationOffset + (4 * 32); // D column + 1 tile width
+            platformY = 6 * 32; // Platform Y
+        } else if (gameState.currentLocation === 1) {
+            // Second location: S16-i16 platform (columns 18-34, row 16)
+            platformStart = locationOffset + (18 * 32); // S column start
+            platformEnd = locationOffset + (35 * 32); // i column + 1 tile width
+            platformY = 16 * 32; // Platform Y (row 16)
+        } else {
+            return true; // Other locations - allow damage
+        }
+        
+        // Check if player is on the same platform
+        const playerOnPlatform = player.x + player.width > platformStart && 
+                               player.x < platformEnd && 
+                               Math.abs(player.y + player.height - platformY) < 10;
+        
+        return playerOnPlatform;
+    }
+
     // Update fire projectiles
     fireProjectiles.forEach((projectile, index) => {
         projectile.update();
@@ -2131,14 +2256,18 @@ function updatePlayer() {
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
                     projectile.y + projectile.height > enemy.y) {
-                    enemy.health -= projectile.damage;
-                    if (enemy.health <= 0) {
-                        const enemyIndex = enemies.indexOf(enemy);
-                        if (enemyIndex > -1) {
-                            enemies.splice(enemyIndex, 1);
+                    
+                    // Check if player is on the same platform as platform_walker enemy
+                    if (isPlayerOnEnemyPlatform(enemy)) {
+                        enemy.health -= projectile.damage;
+                        if (enemy.health <= 0) {
+                            const enemyIndex = enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                enemies.splice(enemyIndex, 1);
+                            }
                         }
+                        fireProjectiles.splice(index, 1);
                     }
-                    fireProjectiles.splice(index, 1);
                 }
             });
         }
@@ -2160,14 +2289,18 @@ function updatePlayer() {
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
                     projectile.y + projectile.height > enemy.y) {
-                    enemy.health -= projectile.damage;
-                    if (enemy.health <= 0) {
-                        const enemyIndex = enemies.indexOf(enemy);
-                        if (enemyIndex > -1) {
-                            enemies.splice(enemyIndex, 1);
+                    
+                    // Check if player is on the same platform as platform_walker enemy
+                    if (isPlayerOnEnemyPlatform(enemy)) {
+                        enemy.health -= projectile.damage;
+                        if (enemy.health <= 0) {
+                            const enemyIndex = enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                enemies.splice(enemyIndex, 1);
+                            }
                         }
+                        arrowProjectiles.splice(index, 1);
                     }
-                    arrowProjectiles.splice(index, 1);
                 }
             });
         }
@@ -2189,14 +2322,18 @@ function updatePlayer() {
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
                     projectile.y + projectile.height > enemy.y) {
-                    enemy.health -= projectile.damage;
-                    if (enemy.health <= 0) {
-                        const enemyIndex = enemies.indexOf(enemy);
-                        if (enemyIndex > -1) {
-                            enemies.splice(enemyIndex, 1);
+                    
+                    // Check if player is on the same platform as platform_walker enemy
+                    if (isPlayerOnEnemyPlatform(enemy)) {
+                        enemy.health -= projectile.damage;
+                        if (enemy.health <= 0) {
+                            const enemyIndex = enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                enemies.splice(enemyIndex, 1);
+                            }
                         }
+                        toxinProjectiles.splice(index, 1);
                     }
-                    toxinProjectiles.splice(index, 1);
                 }
             });
         }
@@ -2234,14 +2371,18 @@ function updatePlayer() {
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
                     projectile.y + projectile.height > enemy.y) {
-                    enemy.health -= projectile.damage;
-                    if (enemy.health <= 0) {
-                        const enemyIndex = enemies.indexOf(enemy);
-                        if (enemyIndex > -1) {
-                            enemies.splice(enemyIndex, 1);
+                    
+                    // Check if player is on the same platform as platform_walker enemy
+                    if (isPlayerOnEnemyPlatform(enemy)) {
+                        enemy.health -= projectile.damage;
+                        if (enemy.health <= 0) {
+                            const enemyIndex = enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                enemies.splice(enemyIndex, 1);
+                            }
                         }
+                        origamiProjectiles.splice(index, 1);
                     }
-                    origamiProjectiles.splice(index, 1);
                 }
             });
         }
@@ -2263,14 +2404,18 @@ function updatePlayer() {
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
                     projectile.y + projectile.height > enemy.y) {
-                    enemy.health -= projectile.damage;
-                    if (enemy.health <= 0) {
-                        const enemyIndex = enemies.indexOf(enemy);
-                        if (enemyIndex > -1) {
-                            enemies.splice(enemyIndex, 1);
+                    
+                    // Check if player is on the same platform as platform_walker enemy
+                    if (isPlayerOnEnemyPlatform(enemy)) {
+                        enemy.health -= projectile.damage;
+                        if (enemy.health <= 0) {
+                            const enemyIndex = enemies.indexOf(enemy);
+                            if (enemyIndex > -1) {
+                                enemies.splice(enemyIndex, 1);
+                            }
                         }
+                        chameleonProjectiles.splice(index, 1);
                     }
-                    chameleonProjectiles.splice(index, 1);
                 }
             });
         }
@@ -2317,14 +2462,18 @@ function updatePlayer() {
                 projectile.x + projectile.width > enemy.x &&
                 projectile.y < enemy.y + enemy.height &&
                 projectile.y + projectile.height > enemy.y) {
-                enemy.health -= projectile.damage;
-                if (enemy.health <= 0) {
-                    const enemyIndex = enemies.indexOf(enemy);
-                    if (enemyIndex > -1) {
-                        enemies.splice(enemyIndex, 1);
+                
+                // Check if player is on the same platform as platform_walker enemy
+                if (isPlayerOnEnemyPlatform(enemy)) {
+                    enemy.health -= projectile.damage;
+                    if (enemy.health <= 0) {
+                        const enemyIndex = enemies.indexOf(enemy);
+                        if (enemyIndex > -1) {
+                            enemies.splice(enemyIndex, 1);
+                        }
                     }
+                    blueSphereProjectiles.splice(index, 1);
                 }
-                blueSphereProjectiles.splice(index, 1);
             }
         });
         
@@ -2508,8 +2657,7 @@ function drawBackground() {
                 // Draw sprite 2.0 from new industrial tileset on O12 coordinates
                 drawSprite2_0OnO12(screenX);
                 
-                // Draw sprite 0.0 from new industrial tileset on I14 coordinates
-                drawSprite0_0OnI14(screenX);
+                // I14 platform removed - no longer needed
                 
                 // Draw sprite 1.0 from new industrial tileset on J14 coordinates
                 drawSprite1_0OnJ14(screenX);
@@ -2557,6 +2705,9 @@ function drawBackground() {
                 
                 // Draw sprite 3.1 from third industrial tileset (T) on Y14 coordinates
                 drawSprite3_1OnY14(screenX);
+                
+                // Draw sprite 0.0 from third industrial tileset (T) on I14 coordinates
+                drawSprite0_0OnI14(screenX);
                 
                 // Draw sprite 5.1 from third industrial tileset (T) on k15 coordinates
                 drawSprite5_1OnK15(screenX);
@@ -2734,6 +2885,7 @@ function drawBackground() {
                 
                 // Draw sprites from T industrial tileset - H4-J4 row
                 drawTSprite0_0OnH4(screenX);
+                console.log('🎯 Drawing I4 sprite at location:', gameState.currentLocation);
                 drawTSprite1_0OnI4(screenX);
                 drawTSprite1_0OnJ4(screenX);
                 
@@ -3605,18 +3757,18 @@ function drawOrigamiProjectiles() {
                     ctx.save();
                     if (projectile.velocityX < 0) {
                         ctx.scale(-1, 1);
-                        ctx.drawImage(origamiAttackSprite, -(screenX + projectile.width), projectile.y - 1, projectile.width, projectile.height);
+                        ctx.drawImage(origamiAttackSprite, -screenX - projectile.width, projectile.y - 3, projectile.width, projectile.height);
                     } else {
-                        ctx.drawImage(origamiAttackSprite, screenX, projectile.y - 1, projectile.width, projectile.height);
+                        ctx.drawImage(origamiAttackSprite, screenX, projectile.y - 3, projectile.width, projectile.height);
                     }
                     ctx.restore();
                 } catch (error) {
                     ctx.fillStyle = '#ff6b6b';
-                    ctx.fillRect(screenX, projectile.y - 1, projectile.width, projectile.height);
+                    ctx.fillRect(screenX, projectile.y - 3, projectile.width, projectile.height);
                 }
             } else {
                 ctx.fillStyle = '#ff6b6b';
-                ctx.fillRect(screenX, projectile.y - 1, projectile.width, projectile.height);
+                ctx.fillRect(screenX, projectile.y - 3, projectile.width, projectile.height);
             }
         }
     });
@@ -3627,11 +3779,11 @@ function drawToxinAttackAnimation() {
     if (player.character && player.character.name === 'Toxin') {
         const screenX = player.x - cameraX;
         const testY = player.y + player.height / 2 + 5;
-        const testX = player.direction > 0 ? screenX + player.width + 25 : screenX - 15;
+        const testX = player.direction > 0 ? screenX + player.width + 32 : screenX - 15;
         
         // Draw fire animation instead of lime rectangle with blinking
         if (toxinAttackSprite && toxinAttackSprite.complete && toxinAttackAnimation.visible) {
-            const fireWidth = player.direction > 0 ? 30 : 30; // 30 pixels for both sides
+            const fireWidth = 30; // 30 pixels for both sides
             if (player.direction > 0) {
                 // Facing right - flip the sprite horizontally
                 ctx.save();
@@ -3643,7 +3795,7 @@ function drawToxinAttackAnimation() {
                 ctx.drawImage(toxinAttackSprite, testX, testY, fireWidth, 15);
             }
         } else if (!toxinAttackSprite || !toxinAttackSprite.complete) {
-            const fireWidth = player.direction > 0 ? 30 : 30; // 30 pixels for both sides
+            const fireWidth = 30; // 30 pixels for both sides
             ctx.fillStyle = 'lime';
             ctx.fillRect(testX, testY, fireWidth, 15);
         }
@@ -5491,8 +5643,7 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 14, y: 12, width: 4, height: 1, type: 'platform' },
             // h4-j4 platform - new platform
             { x: 33, y: 4, width: 3, height: 1, type: 'platform' },
-            // h15 platform - player spawn point
-            { x: 33, y: 15, width: 1, height: 1, type: 'platform' },
+            // h15 platform removed - no longer needed
             
             // WALLS
             // B1-B16 vertical wall - completely blocked
@@ -5624,8 +5775,7 @@ function drawPlatformIndicators(screenX) {
         { x: 13, y: 12, width: 1, height: 1 },
         // O12 platform - player can stand on this
         { x: 14, y: 12, width: 1, height: 1 },
-        // I14 platform - player can stand on this
-        { x: 8, y: 14, width: 1, height: 1 },
+        // I14 platform removed - no longer needed
         // J14 platform - player can stand on this
         { x: 9, y: 14, width: 1, height: 1 },
         // K14 platform - player can stand on this
@@ -5700,8 +5850,7 @@ function drawPlatformIndicators(screenX) {
             { x: 14, y: 12, width: 4, height: 1 },
             // h4-j4 platform - new platform
             { x: 33, y: 4, width: 3, height: 1 },
-            // h15 platform - player spawn point
-            { x: 33, y: 15, width: 1, height: 1 }
+            // h15 platform removed - no longer needed
         ];
         
         ctx.fillStyle = 'rgba(0, 255, 0, 0.3)'; // Make sure green color is set
@@ -5970,25 +6119,7 @@ function drawSprite2_0OnO12(screenX) {
     }
 }
 
-// Function to draw sprite 0.0 from new industrial tileset on I14 coordinates
-function drawSprite0_0OnI14(screenX) {
-    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
-    
-    const tileSize = 32;
-    const spriteX = 0; // column 0 (спрайт 0.0)
-    const spriteY = 0; // row 0 (спрайт 0.0)
-    
-    // I14 (I=8, 14=14) - одна клетка
-    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
-    const screenY = 14 * tileSize; // строка 14
-    if (screenGridX >= 0 && screenGridX <= canvas.width) {
-        ctx.drawImage(
-            newIndustrialTilesSprite,
-            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
-            screenGridX, screenY, tileSize, tileSize
-        );
-    }
-}
+// Function drawSprite0_0OnI14 removed - no longer needed
 
 // Function to draw sprite 1.0 from new industrial tileset on J14 coordinates
 function drawSprite1_0OnJ14(screenX) {
@@ -6082,6 +6213,26 @@ function drawSprite2_0OnO7(screenX) {
     // O7 (O=14, 7=7) - одна клетка
     const screenGridX = screenX + 14 * tileSize; // O = колонка 14
     const screenY = 7 * tileSize; // строка 7
+    if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        ctx.drawImage(
+            newIndustrialTilesSprite,
+            spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
+            screenGridX, screenY, tileSize, tileSize
+        );
+    }
+}
+
+// Function to draw sprite 0.0 from new industrial tileset (1_Industrial_Tileset_1.png) on I14 coordinates
+function drawSprite0_0OnI14(screenX) {
+    if (!newIndustrialTilesSprite || !newIndustrialTilesSprite.complete) return;
+    
+    const tileSize = 32;
+    const spriteX = 0; // column 0 (спрайт 0.0)
+    const spriteY = 0; // row 0 (спрайт 0.0)
+    
+    // I14 (I=8, 14=14) - одна клетка
+    const screenGridX = screenX + 8 * tileSize; // I = колонка 8
+    const screenY = 14 * tileSize; // строка 14
     if (screenGridX >= 0 && screenGridX <= canvas.width) {
         ctx.drawImage(
             newIndustrialTilesSprite,
