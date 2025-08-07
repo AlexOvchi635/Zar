@@ -134,7 +134,8 @@ const characterSprites = {
 const enemySprites = {
     fireEnemy: null,
     pngEnemy: null,  // PNG enemy for first location
-    forestEnemy: null  // New PNG enemy for Forest location only
+    forestEnemy: null,  // New PNG enemy for Forest location only
+    dragon: null  // Dragon enemy sprite
 };
 
 // Arrow sprite for Troub
@@ -900,6 +901,19 @@ function loadForestEnemySprite() {
     enemySprites.forestEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibrqslzrlvjqiahds5u2xfvfjau6uwk2cgu5sh6m4tjx2o2i7ufru';
 }
 
+// Load Dragon enemy sprite
+function loadDragonEnemySprite() {
+    enemySprites.dragon = new Image();
+    enemySprites.dragon.crossOrigin = 'anonymous';
+    enemySprites.dragon.onload = function() {
+        console.log('✅ Dragon enemy sprite loaded successfully!');
+    };
+    enemySprites.dragon.onerror = function() {
+        console.error('❌ Failed to load Dragon enemy sprite!');
+    };
+    enemySprites.dragon.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeib5v5iq66fnklvloajn542vtc3e4moh6qtteifb5w2ouabbezq4ny';
+}
+
 // Load arrow sprite for Troub
 function loadArrowSprite() {
     arrowSprite = new Image();
@@ -981,11 +995,11 @@ class Enemy {
         this.width = 80;
         this.height = 48;
         this.type = type;
-        this.health = type === 'platform_walker' ? 90 : 30; // 90 HP = 30 hits (3 damage each)
+        this.health = type === 'platform_walker' ? 90 : (type === 'dragon' ? 120 : 30); // Dragon: 120 HP, platform_walker: 90 HP, others: 30 HP
         this.attackCooldown = 0;
         this.attackRange = 200;
         this.damage = 5;
-        this.speed = this.type === 'platform_walker' ? 0.8 : 2;
+        this.speed = this.type === 'platform_walker' ? 0.8 : (this.type === 'dragon' ? 1.0 : 2); // Dragon: medium speed
         this.velocityX = 0;
         this.velocityY = 0;
         this.targetX = x;
@@ -997,11 +1011,11 @@ class Enemy {
         this.direction = -1; // -1 = left (start facing left)
         this.defaultDirection = -1; // Default direction when idle
         this.lastDirection = -1; // Track last direction for turn detection
-        this.activated = this.type !== 'platform_walker'; // platform_walker starts inactive
+        this.activated = this.type !== 'platform_walker' && this.type !== 'dragon'; // platform_walker and dragon start inactive
         this.shooting = false; // New property for shooting
         
-        // Add spawn point for platform_walker enemies
-        if (this.type === 'platform_walker') {
+        // Add spawn point for platform_walker and dragon enemies
+        if (this.type === 'platform_walker' || this.type === 'dragon') {
             this.spawnX = x;
             this.spawnY = y;
             this.returningToSpawn = false;
@@ -1011,8 +1025,8 @@ class Enemy {
     }
     
     update(player) {
-        // Add gravity for platform_walker enemies (same as player)
-        if (this.type === 'platform_walker') {
+        // Add gravity for platform_walker and dragon enemies (same as player)
+        if (this.type === 'platform_walker' || this.type === 'dragon') {
             this.velocityY += 0.8; // Same gravity as player
         }
         
@@ -1035,7 +1049,7 @@ class Enemy {
                     this.velocityX = (Math.random() > 0.5 ? 1 : -1) * this.speed;
                     this.direction = this.velocityX > 0 ? 1 : -1; // Update direction based on movement
                 }
-            } else if (this.type === 'platform_walker') {
+            } else if (this.type === 'platform_walker' || this.type === 'dragon') {
                 // Platform walker - moves horizontally on platform
                 this.velocityY = 0; // No vertical movement for platform walker
                 
@@ -1043,10 +1057,20 @@ class Enemy {
                 let platformStart, platformEnd, platformY;
                 
                 if (gameState.currentLocation === 0) {
-                    // First location: C6-D6 platform (columns 2-3, row 6)
-                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // C column
-                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (4 * 32); // D column + 1 tile width
-                    platformY = 6 * 32; // Platform Y
+                    // Check if this is the Z15-j15 platform enemy
+                    const isZ15j15Enemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (35 * 32))) < 5;
+                    
+                    if (isZ15j15Enemy) {
+                        // Z15-j15 platform enemy (columns 25-35, row 15)
+                        platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                        platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column + 1 tile width
+                        platformY = 15 * 32; // Platform Y (row 15)
+                    } else {
+                        // Fallback (should not happen)
+                        platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32);
+                        platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (29 * 32);
+                        platformY = 10 * 32;
+                    }
                             } else if (gameState.currentLocation === 1) {
                 // Check if this is the blue zone enemy (R6-b6 platform)
                 const isBlueZoneEnemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
@@ -1058,10 +1082,10 @@ class Enemy {
                     platformY = 6 * 32; // Platform Y (row 6)
                 } else {
                     // Original enemy on S16-i16 platform (columns 18-34, row 16)
-                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
-                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
-                    platformY = 16 * 32; // Platform Y (row 16)
-                }
+                platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
+                platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
+                platformY = 16 * 32; // Platform Y (row 16)
+            }
             }
                 
                 // This logic is now handled in the second block below
@@ -1099,8 +1123,8 @@ class Enemy {
         this.x += this.velocityX;
         this.y += this.velocityY;
         
-        // Check sprite collisions for platform_walker enemies (same as player)
-        if (this.type === 'platform_walker') {
+        // Check sprite collisions for platform_walker and dragon enemies (same as player)
+        if (this.type === 'platform_walker' || this.type === 'dragon') {
             const collisionResult = checkSpriteCollisions(this.x, this.y, this.width, this.height, gameState.currentLocation, this.velocityY);
             if (collisionResult.collision && collisionResult.type === 'platform') {
                 // Platform collision - enemy can stand on it
@@ -1120,16 +1144,33 @@ class Enemy {
             if (this.x > 352 - this.width) this.x = 352 - this.width;
             if (this.y < 50) this.y = 50;
             if (this.y > 400) this.y = 400;
-        } else if (this.type === 'platform_walker') {
+        } else if (this.type === 'platform_walker' || this.type === 'dragon') {
             // Platform walker bounds for platform
             const locationOffset = gameState.currentLocation * LOCATION_WIDTH;
             let platformStart, platformEnd, platformY;
             
             if (gameState.currentLocation === 0) {
-                // First location: C6-D6 platform (columns 2-3, row 6)
-                platformStart = locationOffset + (2 * 32); // C column start
-                platformEnd = locationOffset + (4 * 32); // D column + 1 tile width
-                platformY = 6 * 32; // Platform Y
+                // Check if this is the Z15-j15 platform enemy
+                const isZ15j15Enemy = Math.abs(this.spawnX - (locationOffset + (35 * 32))) < 5;
+                // Check if this is the X10-c10 dragon
+                const isX10c10Dragon = Math.abs(this.spawnX - (locationOffset + (23 * 32))) < 5;
+                
+                if (isZ15j15Enemy) {
+                    // Z15-j15 platform enemy (columns 25-35, row 15)
+                    platformStart = locationOffset + (25 * 32); // Z column start
+                    platformEnd = locationOffset + (36 * 32); // j column + 1 tile width
+                    platformY = 15 * 32; // Platform Y (row 15)
+                } else if (isX10c10Dragon) {
+                    // X10-c10 platform dragon (columns 23-28, row 10)
+                    platformStart = locationOffset + (23 * 32); // X column start
+                    platformEnd = locationOffset + (29 * 32); // c column + 1 tile width
+                    platformY = 10 * 32; // Platform Y (row 10)
+                } else {
+                    // Fallback (should not happen)
+                    platformStart = locationOffset + (23 * 32);
+                    platformEnd = locationOffset + (29 * 32);
+                    platformY = 10 * 32;
+                }
             } else if (gameState.currentLocation === 1) {
                 // Check if this is the blue zone enemy (R6-b6 platform)
                 const isBlueZoneEnemy = Math.abs(this.spawnX - (locationOffset + (20 * 32))) < 5;
@@ -1162,16 +1203,32 @@ class Enemy {
             if (this.y > 400) this.y = 400;
         }
         
-        // Update shooting state for platform_walker enemies
-        if (this.type === 'platform_walker') {
+        // Update shooting state for platform_walker and dragon enemies
+        if (this.type === 'platform_walker' || this.type === 'dragon') {
             // Check if player is on the same platform
             let platformStart, platformEnd, platformY;
             
             if (gameState.currentLocation === 0) {
-                // First location: C6-D6 platform (columns 2-3, row 6)
-                platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // C column
-                platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (4 * 32); // D column + 1 tile width
-                platformY = 6 * 32; // Platform Y
+                // Check which platform this enemy is on
+                const isZ15j15Enemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (35 * 32))) < 5;
+                const isX10c10Dragon = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (23 * 32))) < 5;
+                
+                if (isZ15j15Enemy) {
+                    // Z15-j15 platform (columns 25-35, row 15)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column + 1 tile width
+                    platformY = 15 * 32; // Platform Y (row 15)
+                } else if (isX10c10Dragon) {
+                    // X10-c10 platform (columns 23-28, row 10)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // X column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (29 * 32); // c column + 1 tile width
+                    platformY = 10 * 32; // Platform Y (row 10)
+                } else {
+                    // Fallback
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32);
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (29 * 32);
+                    platformY = 10 * 32;
+                }
                             } else if (gameState.currentLocation === 1) {
                     // Second location: S16-i16 platform (columns 18-34, row 16)
                     platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
@@ -1201,8 +1258,16 @@ class Enemy {
             const playerInBlueZone = player.x >= blueZoneStartX && player.x <= blueZoneEndX && 
                                    player.y >= blueZoneStartY && player.y <= blueZoneEndY;
             
-            // Check if this is the blue zone enemy (R6-b6 platform)
-            const isBlueZoneEnemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
+            // Check if this is the blue zone enemy (R6-b6 platform) - only for location 1
+            const isBlueZoneEnemy = gameState.currentLocation === 1 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
+            
+            // Check if this is the Z15-j15 platform enemy - only for location 0
+            const isZ15j15Enemy = gameState.currentLocation === 0 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (35 * 32))) < 5;
+            
+            // Check if this is the X10-c10 dragon - only for location 0
+            const isX10c10Dragon = gameState.currentLocation === 0 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (23 * 32))) < 5;
+            
+
             
             if (isBlueZoneEnemy) {
                 // Blue zone enemy logic
@@ -1260,6 +1325,100 @@ class Enemy {
                         this.direction = -1; // Face left when idle at spawn
                         this.lastDirection = -1; // Reset last direction
                     }
+                }
+            } else if (isZ15j15Enemy) {
+                // Z15-j15 platform enemy logic - activate when player is in purple zone (Z13-j13, Z14-j14)
+                const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+                const purpleZoneStartY = 13 * 32; // Row 13
+                const purpleZoneEndY = 15 * 32; // Row 14 (включая Z14-j14)
+                const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
+                                         player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
+                
+                if (playerInPurpleZone) {
+                this.activated = true;
+                this.shooting = true;
+                this.returningToSpawn = false;
+                    
+                    // Tactical movement: maintain optimal distance from player
+                    const dx = player.x - this.x;
+                    const distance = Math.abs(dx);
+                    const optimalDistance = 150; // Optimal shooting distance
+                    const minDistance = 80; // Too close - back away
+                    const maxDistance = 200; // Too far - approach
+                    
+                    // Check if direction changed
+                    if (this.direction !== this.lastDirection) {
+                        this.turnDelay = 30; // 0.5 seconds delay after turning
+                        this.lastDirection = this.direction;
+                    }
+                    
+                    // Reduce turn delay
+                    if (this.turnDelay > 0) {
+                        this.turnDelay--;
+                    }
+                    
+                    if (distance < minDistance) {
+                        // Player too close - back away but still face player
+                        this.velocityX = (dx > 0 ? -1 : 1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Always face player when shooting
+                    } else if (distance > maxDistance) {
+                        // Player too far - approach
+                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Face player
+                    } else {
+                        // Optimal distance - stop and shoot
+                        this.velocityX = 0;
+                        this.direction = dx > 0 ? 1 : -1; // Face player
+                    }
+            } else {
+                this.activated = false;
+                this.shooting = false;
+                this.returningToSpawn = true;
+                    this.direction = -1; // Face left when not activated
+                    
+                    // Return to spawn point
+                    const dx = this.spawnX - this.x;
+                    if (Math.abs(dx) > 2) { // If not close enough to spawn
+                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Face spawn direction
+                    } else {
+                        // Reached spawn point
+                        this.velocityX = 0;
+                        this.returningToSpawn = false;
+                        this.direction = -1; // Face left when idle at spawn
+                        this.lastDirection = -1; // Reset last direction
+                    }
+                }
+            } else if (isX10c10Dragon) {
+                // X10-c10 dragon logic - activate when player is on the same platform or nearby
+                const dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // From X column (23, excludes U,V,W)
+                const dragonZoneEndX = (gameState.currentLocation + 1) * LOCATION_WIDTH; // Until end of location
+                const dragonZoneStartY = 7 * 32; // From row 7
+                const dragonZoneEndY = 12 * 32; // 2 rows below platform
+                const playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
+                                         player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+                
+
+                
+                if (playerInDragonZone) {
+                    this.activated = true;
+                    this.shooting = true;
+                    this.returningToSpawn = false;
+                    
+                    // Dragon is fixed in place - doesn't turn, always faces left
+                    this.direction = -1; // Always face left
+                    
+                    // Dragon stays fixed - no movement
+                    this.velocityX = 0;
+                } else {
+                    this.activated = false;
+                    this.shooting = false;
+                    this.returningToSpawn = false; // Dragon doesn't move
+                    this.direction = -1; // Face left when not activated
+                    
+                    // Dragon stays fixed - no movement
+                    this.velocityX = 0;
                 }
             } else {
                 // Original yellow zone enemy logic
@@ -1332,8 +1491,8 @@ class Enemy {
     }
     
     attack(player) {
-        // platform_walker enemies shoot when activated and not returning to spawn
-        if (this.type === 'platform_walker') {
+        // platform_walker and dragon enemies shoot when activated and not returning to spawn
+        if (this.type === 'platform_walker' || this.type === 'dragon') {
             if (this.shooting && this.attackCooldown === 0 && !this.returningToSpawn && this.turnDelay === 0) {
                 this.attackCooldown = 120; // 2 seconds at 60fps
             
@@ -1386,12 +1545,49 @@ class FireProjectile {
     }
     
     update() {
-        this.x += this.velocityX; // Use velocityX directly (no speed multiplier)
+        // Dragon fireballs have constant speed regardless of location or any other factors
+        if (this.owner === 'enemy') {
+            this.x += 3.0; // Fixed speed for dragon, always right
+            this.y += 0; // No vertical movement for dragon fireballs
+        } else {
+            this.x += this.velocityX; // Use velocityX directly for player (no speed multiplier)
         this.y += this.velocityY;
+        }
     }
     
     isOffScreen() {
         return this.x < 0 || this.x > WORLD_WIDTH || this.y < 0 || this.y > canvas.height;
+    }
+}
+
+// Separate class for dragon fireballs - completely independent with time-based movement
+class DragonFireball {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 30;
+        this.height = 30;
+        this.damage = 5;
+        this.owner = 'enemy';
+        this.baseSpeed = 3.0; // Store base speed (pixels per frame at 60fps)
+        this.lastUpdateTime = performance.now(); // Use high-precision timer
+        this.pixelsPerMs = this.baseSpeed / (1000/60); // Convert to pixels per millisecond
+    }
+    
+    update() {
+        // Time-based movement completely independent of frame rate
+        const currentTime = performance.now();
+        const deltaTime = currentTime - this.lastUpdateTime;
+        
+        // Move based on actual time elapsed, not frame count
+        this.x += this.pixelsPerMs * deltaTime;
+        
+        this.lastUpdateTime = currentTime;
+        // Absolutely no Y movement - keep Y exactly the same
+    }
+    
+    isOffScreen() {
+        return this.x < 0 || this.x > 2400 || this.y < 0 || this.y > 600; // Hardcoded limits
     }
 }
 
@@ -1506,6 +1702,7 @@ class ChameleonProjectile {
 // Global arrays for enemies and projectiles
 let enemies = [];
 let fireProjectiles = [];
+let dragonFireballs = []; // Separate array for dragon fireballs
 let arrowProjectiles = [];
 let toxinProjectiles = [];
 let origamiProjectiles = [];
@@ -1618,7 +1815,24 @@ function attack() {
         const arrowVelocityX = player.direction;
         const arrowVelocityY = 0;
         
-        arrowProjectiles.push(new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY));
+        const newArrowProjectile = new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY);
+        // Increase speed on first location to fix slowdown issue, especially in purple zone
+        if (gameState.currentLocation === 0) {
+            // Check if player is in purple zone (Z13-j13, Z14-j14)
+            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+            const purpleZoneStartY = 13 * 32; // Row 13
+            const purpleZoneEndY = 15 * 32; // Row 14
+            const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
+                                     player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
+            
+            if (playerInPurpleZone) {
+                newArrowProjectile.speed = 16; // 2x faster in purple zone
+            } else {
+                newArrowProjectile.speed = 12; // 1.5x faster on first location
+            }
+        }
+        arrowProjectiles.push(newArrowProjectile);
     }
     
                     // Create toxin projectile for Toxin
@@ -1630,7 +1844,24 @@ function attack() {
                     const toxinVelocityX = player.direction;
                     const toxinVelocityY = 0;
                     
-                    toxinProjectiles.push(new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY));
+                    const newToxinProjectile = new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY);
+                    // Increase speed on first location to fix slowdown issue, especially in purple zone
+                    if (gameState.currentLocation === 0) {
+                        // Check if player is in purple zone (Z13-j13, Z14-j14)
+                        const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                        const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+                        const purpleZoneStartY = 13 * 32; // Row 13
+                        const purpleZoneEndY = 15 * 32; // Row 14
+                        const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
+                                                 player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
+                        
+                        if (playerInPurpleZone) {
+                            newToxinProjectile.speed = 20; // 2x faster in purple zone
+                        } else {
+                            newToxinProjectile.speed = 15; // 1.5x faster on first location
+                        }
+                    }
+                    toxinProjectiles.push(newToxinProjectile);
                     console.log('💥 Toxin projectile created at:', toxinX, toxinY, 'Velocity:', toxinVelocityX);
                     
                     // Toxin sounds removed
@@ -1663,7 +1894,24 @@ function attack() {
                         const chameleonVelocityX = player.direction;
                         const chameleonVelocityY = 0;
                         
-                        chameleonProjectiles.push(new ChameleonProjectile(chameleonX, chameleonY, chameleonVelocityX, chameleonVelocityY));
+                        const newChameleonProjectile = new ChameleonProjectile(chameleonX, chameleonY, chameleonVelocityX, chameleonVelocityY);
+                        // Increase speed on first location to fix slowdown issue, especially in purple zone
+                        if (gameState.currentLocation === 0) {
+                            // Check if player is in purple zone (Z13-j13, Z14-j14)
+                            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+                            const purpleZoneStartY = 13 * 32; // Row 13
+                            const purpleZoneEndY = 15 * 32; // Row 14
+                            const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
+                                                     player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
+                            
+                            if (playerInPurpleZone) {
+                                newChameleonProjectile.speed = 32; // 2x faster in purple zone
+                            } else {
+                                newChameleonProjectile.speed = 24; // 1.5x faster on first location
+                            }
+                        }
+                        chameleonProjectiles.push(newChameleonProjectile);
                         console.log('💥 Chameleon projectile created at:', chameleonX, chameleonY, 'Velocity:', chameleonVelocityX, 'Burst:', chameleonAttackAnimation.burstCount + 1);
                         
                         chameleonAttackAnimation.burstCount++;
@@ -1691,7 +1939,24 @@ function attack() {
                         const origamiVelocityX = player.direction;
                         const origamiVelocityY = 0;
                         
-                        origamiProjectiles.push(new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY));
+                        const newProjectile = new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY);
+                        // Increase speed on first location to fix slowdown issue, especially in purple zone
+                        if (gameState.currentLocation === 0) {
+                            // Check if player is in purple zone (Z13-j13, Z14-j14)
+                            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+                            const purpleZoneStartY = 13 * 32; // Row 13
+                            const purpleZoneEndY = 15 * 32; // Row 14
+                            const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
+                                                     player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
+                            
+                            if (playerInPurpleZone) {
+                                newProjectile.speed = 24; // 2x faster in purple zone
+                            } else {
+                                newProjectile.speed = 18; // 1.5x faster on first location
+                            }
+                        }
+                        origamiProjectiles.push(newProjectile);
                         console.log('💥 Origami projectile created at:', origamiX, origamiY, 'Velocity:', origamiVelocityX, 'Burst:', origamiAttackAnimation.burstCount + 1);
                         
                         origamiAttackAnimation.burstCount++;
@@ -1733,10 +1998,22 @@ function initializeForestEnemies() {
     ]; 
 }
 
-// Initialize enemies for first location (C6-D6)
+// Initialize enemies for first location
 function initializeDragon() {
-    // No enemies on first location
-    enemies = [];
+    // Z15-j15 platform enemy with spawn at j15
+    const z15j15EnemyX = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // j column (j15 spawn)
+    const z15j15EnemyY = (15 * 32) - 48; // Row 15 minus enemy height (Z15-j15 platform)
+    
+    // X10-c10 platform dragon with spawn at X10
+    const dragonX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // X column (X10 spawn)
+    const dragonY = (10 * 32) - 48; // Row 10 minus enemy height (X10-c10 platform)
+    
+
+    
+    enemies = [
+        new Enemy(z15j15EnemyX, z15j15EnemyY, 'platform_walker'),  // Enemy on Z15-j15 platform at j15
+        new Enemy(dragonX, dragonY, 'dragon')  // Dragon on X10-c10 platform at X10
+    ];
 }
 // Restart game
 function restartGame() {
@@ -1752,6 +2029,7 @@ function restartGame() {
     gameState.currentLocation = 0;
     gameState.transitioning = false;
     fireProjectiles = [];
+    dragonFireballs = []; // Clear dragon fireballs
     arrowProjectiles = [];
     toxinProjectiles = [];
     origamiProjectiles = [];
@@ -1826,9 +2104,7 @@ function updatePlayer() {
                 gameState.transitioning = false;
                 
                 // Initialize enemies for new location if needed
-                 if (gameState.currentLocation === 0) { // First location - Dragon
-                     initializeDragon();
-                 } else if (gameState.currentLocation === 1) { // Лес location
+                 if (gameState.currentLocation === 1) { // Лес location
                      initializeForestEnemies();
                  } else {
                      // Clear enemies for other locations
@@ -2265,6 +2541,11 @@ function updatePlayer() {
                     enemyProjectile.owner = 'enemy'; // Mark projectile as enemy's
                     origamiProjectiles.push(enemyProjectile);
                     return; // Skip fire projectile creation
+                } else if (enemy.type === 'dragon') {
+                    // Dragon shoots completely independent fireballs
+                    const dragonFireball = new DragonFireball(enemy.x + enemy.width/2, enemy.y + enemy.height - 28);
+                    dragonFireballs.push(dragonFireball);
+                    return; // Skip normal fire projectile creation
                 } else if (enemy.type === 'horizontal') {
                     velocityX = (dx > 0 ? 1 : -1) * projectileSpeed;
                     velocityY = 0; // No vertical movement for horizontal enemies
@@ -2281,21 +2562,31 @@ function updatePlayer() {
     
     // Function to check if player is on the same platform as platform_walker enemy
     function isPlayerOnEnemyPlatform(enemy) {
-        if (enemy.type !== 'platform_walker') return true; // Other enemies can be damaged from anywhere
+        if (enemy.type !== 'platform_walker' && enemy.type !== 'dragon') return true; // Other enemies can be damaged from anywhere
+        
+        // TEMPORARY: Allow damage to all platform_walker enemies for debugging
+        if (gameState.currentLocation === 0) {
+            return true; // Allow damage on first location for now
+        }
         
         const locationOffset = gameState.currentLocation * LOCATION_WIDTH;
         let platformStart, platformEnd, platformY;
         
-        if (gameState.currentLocation === 0) {
-            // First location: C6-D6 platform (columns 2-3, row 6)
-            platformStart = locationOffset + (2 * 32); // C column start
-            platformEnd = locationOffset + (4 * 32); // D column + 1 tile width
-            platformY = 6 * 32; // Platform Y
-        } else if (gameState.currentLocation === 1) {
-            // Second location: S16-i16 platform (columns 18-34, row 16)
+        if (gameState.currentLocation === 1) {
+            // Check if this is the blue zone enemy (R6-b6 platform)
+            const isBlueZoneEnemy = Math.abs(enemy.spawnX - (locationOffset + (20 * 32))) < 5;
+            
+            if (isBlueZoneEnemy) {
+                // Blue zone enemy on R6-b6 platform (columns 17-27, row 6)
+                platformStart = locationOffset + (17 * 32); // R column start
+                platformEnd = locationOffset + (28 * 32); // b column + 1 tile width
+                platformY = 6 * 32; // Platform Y (row 6)
+            } else {
+                // Original enemy on S16-i16 platform (columns 18-34, row 16)
             platformStart = locationOffset + (18 * 32); // S column start
             platformEnd = locationOffset + (35 * 32); // i column + 1 tile width
             platformY = 16 * 32; // Platform Y (row 16)
+            }
         } else {
             return true; // Other locations - allow damage
         }
@@ -2332,7 +2623,7 @@ function updatePlayer() {
         }
         
         // Check collision with enemies (only for player projectiles, not enemy projectiles)
-        if (gameState.currentLocation === 1 && !projectile.owner) {
+        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1) && !projectile.owner) {
             enemies.forEach(enemy => {
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
@@ -2360,12 +2651,39 @@ function updatePlayer() {
         }
     });
     
+    // Update dragon fireballs (completely independent)
+    dragonFireballs.forEach((fireball, index) => {
+        fireball.update();
+        
+        // Check collision with player
+        if (fireball.x < player.x + player.width &&
+            fireball.x + fireball.width > player.x &&
+            fireball.y < player.y + player.height &&
+            fireball.y + fireball.height > player.y) {
+            // Player hit by dragon fireball
+            gameState.health -= fireball.damage;
+            
+            // Check if player is dead
+            if (gameState.health <= 0) {
+                gameState.health = 0;
+                gameState.gameOver = true;
+            }
+            
+            dragonFireballs.splice(index, 1);
+        }
+        
+        // Remove if off screen
+        if (fireball.isOffScreen()) {
+            dragonFireballs.splice(index, 1);
+        }
+    });
+    
     // Update arrow projectiles
     arrowProjectiles.forEach((projectile, index) => {
         projectile.update();
         
-        // Check collision with enemies (only on Forest location)
-        if (gameState.currentLocation === 1) {
+        // Check collision with enemies (both locations)
+        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1)) {
             enemies.forEach(enemy => {
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
@@ -2397,8 +2715,8 @@ function updatePlayer() {
     toxinProjectiles.forEach((projectile, index) => {
         projectile.update();
         
-        // Check collision with enemies (only on Forest location)
-        if (gameState.currentLocation === 1) {
+        // Check collision with enemies (both locations)
+        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1)) {
             enemies.forEach(enemy => {
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
@@ -2447,7 +2765,7 @@ function updatePlayer() {
         }
         
         // Check collision with enemies (only for player projectiles, not enemy projectiles)
-        if (gameState.currentLocation === 1 && !projectile.owner) {
+        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1) && !projectile.owner) {
             enemies.forEach(enemy => {
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
@@ -2479,8 +2797,8 @@ function updatePlayer() {
     chameleonProjectiles.forEach((projectile, index) => {
         projectile.update();
         
-        // Check collision with enemies (only on Forest location)
-        if (gameState.currentLocation === 1) {
+        // Check collision with enemies (both locations)
+        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1)) {
             enemies.forEach(enemy => {
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
@@ -3468,13 +3786,33 @@ function drawEnemies() {
         
         // Only draw if enemy is visible on screen
         if (screenX > -enemy.width && screenX < canvas.width) {
-            // Draw PNG enemy, platform walker, or test enemy
-            if (enemy.type === 'png' || enemy.type === 'platform_walker' || enemy.type === 'test') {
+            // Draw PNG enemy, platform walker, dragon, or test enemy
+            if (enemy.type === 'png' || enemy.type === 'platform_walker' || enemy.type === 'dragon' || enemy.type === 'test') {
                 // Determine enemy direction based on player position
                 const enemyDirection = enemy.direction;
                 
+                // Draw Dragon enemy sprite
+                if (enemy.type === 'dragon' && enemySprites.dragon && enemySprites.dragon.complete) {
+                    try {
+                        ctx.save();
+                        if (enemyDirection === 1) {
+                            // Flip dragon horizontally when facing right (original sprite faces left)
+                            ctx.scale(-1, 1);
+                            ctx.drawImage(enemySprites.dragon, -(screenX + 80), enemy.y, 80, 48);
+                        } else {
+                            // Draw normally when facing left (original direction)
+                            ctx.drawImage(enemySprites.dragon, screenX, enemy.y, 80, 48);
+                        }
+                        ctx.restore();
+                    } catch (error) {
+                        console.error('Error drawing Dragon enemy sprite:', error);
+                        // Fallback to colored rectangle
+                        ctx.fillStyle = '#8B4513'; // Brown color for dragon
+                        ctx.fillRect(screenX, enemy.y, 80, 48);
+                    }
+                }
                 // Draw PNG enemy sprite exactly like character sprites
-                if (enemySprites.pngEnemy && enemySprites.pngEnemy.complete) {
+                else if (enemySprites.pngEnemy && enemySprites.pngEnemy.complete) {
                     try {
                         ctx.save();
                         if (enemyDirection === -1) {
@@ -3494,7 +3832,7 @@ function drawEnemies() {
                     }
                 } else {
                     // Fallback to colored rectangle while sprite loads
-                    ctx.fillStyle = '#FF6B6B';
+                    ctx.fillStyle = enemy.type === 'dragon' ? '#8B4513' : '#FF6B6B';
                     ctx.fillRect(screenX, enemy.y, 80, 48);
                 }
                 
@@ -3637,33 +3975,75 @@ function drawFireProjectiles() {
         
         // Only draw if projectile is visible on screen
         if (screenX > -projectile.width && screenX < canvas.width) {
+            // Smaller size for dragon fireballs
+            const isDragonFireball = projectile.owner === 'enemy';
+            const sizeMultiplier = isDragonFireball ? 0.4 : 1.0; // Dragon fireballs 40% of normal size
+            
             // Draw fire projectile with trail effect
             ctx.fillStyle = 'rgba(255, 100, 0, 0.4)';
             ctx.beginPath();
-            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2 + 3, 0, Math.PI * 2);
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, (projectile.width/2 + 3) * sizeMultiplier, 0, Math.PI * 2);
             ctx.fill();
             
             // Main projectile
             ctx.fillStyle = '#ff6600';
             ctx.beginPath();
-            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2, 0, Math.PI * 2);
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, (projectile.width/2) * sizeMultiplier, 0, Math.PI * 2);
             ctx.fill();
             
             // Inner core
             ctx.fillStyle = '#ffff00';
             ctx.beginPath();
-            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/3, 0, Math.PI * 2);
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, (projectile.width/3) * sizeMultiplier, 0, Math.PI * 2);
             ctx.fill();
             
-            // Fire trail particles
-            for (let i = 0; i < 2; i++) {
+            // Fire trail particles (smaller for dragon)
+            const trailCount = isDragonFireball ? 1 : 2; // Fewer trail particles for dragon
+            for (let i = 0; i < trailCount; i++) {
                 const trailX = screenX - projectile.velocityX * (i + 1) * 0.5;
                 const trailY = projectile.y - projectile.velocityY * (i + 1) * 0.5;
                 ctx.fillStyle = `rgba(255, 170, 0, ${0.6 - i * 0.3})`;
                 ctx.beginPath();
-                ctx.arc(trailX + projectile.width/2, trailY + projectile.height/2, 3 - i, 0, Math.PI * 2);
+                ctx.arc(trailX + projectile.width/2, trailY + projectile.height/2, (3 - i) * sizeMultiplier, 0, Math.PI * 2);
                 ctx.fill();
             }
+        }
+    });
+
+    // Draw dragon fireballs with the same logic but from separate array
+    dragonFireballs.forEach(projectile => {
+        const screenX = projectile.x - cameraX;
+        
+        // Only draw if projectile is visible on screen
+        if (screenX > -projectile.width && screenX < canvas.width) {
+            // Dragon fireballs are always small size (0.4 multiplier)
+            const sizeMultiplier = 0.4;
+            
+            // Draw fire projectile with trail effect
+            ctx.fillStyle = 'rgba(255, 100, 0, 0.4)';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, (projectile.width/2 + 3) * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Main projectile
+            ctx.fillStyle = '#ff6600';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, (projectile.width/2) * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Inner core
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, (projectile.width/3) * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fire trail particles (1 particle for dragon)
+            const trailX = screenX - 3.0 * 0.5; // Fixed velocity for trail
+            const trailY = projectile.y;
+            ctx.fillStyle = 'rgba(255, 170, 0, 0.6)';
+            ctx.beginPath();
+            ctx.arc(trailX + projectile.width/2, trailY + projectile.height/2, 3 * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
         }
     });
 }
@@ -3950,6 +4330,35 @@ function gameLoop() {
             ctx.restore();
         }
         
+        // Draw purple box for zone Z13-j13, Z14-j14 (first location)
+        if (gameState.currentLocation === 0) {
+            const ctx = canvas.getContext('2d');
+            const tileSize = 32;
+            
+            // Calculate purple zone coordinates - Z13-j13, Z14-j14
+            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+            const purpleZoneStartY = 13 * 32; // Row 13
+            const purpleZoneEndY = 15 * 32; // Row 14 (включая Z14-j14)
+            
+            // Draw purple box
+            ctx.save();
+            ctx.fillStyle = 'rgba(128, 0, 128, 0.3)'; // Semi-transparent purple
+            ctx.fillRect(purpleZoneStartX - cameraX, purpleZoneStartY, purpleZoneEndX - purpleZoneStartX, purpleZoneEndY - purpleZoneStartY);
+            ctx.restore();
+            
+            // Draw orange box for dragon activation zone
+            const dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // From X column (23, excludes U,V,W)
+            const dragonZoneEndX = (gameState.currentLocation + 1) * LOCATION_WIDTH; // Until end of location
+            const dragonZoneStartY = 7 * 32; // From row 7
+            const dragonZoneEndY = 12 * 32; // 2 rows below platform
+            
+            ctx.save();
+            ctx.fillStyle = 'rgba(255, 165, 0, 0.3)'; // Semi-transparent orange
+            ctx.fillRect(dragonZoneStartX - cameraX, dragonZoneStartY, dragonZoneEndX - dragonZoneStartX, dragonZoneEndY - dragonZoneStartY);
+            ctx.restore();
+        }
+        
         // Draw game over screen if player is dead
         if (gameState.gameOver) {
             drawGameOverScreen();
@@ -4063,6 +4472,7 @@ function loadGameResources() {
         loadFireEnemySprite();
         loadPngEnemySprite();
         loadForestEnemySprite();
+        loadDragonEnemySprite();
         loadArrowSprite();
         loadToxinAttackSprite();
         loadOrigamiAttackSprite();
@@ -5508,10 +5918,8 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 24, y: 14, width: 1, height: 1, type: 'platform' },
             // Q10-V10 platform - player can stand on this
             { x: 16, y: 10, width: 6, height: 1, type: 'platform' },
-            // a10-c10 platform - player can stand on this
-            { x: 26, y: 10, width: 3, height: 1, type: 'platform' },
-            // X10-Z10 platform - player can stand on this
-            { x: 23, y: 10, width: 3, height: 1, type: 'platform' },
+            // X10-c10 platform - player can stand on this (extended for dragon)
+            { x: 23, y: 10, width: 6, height: 1, type: 'platform' },
             // f11 platform - player can stand on this
             { x: 31, y: 11, width: 1, height: 1, type: 'platform' },
             // g11 platform - player can stand on this
