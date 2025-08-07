@@ -1048,10 +1048,20 @@ class Enemy {
                     platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (4 * 32); // D column + 1 tile width
                     platformY = 6 * 32; // Platform Y
                             } else if (gameState.currentLocation === 1) {
-                // Second location: S16-i16 platform (columns 18-34, row 16)
-                platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
-                platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
-                platformY = 16 * 32; // Platform Y (row 16)
+                // Check if this is the blue zone enemy (R6-b6 platform)
+                const isBlueZoneEnemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
+                
+                if (isBlueZoneEnemy) {
+                    // Blue zone enemy on R6-b6 platform (columns 17-27, row 6)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (17 * 32); // R column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (28 * 32); // b column + 1 tile width
+                    platformY = 6 * 32; // Platform Y (row 6)
+                } else {
+                    // Original enemy on S16-i16 platform (columns 18-34, row 16)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
+                    platformY = 16 * 32; // Platform Y (row 16)
+                }
             }
                 
                 // This logic is now handled in the second block below
@@ -1059,13 +1069,6 @@ class Enemy {
                 
                 // Movement logic is now handled in the second block below
                 // to properly check shooting zones S12+, S13+, S14+, S15+
-            } else if (this.type === 'png') {
-                // PNG enemy - stationary but can attack
-                this.velocityX = 0;
-                this.velocityY = 0;
-                // Direction based on player position for sprite flipping
-                const dx = player.x - this.x;
-                this.direction = dx > 0 ? 1 : -1;
             } else {
                 // Normal movement for fire enemies
                 if (this.aimAtPlayer) {
@@ -1128,10 +1131,20 @@ class Enemy {
                 platformEnd = locationOffset + (4 * 32); // D column + 1 tile width
                 platformY = 6 * 32; // Platform Y
             } else if (gameState.currentLocation === 1) {
-                // Second location: S16-i16 platform (columns 18-34, row 16)
+                // Check if this is the blue zone enemy (R6-b6 platform)
+                const isBlueZoneEnemy = Math.abs(this.spawnX - (locationOffset + (20 * 32))) < 5;
+                
+                if (isBlueZoneEnemy) {
+                    // Blue zone enemy on R6-b6 platform (columns 17-27, row 6)
+                    platformStart = locationOffset + (17 * 32); // R column start
+                    platformEnd = locationOffset + (28 * 32); // b column + 1 tile width
+                    platformY = 6 * 32; // Platform Y (row 6)
+                } else {
+                    // Original enemy on S16-i16 platform (columns 18-34, row 16)
                 platformStart = locationOffset + (18 * 32); // S column start
                 platformEnd = locationOffset + (35 * 32); // i column + 1 tile width
                 platformY = 16 * 32; // Platform Y (row 16)
+                }
             }
             
             if (this.x < platformStart) this.x = platformStart;
@@ -1180,7 +1193,77 @@ class Enemy {
             const playerInShootingZone = player.x >= shootingZoneStart && player.x <= shootingZoneEnd && 
                                        player.y >= zoneStartY && player.y <= zoneEndY;
             
-            if (playerInShootingZone) {
+            // Special logic for blue zone enemy (T6-b6 platform)
+            const blueZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (19 * 32); // T column
+            const blueZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (33 * 32); // g column
+            const blueZoneStartY = 2 * 32; // Row 2
+            const blueZoneEndY = 6 * 32; // Row 5
+            const playerInBlueZone = player.x >= blueZoneStartX && player.x <= blueZoneEndX && 
+                                   player.y >= blueZoneStartY && player.y <= blueZoneEndY;
+            
+            // Check if this is the blue zone enemy (R6-b6 platform)
+            const isBlueZoneEnemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
+            
+            if (isBlueZoneEnemy) {
+                // Blue zone enemy logic
+                if (playerInBlueZone) {
+                this.activated = true;
+                this.shooting = true;
+                this.returningToSpawn = false;
+                    
+                    // Tactical movement: maintain optimal distance from player
+                    const dx = player.x - this.x;
+                    const distance = Math.abs(dx);
+                    const optimalDistance = 150; // Optimal shooting distance
+                    const minDistance = 80; // Too close - back away
+                    const maxDistance = 200; // Too far - approach
+                    
+                    // Check if direction changed
+                    if (this.direction !== this.lastDirection) {
+                        this.turnDelay = 30; // 0.5 seconds delay after turning
+                        this.lastDirection = this.direction;
+                    }
+                    
+                    // Reduce turn delay
+                    if (this.turnDelay > 0) {
+                        this.turnDelay--;
+                    }
+                    
+                    if (distance < minDistance) {
+                        // Player too close - back away but still face player
+                        this.velocityX = (dx > 0 ? -1 : 1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Always face player when shooting
+                    } else if (distance > maxDistance) {
+                        // Player too far - approach
+                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Face player
+                    } else {
+                        // Optimal distance - stop and shoot
+                        this.velocityX = 0;
+                        this.direction = dx > 0 ? 1 : -1; // Face player
+                    }
+                } else {
+                    this.activated = false;
+                    this.shooting = false;
+                    this.returningToSpawn = true;
+                    this.direction = -1; // Face left when not activated
+                    
+                    // Return to spawn point
+                    const dx = this.spawnX - this.x;
+                    if (Math.abs(dx) > 2) { // If not close enough to spawn
+                        this.velocityX = (dx > 0 ? 1 : -1) * this.speed;
+                        this.direction = dx > 0 ? 1 : -1; // Face spawn direction
+                    } else {
+                        // Reached spawn point
+                        this.velocityX = 0;
+                        this.returningToSpawn = false;
+                        this.direction = -1; // Face left when idle at spawn
+                        this.lastDirection = -1; // Reset last direction
+                    }
+                }
+            } else {
+                // Original yellow zone enemy logic
+                if (playerInShootingZone) {
                 this.activated = true;
                 this.shooting = true;
                 this.returningToSpawn = false;
@@ -1237,6 +1320,7 @@ class Enemy {
                     this.lastDirection = -1; // Reset last direction
                 }
             }
+            }
         }
         
         // Direction is now handled in tactical movement logic above
@@ -1251,6 +1335,19 @@ class Enemy {
         // platform_walker enemies shoot when activated and not returning to spawn
         if (this.type === 'platform_walker') {
             if (this.shooting && this.attackCooldown === 0 && !this.returningToSpawn && this.turnDelay === 0) {
+                this.attackCooldown = 120; // 2 seconds at 60fps
+            
+                // Calculate direction to player for projectile
+                const dx = player.x - this.x;
+                const direction = dx > 0 ? 1 : -1;
+                return { damage: this.damage, direction: direction };
+            }
+            return { damage: 0, direction: 1 };
+        }
+        
+        // PNG enemies shoot when activated
+        if (this.type === 'png') {
+            if (this.shooting && this.attackCooldown === 0) {
                 this.attackCooldown = 120; // 2 seconds at 60fps
             
                 // Calculate direction to player for projectile
@@ -1626,8 +1723,13 @@ function initializeForestEnemies() {
     const platformX = (gameState.currentLocation * LOCATION_WIDTH) + (33 * 32); // h column position
     const platformY = (16 * 32) - 48; // Platform Y minus enemy height (row 16)
     
+    // R6-b6 platform spawn position for blue zone enemy (existing platform)
+    const blueZoneEnemyX = (gameState.currentLocation * LOCATION_WIDTH) + (20 * 32); // U column on R6-b6 platform
+    const blueZoneEnemyY = (6 * 32) - 48; // Row 6 minus enemy height (R6-b6 platform)
+    
     enemies = [
-        new Enemy(platformX, platformY, 'platform_walker')  // Enemy on h16 platform
+        new Enemy(platformX, platformY, 'platform_walker'),  // Enemy on h16 platform
+        new Enemy(blueZoneEnemyX, blueZoneEnemyY, 'platform_walker')  // Enemy in blue zone on T6-b6 platform
     ]; 
 }
 
@@ -3422,7 +3524,7 @@ function drawEnemies() {
                 // Draw stable colored rectangles for all enemies
                 if (enemy.type === 'horizontal') {
                     // Use different colors for different locations
-                    ctx.fillStyle = gameState.currentLocation === 1 ? '#00FF00' : '#0000FF';
+                        ctx.fillStyle = gameState.currentLocation === 1 ? '#00FF00' : '#0000FF';
                     ctx.fillRect(screenX, enemy.y, 80, 48);
                 } else if (enemy.type === 'fire') {
                     ctx.fillStyle = '#FF6B6B';
@@ -3462,7 +3564,7 @@ function drawEnemies() {
                     const enemyDirection = player.x > friendlyEnemy.x ? 1 : -1;
                     
                     // Draw friendly enemy as blue fire ball (stable)
-                    drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
+                            drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
                 }
             });
         }
@@ -3827,6 +3929,24 @@ function gameLoop() {
             ctx.save();
             ctx.fillStyle = 'rgba(255, 255, 0, 0.3)'; // Semi-transparent yellow
             ctx.fillRect(zoneStartX - cameraX, zoneStartY, zoneEndX - zoneStartX, zoneEndY - zoneStartY);
+            ctx.restore();
+        }
+        
+        // Draw blue box for zone T2-g2, T3-g3, T4-g4, T5-g5
+        if (gameState.currentLocation === 1) {
+            const ctx = canvas.getContext('2d');
+            const tileSize = 32;
+            
+            // Calculate blue zone coordinates - T2-g2, T3-g3, T4-g4, T5-g5
+            const blueZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (19 * 32); // T column
+            const blueZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (33 * 32); // g column (33 = 6+27)
+            const blueZoneStartY = 2 * 32; // Row 2
+            const blueZoneEndY = 6 * 32; // Row 5 (включая T5-g5)
+            
+            // Draw blue box
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)'; // Semi-transparent blue
+            ctx.fillRect(blueZoneStartX - cameraX, blueZoneStartY, blueZoneEndX - blueZoneStartX, blueZoneEndY - blueZoneStartY);
             ctx.restore();
         }
         
