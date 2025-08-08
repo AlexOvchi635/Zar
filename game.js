@@ -1166,10 +1166,28 @@ class Enemy {
                     platformEnd = locationOffset + (29 * 32); // c column + 1 tile width
                     platformY = 10 * 32; // Platform Y (row 10)
                 } else {
-                    // Fallback (should not happen)
-                    platformStart = locationOffset + (23 * 32);
-                    platformEnd = locationOffset + (29 * 32);
-                    platformY = 10 * 32;
+                    // Check if this is the D7 dragon
+                    const isD7Dragon = Math.abs(this.spawnX - (locationOffset + (3 * 32))) < 5;
+                    if (isD7Dragon) {
+                        // D7 platform dragon (columns 3-14, row 7)
+                        platformStart = locationOffset + (3 * 32); // D column start
+                        platformEnd = locationOffset + (15 * 32); // N column + 1 tile width
+                        platformY = 7 * 32; // Platform Y (row 7)
+                    } else {
+                        // Check if this is the W16 dragon
+                        const isW16Dragon = Math.abs(this.spawnX - (locationOffset + (22 * 32))) < 5;
+                        if (isW16Dragon) {
+                            // W16 platform dragon (column 22, row 16)
+                            platformStart = locationOffset + (22 * 32); // W column start
+                            platformEnd = locationOffset + (23 * 32); // W column + 1 tile width
+                            platformY = 16 * 32; // Platform Y (row 16)
+                        } else {
+                            // Fallback (should not happen)
+                            platformStart = locationOffset + (23 * 32);
+                            platformEnd = locationOffset + (29 * 32);
+                            platformY = 10 * 32;
+                        }
+                    }
                 }
             } else if (gameState.currentLocation === 1) {
                 // Check if this is the blue zone enemy (R6-b6 platform)
@@ -1224,10 +1242,28 @@ class Enemy {
                     platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (29 * 32); // c column + 1 tile width
                     platformY = 10 * 32; // Platform Y (row 10)
                 } else {
-                    // Fallback
-                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32);
-                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (29 * 32);
-                    platformY = 10 * 32;
+                    // Check if this is the D7 dragon
+                    const isD7Dragon = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (3 * 32))) < 5;
+                    if (isD7Dragon) {
+                        // D7 platform (columns 3-14, row 7)
+                        platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (3 * 32); // D column
+                        platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (15 * 32); // N column + 1 tile width
+                        platformY = 7 * 32; // Platform Y (row 7)
+                    } else {
+                        // Check if this is the W16 dragon
+                        const isW16Dragon = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (22 * 32))) < 5;
+                        if (isW16Dragon) {
+                            // W16 platform (column 22, row 16)
+                            platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (22 * 32); // W column
+                            platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // W column + 1 tile width
+                            platformY = 16 * 32; // Platform Y (row 16)
+                        } else {
+                            // Fallback
+                            platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32);
+                            platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (29 * 32);
+                            platformY = 10 * 32;
+                        }
+                    }
                 }
                             } else if (gameState.currentLocation === 1) {
                     // Second location: S16-i16 platform (columns 18-34, row 16)
@@ -1266,6 +1302,11 @@ class Enemy {
             
             // Check if this is the X10-c10 dragon - only for location 0
             const isX10c10Dragon = gameState.currentLocation === 0 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (23 * 32))) < 5;
+            // Check if this is the D7 dragon - only for location 0
+            const isD7Dragon = gameState.currentLocation === 0 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (3 * 32))) < 5;
+            // Check if this is the W16 dragon - only for location 0
+            const isW16Dragon = gameState.currentLocation === 0 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (22 * 32))) < 5;
+
             
 
             
@@ -1390,14 +1431,48 @@ class Enemy {
                         this.lastDirection = -1; // Reset last direction
                     }
                 }
-            } else if (isX10c10Dragon) {
-                // X10-c10 dragon logic - activate when player is on the same platform or nearby
-                const dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // From X column (23, excludes U,V,W)
-                const dragonZoneEndX = (gameState.currentLocation + 1) * LOCATION_WIDTH; // Until end of location
-                const dragonZoneStartY = 7 * 32; // From row 7
-                const dragonZoneEndY = 12 * 32; // 2 rows below platform
-                const playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
-                                         player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+            } else if (isX10c10Dragon || isD7Dragon || isW16Dragon) {
+                // Dragon logic - activate when player is on the same platform or nearby
+                let dragonZoneStartX, dragonZoneEndX, dragonZoneStartY, dragonZoneEndY;
+                let playerInDragonZone;
+                
+                if (isX10c10Dragon) {
+                    // X10-c10 dragon zone
+                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // From X column (23, excludes U,V,W)
+                    dragonZoneEndX = (gameState.currentLocation + 1) * LOCATION_WIDTH; // Until end of location
+                    dragonZoneStartY = 7 * 32; // From row 7
+                    dragonZoneEndY = 12 * 32; // 2 rows below platform
+                    
+                    // Exclude i11-j11-k11 area from dragon zone
+                    const excludedZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (34 * 32); // i column
+                    const excludedZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (37 * 32); // k column + 1 tile
+                    const excludedZoneY = 11 * 32; // Row 11
+                    
+                    const playerInExcludedZone = player.x >= excludedZoneStartX && player.x <= excludedZoneEndX && 
+                                               player.y >= excludedZoneY && player.y <= excludedZoneY + 32;
+                    
+                    playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
+                                       player.y >= dragonZoneStartY && player.y <= dragonZoneEndY &&
+                                       !playerInExcludedZone; // Exclude the i11-j11-k11 area
+                } else if (isD7Dragon) {
+                    // D7 dragon zone - activate when player is in C3-M6 area
+                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // From C column (2)
+                    dragonZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (12 * 32); // To M column (12)
+                    dragonZoneStartY = 3 * 32; // From row 3
+                    dragonZoneEndY = 6 * 32; // To row 6
+                    
+                    playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
+                                       player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+                } else if (isW16Dragon) {
+                    // W16 dragon zone - activate when player is in L12-X15 area
+                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (11 * 32); // From L column (11)
+                    dragonZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // To X column (23)
+                    dragonZoneStartY = 12 * 32; // From row 12
+                    dragonZoneEndY = 15 * 32; // To row 15
+                    
+                    playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
+                                       player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+                }
                 
 
                 
@@ -1494,7 +1569,8 @@ class Enemy {
         // platform_walker and dragon enemies shoot when activated and not returning to spawn
         if (this.type === 'platform_walker' || this.type === 'dragon') {
             if (this.shooting && this.attackCooldown === 0 && !this.returningToSpawn && this.turnDelay === 0) {
-                this.attackCooldown = 120; // 2 seconds at 60fps
+                // Dragon shoots twice as rarely as other enemies
+                this.attackCooldown = this.type === 'dragon' ? 240 : 120; // 4 seconds for dragon, 2 seconds for others
             
                 // Calculate direction to player for projectile
                 const dx = player.x - this.x;
@@ -1562,16 +1638,17 @@ class FireProjectile {
 
 // Separate class for dragon fireballs - completely independent with time-based movement
 class DragonFireball {
-    constructor(x, y) {
+    constructor(x, y, direction = 1) {
         this.x = x;
         this.y = y;
         this.width = 30;
-        this.height = 30;
+        this.height = 16; // Same height as enemy blue projectiles
         this.damage = 5;
         this.owner = 'enemy';
         this.baseSpeed = 3.0; // Store base speed (pixels per frame at 60fps)
         this.lastUpdateTime = performance.now(); // Use high-precision timer
         this.pixelsPerMs = this.baseSpeed / (1000/60); // Convert to pixels per millisecond
+        this.direction = direction; // 1 for right, -1 for left
     }
     
     update() {
@@ -1580,7 +1657,7 @@ class DragonFireball {
         const deltaTime = currentTime - this.lastUpdateTime;
         
         // Move based on actual time elapsed, not frame count
-        this.x += this.pixelsPerMs * deltaTime;
+        this.x += this.pixelsPerMs * deltaTime * this.direction;
         
         this.lastUpdateTime = currentTime;
         // Absolutely no Y movement - keep Y exactly the same
@@ -2008,12 +2085,22 @@ function initializeDragon() {
     const dragonX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // X column (X10 spawn)
     const dragonY = (10 * 32) - 48; // Row 10 minus enemy height (X10-c10 platform)
     
-
+    // D7 platform dragon with spawn at D7
+    const dragon2X = (gameState.currentLocation * LOCATION_WIDTH) + (3 * 32); // D column (D7 spawn)
+    const dragon2Y = (7 * 32) - 48; // Row 7 minus enemy height (D7 platform)
+    
+    // W16 platform dragon with spawn at W16
+    const dragon3X = (gameState.currentLocation * LOCATION_WIDTH) + (22 * 32); // W column (W16 spawn)
+    const dragon3Y = (16 * 32) - 48; // Row 16 minus enemy height (W16 platform)
     
     enemies = [
         new Enemy(z15j15EnemyX, z15j15EnemyY, 'platform_walker'),  // Enemy on Z15-j15 platform at j15
-        new Enemy(dragonX, dragonY, 'dragon')  // Dragon on X10-c10 platform at X10
+        new Enemy(dragonX, dragonY, 'dragon'),  // Dragon on X10-c10 platform at X10
+        new Enemy(dragon2X, dragon2Y, 'dragon'),  // Second dragon on D7 platform at D7
+        new Enemy(dragon3X, dragon3Y, 'dragon')  // Third dragon on W16 platform at W16
     ];
+    
+
 }
 // Restart game
 function restartGame() {
@@ -2543,7 +2630,10 @@ function updatePlayer() {
                     return; // Skip fire projectile creation
                 } else if (enemy.type === 'dragon') {
                     // Dragon shoots completely independent fireballs
-                    const dragonFireball = new DragonFireball(enemy.x + enemy.width/2, enemy.y + enemy.height - 28);
+                    // Check if this is the W16 dragon (should shoot left)
+                    const isW16Dragon = Math.abs(enemy.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (22 * 32))) < 5;
+                    const direction = isW16Dragon ? -1 : 1; // W16 shoots left, others shoot right
+                    const dragonFireball = new DragonFireball(enemy.x + enemy.width/2, enemy.y + enemy.height - 28, direction);
                     dragonFireballs.push(dragonFireball);
                     return; // Skip normal fire projectile creation
                 } else if (enemy.type === 'horizontal') {
@@ -2655,7 +2745,7 @@ function updatePlayer() {
     dragonFireballs.forEach((fireball, index) => {
         fireball.update();
         
-        // Check collision with player
+        // Check collision with player - same as other enemy projectiles
         if (fireball.x < player.x + player.width &&
             fireball.x + fireball.width > player.x &&
             fireball.y < player.y + player.height &&
@@ -3791,11 +3881,19 @@ function drawEnemies() {
                 // Determine enemy direction based on player position
                 const enemyDirection = enemy.direction;
                 
-                // Draw Dragon enemy sprite
+                                // Draw Dragon enemy sprite
                 if (enemy.type === 'dragon' && enemySprites.dragon && enemySprites.dragon.complete) {
+ 
                     try {
                         ctx.save();
-                        if (enemyDirection === 1) {
+                        // Check if this is the W16 dragon (should always face left/reflected)
+                        const isW16Dragon = Math.abs(enemy.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (22 * 32))) < 5;
+                        
+                        if (isW16Dragon) {
+                            // W16 dragon always faces left (reflected)
+                            ctx.scale(-1, 1);
+                            ctx.drawImage(enemySprites.dragon, -(screenX + 80), enemy.y, 80, 48);
+                        } else if (enemyDirection === 1) {
                             // Flip dragon horizontally when facing right (original sprite faces left)
                             ctx.scale(-1, 1);
                             ctx.drawImage(enemySprites.dragon, -(screenX + 80), enemy.y, 80, 48);
