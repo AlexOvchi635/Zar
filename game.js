@@ -995,7 +995,7 @@ class Enemy {
         this.width = 80;
         this.height = 48;
         this.type = type;
-        this.health = type === 'platform_walker' ? 108 : (type === 'dragon' ? 60 : 30); // Dragon: 60 HP, platform_walker: 108 HP (6 hits from Troub), others: 30 HP
+        this.health = type === 'platform_walker' ? 108 : (type === 'dragon' ? 30 : 30); // Dragon: 30 HP, platform_walker: 108 HP (6 hits from Troub), others: 30 HP
         this.attackCooldown = 0;
         this.attackRange = 200;
         this.damage = 5;
@@ -1075,11 +1075,19 @@ class Enemy {
                 // Check if this is the blue zone enemy (R6-b6 platform)
                 const isBlueZoneEnemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
                 
+                // Check if this is the e10 dragon
+                const isU10e10Dragon = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (30 * 32))) < 5;
+                
                 if (isBlueZoneEnemy) {
                     // Blue zone enemy on R6-b6 platform (columns 17-27, row 6)
                     platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (17 * 32); // R column
                     platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (28 * 32); // b column + 1 tile width
                     platformY = 6 * 32; // Platform Y (row 6)
+                } else if (isU10e10Dragon) {
+                    // e10 dragon platform (fixed position at e10)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (30 * 32); // e column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (31 * 32); // e column + 1 tile width
+                    platformY = 10 * 32; // Platform Y (row 10)
                 } else {
                     // Original enemy on S16-i16 platform (columns 18-34, row 16)
                 platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
@@ -1193,11 +1201,19 @@ class Enemy {
                 // Check if this is the blue zone enemy (R6-b6 platform)
                 const isBlueZoneEnemy = Math.abs(this.spawnX - (locationOffset + (20 * 32))) < 5;
                 
+                // Check if this is the e10 dragon
+                const isU10e10Dragon = Math.abs(this.spawnX - (locationOffset + (30 * 32))) < 5;
+                
                 if (isBlueZoneEnemy) {
                     // Blue zone enemy on R6-b6 platform (columns 17-27, row 6)
                     platformStart = locationOffset + (17 * 32); // R column start
                     platformEnd = locationOffset + (28 * 32); // b column + 1 tile width
                     platformY = 6 * 32; // Platform Y (row 6)
+                } else if (isU10e10Dragon) {
+                    // U10-e10 dragon platform (columns 20-30, row 10)
+                    platformStart = locationOffset + (20 * 32); // U column start
+                    platformEnd = locationOffset + (31 * 32); // e column + 1 tile width
+                    platformY = 10 * 32; // Platform Y (row 10)
                 } else {
                     // Original enemy on S16-i16 platform (columns 18-34, row 16)
                 platformStart = locationOffset + (18 * 32); // S column start
@@ -1265,12 +1281,34 @@ class Enemy {
                         }
                     }
                 }
-                            } else if (gameState.currentLocation === 1) {
-                    // Second location: S16-i16 platform (columns 18-34, row 16)
+                                        } else if (gameState.currentLocation === 1) {
+                // Check which platform this enemy is on for second location
+                const isS16i16Enemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (33 * 32))) < 5;
+                const isR6b6Enemy = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
+                const isU10e10Dragon = Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (30 * 32))) < 5;
+                
+                if (isS16i16Enemy) {
+                    // S16-i16 platform (columns 18-34, row 16)
                     platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32); // S column
                     platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32); // i column + 1 tile width
                     platformY = 16 * 32; // Platform Y
+                } else if (isR6b6Enemy) {
+                    // R6-b6 platform (columns 17-27, row 6)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (17 * 32); // R column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (28 * 32); // b column + 1 tile width
+                    platformY = 6 * 32; // Platform Y
+                } else if (isU10e10Dragon) {
+                    // U10-e10 platform (columns 20-30, row 10)
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (20 * 32); // U column
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (31 * 32); // e column + 1 tile width
+                    platformY = 10 * 32; // Platform Y
+                } else {
+                    // Fallback to S16-i16 platform
+                    platformStart = (gameState.currentLocation * LOCATION_WIDTH) + (18 * 32);
+                    platformEnd = (gameState.currentLocation * LOCATION_WIDTH) + (35 * 32);
+                    platformY = 16 * 32;
                 }
+            }
             
             // Check if player is on the platform (horizontal position only, ignore Y position for jumping)
             const playerOnPlatform = player.x >= platformStart && player.x <= platformEnd;
@@ -1296,6 +1334,9 @@ class Enemy {
             
             // Check if this is the blue zone enemy (R6-b6 platform) - only for location 1
             const isBlueZoneEnemy = gameState.currentLocation === 1 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
+            
+            // Check if this is the U10-e10 dragon - only for location 1
+            const isU10e10Dragon = gameState.currentLocation === 1 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (30 * 32))) < 5;
             
 
             
@@ -1368,6 +1409,35 @@ class Enemy {
                         this.direction = -1; // Face left when idle at spawn
                         this.lastDirection = -1; // Reset last direction
                     }
+                }
+            } else if (isU10e10Dragon) {
+                // e10 dragon logic - activate when player is in R8-e8 and R9-e9 zones, shoot only left, no movement
+                const dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (17 * 32); // R column
+                const dragonZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (31 * 32); // e column + 1 tile width
+                const dragonZoneStartY = 8 * 32; // Row 8
+                const dragonZoneEndY = 10 * 32; // Row 9 (включая R9-e9)
+                const playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
+                                         player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+                
+                // Also activate when player is in shooting zones S12+17, S13+17, S14+17, S15+17
+                const playerInShootingZoneForDragon = playerInShootingZone;
+                
+                if (playerInDragonZone || playerInShootingZoneForDragon) {
+                    this.activated = true;
+                    this.shooting = true;
+                    this.returningToSpawn = false;
+                    
+                    // Fixed position dragon - no movement, always face left and shoot
+                    this.velocityX = 0; // No movement
+                    this.direction = -1; // Always face left
+                    this.lastDirection = -1; // Keep facing left
+                } else {
+                    this.activated = false;
+                    this.shooting = false;
+                    this.returningToSpawn = false; // No need to return, already at fixed position
+                    this.velocityX = 0; // No movement
+                    this.direction = -1; // Always face left
+                    this.lastDirection = -1; // Keep facing left
                 }
             } else if (isZ15j15Enemy) {
                 // Z15-j15 platform enemy logic - activate when player is in purple zone (Z13-j13, Z14-j14) OR new zone (Z11-j11, Z12-j12)
@@ -1846,8 +1916,8 @@ class ChameleonProjectile {
     constructor(x, y, velocityX, velocityY) {
         this.x = x;
         this.y = y;
-        this.width = 16;
-        this.height = 8;
+        this.width = 24; // Увеличенная ширина пули
+        this.height = 12; // Увеличенная высота пули
         this.velocityX = velocityX;
         this.velocityY = velocityY;
         this.damage = 3.6; // Chameleon damage for platform_walker (108/3.6 = 30 hits)
@@ -2112,9 +2182,14 @@ function initializeForestEnemies() {
     const blueZoneEnemyX = (gameState.currentLocation * LOCATION_WIDTH) + (20 * 32); // U column on R6-b6 platform
     const blueZoneEnemyY = (6 * 32) - 48; // Row 6 minus enemy height (R6-b6 platform)
     
+    // e10 platform dragon with spawn at e10 (point of attachment) - fixed position
+    const dragonX = (gameState.currentLocation * LOCATION_WIDTH) + (30 * 32); // e column (e10 spawn)
+    const dragonY = (10 * 32) - 48; // Row 10 minus enemy height (e10 platform)
+    
     enemies = [
         new Enemy(platformX, platformY, 'platform_walker'),  // Enemy on h16 platform
-        new Enemy(blueZoneEnemyX, blueZoneEnemyY, 'platform_walker')  // Enemy in blue zone on T6-b6 platform
+        new Enemy(blueZoneEnemyX, blueZoneEnemyY, 'platform_walker'),  // Enemy in blue zone on T6-b6 platform
+        new Enemy(dragonX, dragonY, 'dragon')  // Dragon on U10-e10 platform at e10
     ]; 
 }
 
@@ -2613,7 +2688,9 @@ function updatePlayer() {
                     // Dragon shoots completely independent fireballs
                     // Check if this is the W16 dragon (should shoot left)
                     const isW16Dragon = Math.abs(enemy.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (22 * 32))) < 5;
-                    const direction = isW16Dragon ? -1 : 1; // W16 shoots left, others shoot right
+                    // Check if this is the e10 dragon (should shoot left)
+                    const isE10Dragon = Math.abs(enemy.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (30 * 32))) < 5;
+                    const direction = (isW16Dragon || isE10Dragon) ? -1 : 1; // W16 and e10 shoot left, others shoot right
                     const dragonFireball = new DragonFireball(enemy.x + enemy.width/2, enemy.y + enemy.height - 28, direction);
                     dragonFireballs.push(dragonFireball);
                     return; // Skip normal fire projectile creation
@@ -2727,11 +2804,11 @@ function updatePlayer() {
     dragonFireballs.forEach((fireball, index) => {
         fireball.update();
         
-        // Check collision with player - same as other enemy projectiles
+        // Check collision with player - only when fireball reaches hero sprite (not when flying above)
         if (fireball.x < player.x + player.width &&
             fireball.x + fireball.width > player.x &&
-            fireball.y < player.y + player.height &&
-            fireball.y + fireball.height > player.y) {
+            fireball.y >= player.y && // Fireball must be at or below player's top edge
+            fireball.y + fireball.height <= player.y + player.height) { // Fireball must be at or above player's bottom edge
             // Player hit by dragon fireball
             gameState.health -= 1; // Each hit takes 1 health point
             
@@ -3901,9 +3978,11 @@ function drawEnemies() {
                         ctx.save();
                         // Check if this is the W16 dragon (should always face left/reflected)
                         const isW16Dragon = Math.abs(enemy.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (22 * 32))) < 5;
+                        // Check if this is the e10 dragon (should always face left)
+                        const isE10Dragon = Math.abs(enemy.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (30 * 32))) < 5;
                         
-                        if (isW16Dragon) {
-                            // W16 dragon always faces left (reflected)
+                        if (isW16Dragon || isE10Dragon) {
+                            // W16 and e10 dragons always face left (reflected)
                             ctx.scale(-1, 1);
                             ctx.drawImage(enemySprites.dragon, -(screenX + 80), enemy.y, 80, 48);
                         } else if (enemyDirection === 1) {
@@ -3974,8 +4053,8 @@ function drawEnemies() {
                 }
                 
                 // Draw enemy health bar (only on Forest location)
-                // Health bar hidden for platform_walker enemies
-                if (gameState.currentLocation === 1 && enemy.type !== 'platform_walker') {
+                // Health bar hidden for platform_walker enemies and dragons (dragons have their own health bar)
+                if (gameState.currentLocation === 1 && enemy.type !== 'platform_walker' && enemy.type !== 'dragon') {
                     const healthBarWidth = 60;
                     const healthBarHeight = 4;
                     const healthBarX = screenX + 10;
@@ -3991,8 +4070,8 @@ function drawEnemies() {
                     ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
                 }
                 
-                // Draw dragon health bar (only on first location)
-                if (gameState.currentLocation === 0 && enemy.type === 'dragon') {
+                // Draw dragon health bar (on both locations)
+                if (enemy.type === 'dragon') {
                     const healthBarWidth = 50; // Smaller health bar for dragons
                     const healthBarHeight = 3; // Thinner health bar
                     const healthBarX = screenX + 15;
@@ -4003,7 +4082,7 @@ function drawEnemies() {
                     ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
                     
                     // Health bar fill
-                    const healthPercentage = enemy.health / 60; // 60 is max health for dragons
+                    const healthPercentage = enemy.health / 30; // 30 is max health for dragons (same as other enemies)
                     ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
                     ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
                 }
