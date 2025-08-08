@@ -1297,6 +1297,8 @@ class Enemy {
             // Check if this is the blue zone enemy (R6-b6 platform) - only for location 1
             const isBlueZoneEnemy = gameState.currentLocation === 1 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (20 * 32))) < 5;
             
+
+            
             // Check if this is the Z15-j15 platform enemy - only for location 0
             const isZ15j15Enemy = gameState.currentLocation === 0 && Math.abs(this.spawnX - ((gameState.currentLocation * LOCATION_WIDTH) + (35 * 32))) < 5;
             
@@ -1990,22 +1992,8 @@ function attack() {
         const arrowVelocityY = 0;
         
         const newArrowProjectile = new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY);
-        // Increase speed on first location to fix slowdown issue, especially in purple zone
-        if (gameState.currentLocation === 0) {
-            // Check if player is in purple zone (Z13-j13, Z14-j14)
-            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
-            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
-            const purpleZoneStartY = 13 * 32; // Row 13
-            const purpleZoneEndY = 15 * 32; // Row 14
-            const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
-                                     player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
-            
-                                        if (playerInPurpleZone) {
-                                newArrowProjectile.speed = 24; // 3x faster in purple zone
-                            } else {
-                                newArrowProjectile.speed = 12; // 1.5x faster on first location
-                            }
-        }
+        // Set consistent speed for all locations
+        newArrowProjectile.speed = 8; // Standard speed for all locations
         arrowProjectiles.push(newArrowProjectile);
     }
     
@@ -2019,22 +2007,8 @@ function attack() {
                     const toxinVelocityY = 0;
                     
                     const newToxinProjectile = new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY);
-                    // Increase speed on first location to fix slowdown issue, especially in purple zone
-                    if (gameState.currentLocation === 0) {
-                        // Check if player is in purple zone (Z13-j13, Z14-j14)
-                        const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
-                        const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
-                        const purpleZoneStartY = 13 * 32; // Row 13
-                        const purpleZoneEndY = 15 * 32; // Row 14
-                        const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
-                                                 player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
-                        
-                        if (playerInPurpleZone) {
-                            newToxinProjectile.speed = 27; // Slightly slower than before (was 30)
-                        } else {
-                            newToxinProjectile.speed = 13.5; // Slightly slower than before (was 15)
-                        }
-                    }
+                    // Set consistent speed for all locations
+                    newToxinProjectile.speed = 9; // Standard speed for all locations
                     toxinProjectiles.push(newToxinProjectile);
                     console.log('💥 Toxin projectile created at:', toxinX, toxinY, 'Velocity:', toxinVelocityX);
                     
@@ -2069,22 +2043,8 @@ function attack() {
                         const chameleonVelocityY = 0;
                         
                         const newChameleonProjectile = new ChameleonProjectile(chameleonX, chameleonY, chameleonVelocityX, chameleonVelocityY);
-                        // Increase speed on first location to fix slowdown issue, especially in purple zone
-                        if (gameState.currentLocation === 0) {
-                            // Check if player is in purple zone (Z13-j13, Z14-j14)
-                            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
-                            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
-                            const purpleZoneStartY = 13 * 32; // Row 13
-                            const purpleZoneEndY = 15 * 32; // Row 14
-                            const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
-                                                     player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
-                            
-                            if (playerInPurpleZone) {
-                                newChameleonProjectile.speed = 48; // 3x faster in purple zone
-                            } else {
-                                newChameleonProjectile.speed = 24; // 1.5x faster on first location
-                            }
-                        }
+                        // Set consistent speed for all locations
+                        newChameleonProjectile.speed = 16; // Standard speed for all locations
                         chameleonProjectiles.push(newChameleonProjectile);
                         console.log('💥 Chameleon projectile created at:', chameleonX, chameleonY, 'Velocity:', chameleonVelocityX, 'Burst:', chameleonAttackAnimation.burstCount + 1);
                         
@@ -2114,22 +2074,8 @@ function attack() {
                         const origamiVelocityY = 0;
                         
                         const newProjectile = new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY, 'player');
-                        // Increase speed on first location to fix slowdown issue, especially in purple zone
-                        if (gameState.currentLocation === 0) {
-                            // Check if player is in purple zone (Z13-j13, Z14-j14)
-                            const purpleZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
-                            const purpleZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
-                            const purpleZoneStartY = 13 * 32; // Row 13
-                            const purpleZoneEndY = 15 * 32; // Row 14
-                            const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
-                                                     player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
-                            
-                            if (playerInPurpleZone) {
-                                newProjectile.speed = 36; // 3x faster in purple zone
-                            } else {
-                                newProjectile.speed = 18; // 1.5x faster on first location
-                            }
-                        }
+                        // Set consistent speed for all locations
+                        newProjectile.speed = 12; // Standard speed for all locations
                         origamiProjectiles.push(newProjectile);
                         console.log('💥 Origami projectile created at:', origamiX, origamiY, 'Velocity:', origamiVelocityX, 'Burst:', origamiAttackAnimation.burstCount + 1);
                         
@@ -2203,7 +2149,7 @@ function initializeDragon() {
 function restartGame() {
     player.x = 100;
     player.y = 400;
-    gameState.health = 100;
+    gameState.health = 3; // 3 hits to die
     gameState.score = 0;
     gameState.hits = 0;
     gameState.abilityReady = false;
@@ -2391,77 +2337,40 @@ function updatePlayer() {
         }
     }
     
-    // Additional strict collision check for l1-l16 wall - ONLY FOR FIRST LOCATION
+    // Optimized wall collision checks for first location - ONLY FOR FIRST LOCATION
     if (gameState.currentLocation === 0) {
-    for (let row = 1; row <= 16; row++) { // l1 to l16
-        const tileX = wallLocationStart + 37 * tileSize; // l column
-        const tileY = row * tileSize;
+        // Pre-calculate wall boundaries for better performance
+        const lWallX = wallLocationStart + 37 * tileSize; // l column
+        const wWallX = wallLocationStart + 22 * tileSize; // W column
+        const kWallX = wallLocationStart + 36 * tileSize; // k column
+        const yWallX = wallLocationStart + 24 * tileSize; // Y column
         
-        // Check if player is even close to the wall (prevent any entry)
         const playerLeft = newX;
         const playerRight = newX + player.width;
-        const wallLeft = tileX;
-        const wallRight = tileX + tileSize;
+        const playerTop = newY;
+        const playerBottom = newY + player.height;
         
-        // Block if player is trying to get close to the wall
-        if (playerRight >= wallLeft && playerLeft <= wallRight) {
-
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
-            }
+        // Check l1-l16 wall (simplified)
+        if (playerRight >= lWallX && playerLeft <= lWallX + tileSize) {
+            newX = player.x; // Block horizontal movement
         }
-    }
-    
-    // Check W4-W10 wall collision (block all movement through pipes) - ONLY FOR FIRST LOCATION
-    if (gameState.currentLocation === 0) {
-    for (let row = 4; row <= 10; row++) { // W4 to W10
-        const tileX = wallLocationStart + 22 * tileSize; // W column
-        const tileY = row * tileSize;
         
-        // Block ALL movement through pipes (cannot pass through)
-        if (newX < tileX + tileSize && newX + player.width > tileX &&
-            newY < tileY + tileSize && newY + player.height > tileY) {
-            
-
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
-            }
+        // Check W4-W10 wall (simplified)
+        if (playerRight >= wWallX && playerLeft <= wWallX + tileSize &&
+            playerBottom > 4 * tileSize && playerTop < 11 * tileSize) {
+            newX = player.x; // Block horizontal movement
         }
-    }
-    
-    // Check k14-k15 wall collision (block all movement through walls) - ONLY FOR FIRST LOCATION
-    if (gameState.currentLocation === 0) {
-    for (let row = 14; row <= 15; row++) { // k14 to k15
-        const tileX = wallLocationStart + 36 * tileSize; // k column
-        const tileY = row * tileSize;
         
-        // Block ALL movement through walls (cannot pass through)
-        if (newX < tileX + tileSize && newX + player.width > tileX &&
-            newY < tileY + tileSize && newY + player.height > tileY) {
-            
-
-            // Block only horizontal movement, allow vertical movement for jumping
-            newX = player.x; // Keep current X position
-            // Don't block Y movement - allow jumping
-            }
+        // Check k14-k15 wall (simplified)
+        if (playerRight >= kWallX && playerLeft <= kWallX + tileSize &&
+            playerBottom > 14 * tileSize && playerTop < 16 * tileSize) {
+            newX = player.x; // Block horizontal movement
         }
-    }
-    
-    // Check Y15 wall collision (block all movement through wall) - ONLY FOR FIRST LOCATION
-    if (gameState.currentLocation === 0) {
-    const tileX = wallLocationStart + 24 * tileSize; // Y column
-    const tileY = 15 * tileSize; // row 15
-    
-    // Block ALL movement through wall (cannot pass through)
-    if (newX < tileX + tileSize && newX + player.width > tileX &&
-        newY < tileY + tileSize && newY + player.height > tileY) {
         
-        
-        // Block only horizontal movement, allow vertical movement for jumping
-        newX = player.x; // Keep current X position
-        // Don't block Y movement - allow jumping
+        // Check Y15 wall (simplified)
+        if (playerRight >= yWallX && playerLeft <= yWallX + tileSize &&
+            playerBottom > 15 * tileSize && playerTop < 16 * tileSize) {
+            newX = player.x; // Block horizontal movement
         }
     }
     
@@ -2471,70 +2380,41 @@ function updatePlayer() {
     // WALL LOGIC FOR SECOND LOCATION (ЛЕС)
     // ========================================
     
-    // Check walls only for second location (Лес)
+    // Optimized wall collision checks for second location (Лес)
     if (gameState.currentLocation === 1) {
         
-        // B1-B16 vertical wall - left edge
-        for (let row = 1; row <= 16; row++) {
-            const tileX = wallLocationStart + 1 * tileSize; // B column
-            const tileY = row * tileSize;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-
-                // Block only position, DON'T reset velocities (for jumping)
-                newX = player.x; // Keep current X position
-                // Don't block Y movement - allow jumping
-            }
+        // Pre-calculate wall boundaries for better performance
+        const bWallX = wallLocationStart + 1 * tileSize; // B column
+        const kWallX = wallLocationStart + 36 * tileSize; // k column
+        const sWallX = wallLocationStart + 18 * tileSize; // S column
+        
+        const playerLeft = newX;
+        const playerRight = newX + player.width;
+        const playerTop = newY;
+        const playerBottom = newY + player.height;
+        
+        // B1-B16 vertical wall - left edge (simplified)
+        if (playerRight >= bWallX && playerLeft <= bWallX + tileSize &&
+            playerBottom > tileSize && playerTop < 17 * tileSize) {
+            newX = player.x; // Block horizontal movement
         }
         
-        // k1-k16 vertical wall - right edge  
-        for (let row = 1; row <= 16; row++) {
-            const tileX = wallLocationStart + 36 * tileSize; // k column
-            const tileY = row * tileSize;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-
-                // Block only position, DON'T reset velocities (for jumping)
-                newX = player.x; // Keep current X position  
-                // Don't block Y movement - allow jumping
-            }
+        // C1 horizontal wall - top edge (simplified)
+        if (playerBottom > tileSize && playerTop < 2 * tileSize &&
+            playerRight > (wallLocationStart + 2 * tileSize) && playerLeft < (wallLocationStart + 37 * tileSize)) {
+            newY = player.y; // Block vertical movement
         }
         
-        // C1 horizontal wall - top edge (from C to end)
-        for (let col = 2; col <= 36; col++) { // C=2 to k-1=36
-            const tileX = wallLocationStart + col * tileSize;
-            const tileY = 1 * tileSize; // Row 1
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-
-                // Block only position, DON'T reset velocities
-                newY = player.y; // Keep current Y position
-                // Don't block X movement
-            }
+        // k1-k16 vertical wall - right edge (simplified)
+        if (playerRight >= kWallX && playerLeft <= kWallX + tileSize &&
+            playerBottom > tileSize && playerTop < 17 * tileSize) {
+            newX = player.x; // Block horizontal movement
         }
         
-        // S2-S7 vertical wall (extended)
-        for (let row = 2; row <= 7; row++) {
-            const tileX = wallLocationStart + 18 * tileSize; // S column = 18
-            const tileY = row * tileSize;
-            const wallLeft = tileX;
-            const wallRight = tileX + tileSize;
-            
-            if (newX < wallRight && newX + player.width > wallLeft &&
-                newY < tileY + tileSize && newY + player.height > tileY) {
-
-                // Block only position, DON'T reset velocities
-                newX = player.x; // Keep current X position
-            }
+        // S2-S7 vertical wall (simplified)
+        if (playerRight >= sWallX && playerLeft <= sWallX + tileSize &&
+            playerBottom > 2 * tileSize && playerTop < 8 * tileSize) {
+            newX = player.x; // Block horizontal movement
         }
         
         // G5 single pipe - now handled by checkSpriteCollisions (pipe logic)
@@ -2782,12 +2662,13 @@ function updatePlayer() {
             return true; // Other locations - allow damage
         }
         
-        // Check if player is on the same platform
-        const playerOnPlatform = player.x + player.width > platformStart && 
-                               player.x < platformEnd && 
-                               Math.abs(player.y + player.height - platformY) < 10;
+        // Check if player is in the same horizontal area as the platform
+        // Allow damage when player is above or on the platform (for jumping)
+        const playerInPlatformArea = player.x + player.width > platformStart && 
+                                   player.x < platformEnd && 
+                                   player.y + player.height <= platformY + 50; // Allow 50px above platform
         
-        return playerOnPlatform;
+        return playerInPlatformArea;
     }
 
     // Update fire projectiles
@@ -2801,7 +2682,7 @@ function updatePlayer() {
             projectile.y + projectile.height > player.y) {
             // Toxin invincibility removed - all characters take damage
             {
-                gameState.health -= projectile.damage;
+                gameState.health -= 1; // Each hit takes 1 health point
                 
                 // Check if player is dead
                 if (gameState.health <= 0) {
@@ -2852,7 +2733,7 @@ function updatePlayer() {
             fireball.y < player.y + player.height &&
             fireball.y + fireball.height > player.y) {
             // Player hit by dragon fireball
-            gameState.health -= fireball.damage;
+            gameState.health -= 1; // Each hit takes 1 health point
             
             // Check if player is dead
             if (gameState.health <= 0) {
@@ -2944,7 +2825,7 @@ function updatePlayer() {
             projectile.x + projectile.width > player.x &&
             projectile.y < player.y + player.height &&
             projectile.y + projectile.height > player.y) {
-            gameState.health -= projectile.damage;
+            gameState.health -= 1; // Each hit takes 1 health point
             
             // Check if player is dead
             if (gameState.health <= 0) {
@@ -3110,8 +2991,8 @@ function updateUI() {
     const abilityInfo = document.getElementById('abilityInfo');
     const abilityFill = document.getElementById('abilityFill');
     
-    if (healthText) healthText.textContent = `Health: ${gameState.health}`;
-    if (healthFill) healthFill.style.width = `${(gameState.health / 100) * 100}%`;
+            if (healthText) healthText.textContent = `Health: ${gameState.health}/3`;
+        if (healthFill) healthFill.style.width = `${(gameState.health / 3) * 100}%`;
     
     // Update ability bar
     if (abilityFill) {
