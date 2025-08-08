@@ -1438,22 +1438,39 @@ class Enemy {
                 
                 if (isX10c10Dragon) {
                     // X10-c10 dragon zone
-                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // From X column (23, excludes U,V,W)
+                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // From X column (23)
                     dragonZoneEndX = (gameState.currentLocation + 1) * LOCATION_WIDTH; // Until end of location
                     dragonZoneStartY = 7 * 32; // From row 7
-                    dragonZoneEndY = 12 * 32; // 2 rows below platform
+                    dragonZoneEndY = 12 * 32; // To row 12
                     
                     // Exclude i11-j11-k11 area from dragon zone
                     const excludedZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (34 * 32); // i column
                     const excludedZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (37 * 32); // k column + 1 tile
                     const excludedZoneY = 11 * 32; // Row 11
                     
+                    // Exclude robot zone (Z13-j13, rows 13-14) from dragon zone
+                    const robotZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (25 * 32); // Z column
+                    const robotZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (36 * 32); // j column
+                    const robotZoneStartY = 13 * 32; // Row 13
+                    const robotZoneEndY = 14 * 32; // Row 14
+                    
+                    // Exclude X11 Y11 Z11 area from dragon zone
+                    const x11y11z11ZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // X column
+                    const x11y11z11ZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (26 * 32); // Z column + 1 tile
+                    const x11y11z11ZoneY = 11 * 32; // Row 11
+                    
                     const playerInExcludedZone = player.x >= excludedZoneStartX && player.x <= excludedZoneEndX && 
                                                player.y >= excludedZoneY && player.y <= excludedZoneY + 32;
                     
+                    const playerInRobotZone = player.x >= robotZoneStartX && player.x <= robotZoneEndX && 
+                                            player.y >= robotZoneStartY && player.y <= robotZoneEndY;
+                    
+                    const playerInX11Y11Z11Zone = player.x >= x11y11z11ZoneStartX && player.x <= x11y11z11ZoneEndX && 
+                                                 player.y >= x11y11z11ZoneY && player.y <= x11y11z11ZoneY + 32;
+                    
                     playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
                                        player.y >= dragonZoneStartY && player.y <= dragonZoneEndY &&
-                                       !playerInExcludedZone; // Exclude the i11-j11-k11 area
+                                       !playerInExcludedZone && !playerInRobotZone && !playerInX11Y11Z11Zone; // Exclude i11-j11-k11, robot zone, and X11 Y11 Z11
                 } else if (isD7Dragon) {
                     // D7 dragon zone - activate when player is in C3-M6 area
                     dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // From C column (2)
@@ -1903,11 +1920,11 @@ function attack() {
             const playerInPurpleZone = player.x >= purpleZoneStartX && player.x <= purpleZoneEndX && 
                                      player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
             
-            if (playerInPurpleZone) {
-                newArrowProjectile.speed = 16; // 2x faster in purple zone
-            } else {
-                newArrowProjectile.speed = 12; // 1.5x faster on first location
-            }
+                                        if (playerInPurpleZone) {
+                                newArrowProjectile.speed = 24; // 3x faster in purple zone
+                            } else {
+                                newArrowProjectile.speed = 12; // 1.5x faster on first location
+                            }
         }
         arrowProjectiles.push(newArrowProjectile);
     }
@@ -1933,7 +1950,7 @@ function attack() {
                                                  player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
                         
                         if (playerInPurpleZone) {
-                            newToxinProjectile.speed = 20; // 2x faster in purple zone
+                            newToxinProjectile.speed = 30; // 3x faster in purple zone
                         } else {
                             newToxinProjectile.speed = 15; // 1.5x faster on first location
                         }
@@ -1983,7 +2000,7 @@ function attack() {
                                                      player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
                             
                             if (playerInPurpleZone) {
-                                newChameleonProjectile.speed = 32; // 2x faster in purple zone
+                                newChameleonProjectile.speed = 48; // 3x faster in purple zone
                             } else {
                                 newChameleonProjectile.speed = 24; // 1.5x faster on first location
                             }
@@ -2028,7 +2045,7 @@ function attack() {
                                                      player.y >= purpleZoneStartY && player.y <= purpleZoneEndY;
                             
                             if (playerInPurpleZone) {
-                                newProjectile.speed = 24; // 2x faster in purple zone
+                                newProjectile.speed = 36; // 3x faster in purple zone
                             } else {
                                 newProjectile.speed = 18; // 1.5x faster on first location
                             }
@@ -2176,12 +2193,16 @@ function updatePlayer() {
         const portalX = locationStart + (36.5 * 32) - 40; // Shifted right, more towards column k
         const portalHeight = 120;
                  const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
-         
+        
+        // Check if all enemies are dead
+        const allEnemiesDead = enemies.length === 0 || enemies.every(enemy => enemy.health <= 0);
+        
          if (
              player.x + player.width > portalX &&
              player.x < portalX + 80 &&
              player.y + player.height > portalY &&
-             player.y < portalY + portalHeight
+             player.y < portalY + portalHeight &&
+             allEnemiesDead // Only allow transition if all enemies are dead
          ) {
             // Start transition to next location
             gameState.transitioning = true;
@@ -3696,14 +3717,31 @@ function drawBackground() {
                                  // Portal should be at the top of the grid (around rows 2-4)
                 const portalHeight = 120;
                 const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
+            
+            // Check if all enemies are dead
+            const allEnemiesDead = enemies.length === 0 || enemies.every(enemy => enemy.health <= 0);
                  
                  if (portalSprite.complete) {
                      // Draw main portal
+                     ctx.save();
+                     
+                     // Apply black and white filter if enemies are still alive
+                     if (!allEnemiesDead) {
+                         ctx.filter = 'grayscale(100%)';
+                     }
+                     
                      ctx.drawImage(portalSprite, portalScreenX, portalY, 80, 120);
+                     ctx.restore();
                      
                      // Draw soft portal glow effect only on front side
                      ctx.save();
                      ctx.globalAlpha = portalGlow * 0.3; // Much softer glow
+                     
+                     // Apply black and white filter to glow if enemies are still alive
+                     if (!allEnemiesDead) {
+                         ctx.filter = 'grayscale(100%)';
+                     }
+                     
                      ctx.drawImage(portalSprite, portalScreenX - 3, portalY - 3, 86, 126);
                      ctx.restore();
                      
@@ -3713,18 +3751,30 @@ function drawBackground() {
                          const particleX = portalScreenX + 40 + Math.cos(angle) * (25 + Math.sin(Date.now() * 0.005) * 5); // Smaller radius
                          const particleY = portalY + 60 + Math.sin(angle) * (25 + Math.sin(Date.now() * 0.005) * 5);
                          
-                         ctx.fillStyle = `rgba(255, 100, 255, ${0.4 - i * 0.05})`; // Much softer particles
+                         // Use black and white particles if enemies are alive, colored if all dead
+                         if (allEnemiesDead) {
+                             ctx.fillStyle = `rgba(255, 100, 255, ${0.4 - i * 0.05})`; // Colored particles
+                         } else {
+                             ctx.fillStyle = `rgba(128, 128, 128, ${0.4 - i * 0.05})`; // Gray particles
+                         }
+                         
                          ctx.beginPath();
                          ctx.arc(particleX, particleY, 1.5 + Math.sin(Date.now() * 0.01 + i) * 0.5, 0, Math.PI * 2); // Smaller particles
                          ctx.fill();
                      }
                  } else {
                      // Fallback portal with animation
-                     ctx.fillStyle = `rgba(0, 0, 255, ${portalGlow})`;
+                     if (allEnemiesDead) {
+                         ctx.fillStyle = `rgba(0, 0, 255, ${portalGlow})`; // Blue when enemies dead
+                         ctx.strokeStyle = `rgba(255, 100, 255, ${portalGlow})`; // Purple border
+                     } else {
+                         ctx.fillStyle = `rgba(64, 64, 64, ${portalGlow})`; // Gray when enemies alive
+                         ctx.strokeStyle = `rgba(128, 128, 128, ${portalGlow})`; // Gray border
+                     }
+                     
                      ctx.fillRect(portalScreenX, portalY, 80, 120);
                      
                      // Animated border
-                     ctx.strokeStyle = `rgba(255, 100, 255, ${portalGlow})`;
                      ctx.lineWidth = 3;
                      ctx.strokeRect(portalScreenX, portalY, 80, 120);
                  }
