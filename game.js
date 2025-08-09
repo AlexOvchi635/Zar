@@ -99,12 +99,56 @@ let toxinRage = {
 // Origami bleeding ability variables
 let origamiBleeding = {
     active: true, // Always active
-    baseDamage: 0.5, // Base projectile damage (reduced from 1)
-    bleedingDamage: 1, // Damage per bleeding tick (reduced from 2)
+    baseDamage: 5, // Base projectile damage (increased to 5)
+    bleedingDamage: 1, // Damage per bleeding tick (back to original)
     bleedingDuration: 120, // 6 seconds (120 frames at 20 FPS)
     bleedingInterval: 40, // 2 seconds (40 frames at 20 FPS)
     bleedingTicks: 3 // Number of bleeding ticks (6 seconds / 2 seconds = 3 ticks)
 };
+
+// Global array for active bleeding effects (independent of projectiles)
+let activeBleedingEffects = [];
+
+// Bleeding effect class (independent of projectiles)
+class BleedingEffect {
+    constructor(target) {
+        this.target = target;
+        this.timer = 0;
+        this.tickCount = 0;
+    }
+    
+    update() {
+        this.timer++;
+        
+        // Apply bleeding damage every interval
+        if (this.timer >= origamiBleeding.bleedingInterval) {
+            if (this.tickCount < origamiBleeding.bleedingTicks) {
+                // Apply bleeding damage
+                this.target.health -= origamiBleeding.bleedingDamage;
+                this.tickCount++;
+                this.timer = 0;
+                
+                console.log(`🩸 Bleeding tick ${this.tickCount}: -${origamiBleeding.bleedingDamage} HP to enemy (${this.target.health} HP remaining)`);
+                
+                // Check if enemy is dead
+                if (this.target.health <= 0) {
+                    console.log('💀 Enemy killed by bleeding!');
+                    // Remove enemy from enemies array
+                    const enemyIndex = enemies.indexOf(this.target);
+                    if (enemyIndex > -1) {
+                        enemies.splice(enemyIndex, 1);
+                    }
+                    return false; // Remove this bleeding effect
+                }
+            } else {
+                // Bleeding effect finished
+                console.log('🩸 Bleeding effect finished');
+                return false; // Remove this bleeding effect
+            }
+        }
+        return true; // Keep this bleeding effect
+    }
+}
 
 // Sound variables - Toxin sounds removed
 
@@ -1781,23 +1825,45 @@ class Enemy {
                                        player.y >= dragonZoneStartY && player.y <= dragonZoneEndY &&
                                        !playerInExcludedZone && !playerInRobotZone && !playerInX11Y11Z11Zone; // Exclude i11-j11-k11, robot zone, and X11 Y11 Z11
                 } else if (isD7Dragon) {
-                    // D7 dragon zone - activate when player is in C3-M6 area
-                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // From C column (2)
-                    dragonZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (12 * 32); // To M column (12)
-                    dragonZoneStartY = 3 * 32; // From row 3
-                    dragonZoneEndY = 6 * 32; // To row 6
+                    // D7 dragon zone - activate when player is in C3-M6 area OR N4-R7 area
+                    const originalZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (2 * 32); // From C column (2)
+                    const originalZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (12 * 32); // To M column (12)
+                    const originalZoneStartY = 3 * 32; // From row 3
+                    const originalZoneEndY = 6 * 32; // To row 6
                     
-                    playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
-                                       player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+                    // New extended zone: N4-R7 area
+                    const extendedZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (13 * 32); // From N column (13)
+                    const extendedZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (17 * 32); // To R column (17)
+                    const extendedZoneStartY = 4 * 32; // From row 4
+                    const extendedZoneEndY = 7 * 32; // To row 7
+                    
+                    const playerInOriginalZone = player.x >= originalZoneStartX && player.x <= originalZoneEndX && 
+                                               player.y >= originalZoneStartY && player.y <= originalZoneEndY;
+                    
+                    const playerInExtendedZone = player.x >= extendedZoneStartX && player.x <= extendedZoneEndX && 
+                                                player.y >= extendedZoneStartY && player.y <= extendedZoneEndY;
+                    
+                    playerInDragonZone = playerInOriginalZone || playerInExtendedZone;
                 } else if (isW16Dragon) {
-                    // W16 dragon zone - activate when player is in L12-X15 area
-                    dragonZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (11 * 32); // From L column (11)
-                    dragonZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // To X column (23)
-                    dragonZoneStartY = 12 * 32; // From row 12
-                    dragonZoneEndY = 15 * 32; // To row 15
+                    // W16 dragon zone - activate when player is in L12-X15 area OR F12-K15 area
+                    const originalZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (11 * 32); // From L column (11)
+                    const originalZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (23 * 32); // To X column (23)
+                    const originalZoneStartY = 12 * 32; // From row 12
+                    const originalZoneEndY = 15 * 32; // To row 15
                     
-                    playerInDragonZone = player.x >= dragonZoneStartX && player.x <= dragonZoneEndX && 
-                                       player.y >= dragonZoneStartY && player.y <= dragonZoneEndY;
+                    // New extended zone: F12-K15 area
+                    const extendedZoneStartX = (gameState.currentLocation * LOCATION_WIDTH) + (5 * 32); // From F column (5)
+                    const extendedZoneEndX = (gameState.currentLocation * LOCATION_WIDTH) + (10 * 32); // To K column (10)
+                    const extendedZoneStartY = 12 * 32; // From row 12
+                    const extendedZoneEndY = 15 * 32; // To row 15
+                    
+                    const playerInOriginalZone = player.x >= originalZoneStartX && player.x <= originalZoneEndX && 
+                                               player.y >= originalZoneStartY && player.y <= originalZoneEndY;
+                    
+                    const playerInExtendedZone = player.x >= extendedZoneStartX && player.x <= extendedZoneEndX && 
+                                                player.y >= extendedZoneStartY && player.y <= extendedZoneEndY;
+                    
+                    playerInDragonZone = playerInOriginalZone || playerInExtendedZone;
                 }
                 
 
@@ -1895,8 +1961,8 @@ class Enemy {
         // platform_walker and dragon enemies shoot when activated and not returning to spawn
         if (this.type === 'platform_walker' || this.type === 'dragon') {
             if (this.shooting && this.attackCooldown === 0 && !this.returningToSpawn && this.turnDelay === 0) {
-                // Dragon shoots twice as rarely as other enemies
-                this.attackCooldown = this.type === 'dragon' ? 240 : 120; // 4 seconds for dragon, 2 seconds for others
+                // Dragon shoots at same rate as other enemies (doubled frequency)
+                this.attackCooldown = this.type === 'dragon' ? 120 : 120; // 2 seconds for dragon, 2 seconds for others
             
                 // Calculate direction to player for projectile
                 const dx = player.x - this.x;
@@ -2114,11 +2180,6 @@ class OrigamiProjectile {
         this.damage = origamiBleeding.baseDamage; // Use bleeding system damage
         this.speed = 12; // Original speed for Origami
         this.owner = owner; // 'player' or 'enemy' or null
-        // Bleeding effect properties
-        this.bleedingActive = false;
-        this.bleedingTarget = null;
-        this.bleedingTimer = 0;
-        this.bleedingTickCount = 0;
     }
     
     update() {
@@ -2144,49 +2205,7 @@ class OrigamiProjectile {
     }
     
     // Activate bleeding effect on target
-    activateBleeding(target) {
-        this.bleedingActive = true;
-        this.bleedingTarget = target;
-        this.bleedingTimer = 0;
-        this.bleedingTickCount = 0;
-        console.log('🩸 Origami bleeding activated on target!');
-    }
-    
-    // Update bleeding effect
-    updateBleeding() {
-        if (!this.bleedingActive || !this.bleedingTarget) return;
-        
-        this.bleedingTimer++;
-        
-        // Apply bleeding damage every interval
-        if (this.bleedingTimer >= origamiBleeding.bleedingInterval) {
-            if (this.bleedingTickCount < origamiBleeding.bleedingTicks) {
-                // Apply bleeding damage
-                this.bleedingTarget.health -= origamiBleeding.bleedingDamage;
-                this.bleedingTickCount++;
-                this.bleedingTimer = 0;
-                
-                console.log(`🩸 Bleeding tick ${this.bleedingTickCount}: -${origamiBleeding.bleedingDamage} HP to enemy (${this.bleedingTarget.health} HP remaining)`);
-                
-                // Check if enemy is dead
-                if (this.bleedingTarget.health <= 0) {
-                    console.log('💀 Enemy killed by bleeding!');
-                    // Remove enemy from enemies array
-                    const enemyIndex = enemies.indexOf(this.bleedingTarget);
-                    if (enemyIndex > -1) {
-                        enemies.splice(enemyIndex, 1);
-                    }
-                    this.bleedingActive = false;
-                    this.bleedingTarget = null;
-                }
-            } else {
-                // Bleeding effect finished
-                this.bleedingActive = false;
-                this.bleedingTarget = null;
-                console.log('🩸 Bleeding effect finished');
-            }
-        }
-    }
+
 }
 
 class ChameleonProjectile {
@@ -2561,6 +2580,9 @@ function restartGame() {
     blueSphereProjectiles = [];
     // Clear chameleon projectiles
     chameleonProjectiles = [];
+    
+    // Clear bleeding effects
+    activeBleedingEffects = [];
     
     // Initialize dragon for first location
     initializeDragon();
@@ -3325,10 +3347,7 @@ function updatePlayer() {
         const projectile = origamiProjectiles[i];
         projectile.update();
         
-        // Update bleeding effect for Origami projectiles
-        if (player.character && player.character.name === 'Origami') {
-            projectile.updateBleeding();
-        }
+
         
         let shouldRemove = false;
         
@@ -3370,9 +3389,11 @@ function updatePlayer() {
                         
                         // Activate bleeding effect for Origami projectiles
                         if (player.character && player.character.name === 'Origami') {
-                            projectile.activateBleeding(enemy);
-                            // Don't remove projectile immediately - let it continue bleeding
-                            shouldRemove = false;
+                            // Create independent bleeding effect
+                            activeBleedingEffects.push(new BleedingEffect(enemy));
+                            console.log('🩸 Origami bleeding activated on target!');
+                            // Remove projectile immediately
+                            shouldRemove = true;
                         } else {
                             shouldRemove = true;
                         }
@@ -3386,13 +3407,8 @@ function updatePlayer() {
             }
         }
         
-        // Remove off-screen projectiles (but keep bleeding projectiles active)
-        if (!shouldRemove && projectile.isOffScreen() && !projectile.bleedingActive) {
-            shouldRemove = true;
-        }
-        
-        // Remove projectiles when bleeding is finished
-        if (projectile.bleedingActive && !projectile.bleedingTarget) {
+        // Remove off-screen projectiles
+        if (!shouldRemove && projectile.isOffScreen()) {
             shouldRemove = true;
         }
         
@@ -3442,6 +3458,15 @@ function updatePlayer() {
     
             // Update enemies
         enemies.forEach(enemy => enemy.update(player));
+        
+        // Update bleeding effects
+        for (let i = activeBleedingEffects.length - 1; i >= 0; i--) {
+            const bleedingEffect = activeBleedingEffects[i];
+            const shouldKeep = bleedingEffect.update();
+            if (!shouldKeep) {
+                activeBleedingEffects.splice(i, 1);
+            }
+        }
     
     // Update friendly enemies
     friendlyEnemies.forEach(friendlyEnemy => {
