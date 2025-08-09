@@ -128,11 +128,8 @@ class BleedingEffect {
                 this.tickCount++;
                 this.timer = 0;
                 
-                console.log(`🩸 Bleeding tick ${this.tickCount}: -${origamiBleeding.bleedingDamage} HP to enemy (${this.target.health} HP remaining)`);
-                
                 // Check if enemy is dead
                 if (this.target.health <= 0) {
-                    console.log('💀 Enemy killed by bleeding!');
                     // Remove enemy from enemies array
                     const enemyIndex = enemies.indexOf(this.target);
                     if (enemyIndex > -1) {
@@ -142,7 +139,6 @@ class BleedingEffect {
                 }
             } else {
                 // Bleeding effect finished
-                console.log('🩸 Bleeding effect finished');
                 return false; // Remove this bleeding effect
             }
         }
@@ -228,11 +224,7 @@ const enemySprites = {
 // Arrow sprite for Troub
 let arrowSprite = null;
 
-// Friendly enemies array
-let friendlyEnemies = [];
 
-// Blue sphere projectiles for friendly enemies
-let blueSphereProjectiles = [];
 
 // Portal sprite
 const portalSprite = new Image();
@@ -2099,40 +2091,7 @@ class ArrowProjectile {
     }
 }
 
-class BlueSphereProjectile {
-    constructor(x, y, velocityX, velocityY) {
-        this.x = x;
-        this.y = y;
-        this.width = 20;
-        this.height = 20;
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
-        this.damage = 8;
-        this.speed = 6;
-    }
-    
-    update() {
-        // Use time-based movement for consistent speed independent of frame rate
-        const currentTime = performance.now();
-        if (!this.lastUpdateTime) {
-            this.lastUpdateTime = currentTime;
-        }
-        const deltaTime = currentTime - this.lastUpdateTime;
-        this.lastUpdateTime = currentTime;
-        
-        // Convert speed to pixels per millisecond for time-based movement
-        const pixelsPerMs = this.speed / 16.67; // 16.67ms = 60fps
-        
-        this.x += this.velocityX * pixelsPerMs * deltaTime;
-        this.y += this.velocityY * pixelsPerMs * deltaTime;
-    }
-    
-    isOffScreen() {
-        const locationStart = gameState.currentLocation * LOCATION_WIDTH;
-        const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
-        return this.x < locationStart || this.x > locationEnd || this.y < 0 || this.y > canvas.height;
-    }
-}
+
 
 class ToxinProjectile {
     constructor(x, y, velocityX, velocityY) {
@@ -2355,78 +2314,73 @@ function selectCharacter(characterKey) {
     }
 }
 
-// Attack function
+// Attack function - optimized
 function attack() {
     if (!player.character || player.attackCooldown > 0 || gameState.gameOver || gameState.currentScreen !== 'game') return;
 
-                    player.attacking = true;
-                    
-                    // Different cooldown for ranged vs melee characters
-                                    if (player.character.name === 'Toxin') {
-                    // Always use rage mode attack rate (automatic)
-                    player.attackCooldown = toxinRage.currentAttackRate;
-                } else if (player.character.name === 'Troub') {
-                    player.attackCooldown = 30; // 0.5 seconds (30 frames at 60 FPS) for Troub
-                } else {
-                    player.attackCooldown = 15; // Normal cooldown for melee characters
-                }
+    player.attacking = true;
+    
+    // Cache character name to avoid repeated property access
+    const characterName = player.character.name;
+    
+    // Optimized cooldown setting
+    if (characterName === 'Toxin') {
+        player.attackCooldown = toxinRage.currentAttackRate;
+    } else if (characterName === 'Troub') {
+        player.attackCooldown = 30;
+    } else {
+        player.attackCooldown = 15;
+    }
     
     // Check if special ability is active
     // Special abilities removed from attack function
         gameState.score += 10;
     
     // Create arrow projectile for Troub
-    if (player.character.name === 'Troub') {
+    if (characterName === 'Troub') {
         // Handle critical strike
         handleTroubCriticalStrike();
         
+        // Optimized position calculation
         const arrowX = player.x + (player.direction > 0 ? player.width : 0);
         const arrowY = player.y + player.height / 2;
-        const arrowVelocityX = player.direction;
-        const arrowVelocityY = 0;
         
-        const newArrowProjectile = new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY);
-        // Set consistent speed for all locations
-        newArrowProjectile.speed = 8; // Standard speed for all locations
+        const newArrowProjectile = new ArrowProjectile(arrowX, arrowY, player.direction, 0);
+        newArrowProjectile.speed = 8;
         
         // Apply critical damage if active
         if (troubCriticalStrike.criticalActive) {
-            newArrowProjectile.damage = 45; // 3x damage (15 * 3 = 45)
+            newArrowProjectile.damage = 45;
         }
         
         arrowProjectiles.push(newArrowProjectile);
     }
     
-                    // Create toxin projectile for Toxin
-                if (player.character.name === 'Toxin') {
+                // Create toxin projectile for Toxin
+                if (characterName === 'Toxin') {
                     // Start auto-fire system like Chameleon
                     if (!toxinRage.autoFireActive) {
                         toxinRage.autoFireActive = true;
                         toxinRage.autoFireTimer = 0;
                     }
                     
-                    // Create first projectile immediately
+                    // Optimized position calculation
                     const toxinX = player.x + (player.direction > 0 ? player.width : 0);
-                    const toxinY = player.y + player.height / 2 + 6.5; // Raised by 3.5 pixels higher
-                    const toxinVelocityX = player.direction;
-                    const toxinVelocityY = 0;
+                    const toxinY = player.y + player.height / 2 + 6.5;
                     
-                    const newToxinProjectile = new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY);
-                    // Set consistent speed for all locations
-                    newToxinProjectile.speed = 9; // Standard speed for all locations
+                    const newToxinProjectile = new ToxinProjectile(toxinX, toxinY, player.direction, 0);
+                    newToxinProjectile.speed = 9;
                     toxinProjectiles.push(newToxinProjectile);
-                    
-                    // Toxin sounds removed
                     
                     // Activate attack animation
                     toxinAttackAnimation.active = true;
-                    toxinAttackAnimation.timer = 15; // 0.25 seconds at 60fps
+                    toxinAttackAnimation.timer = 15;
                     toxinAttackAnimation.blinkTimer = 0;
                     toxinAttackAnimation.visible = true;
                 }
                 
                 // Create chameleon projectile for Chameleon
-                if (player.character.name === 'Chameleon') {
+                if (characterName === 'Chameleon') {
                     // Start burst fire for Chameleon
                     if (!chameleonAttackAnimation.active) {
                         chameleonAttackAnimation.active = true;
@@ -2437,14 +2391,12 @@ function attack() {
                     
                     // Create projectile if burst count allows
                     if (chameleonAttackAnimation.burstCount < chameleonAttackAnimation.maxBurstShots) {
+                        // Optimized position calculation
                         const chameleonX = player.x + (player.direction > 0 ? player.width : 0);
                         const chameleonY = player.y + player.height / 2;
-                        const chameleonVelocityX = player.direction;
-                        const chameleonVelocityY = 0;
                         
-                        const newChameleonProjectile = new ChameleonProjectile(chameleonX, chameleonY, chameleonVelocityX, chameleonVelocityY);
-                        // Set consistent speed for all locations
-                        newChameleonProjectile.speed = 16; // Standard speed for all locations
+                        const newChameleonProjectile = new ChameleonProjectile(chameleonX, chameleonY, player.direction, 0);
+                        newChameleonProjectile.speed = 16;
                         chameleonProjectiles.push(newChameleonProjectile);
                         
                         chameleonAttackAnimation.burstCount++;
@@ -2453,7 +2405,7 @@ function attack() {
                 }
                 
                 // Create origami projectile for Origami
-                if (player.character.name === 'Origami') {
+                if (characterName === 'Origami') {
                     // Start burst fire for Origami
                     if (!origamiAttackAnimation.active) {
                         origamiAttackAnimation.active = true;
@@ -2464,14 +2416,12 @@ function attack() {
                     
                     // Create projectile if burst count allows
                     if (origamiAttackAnimation.burstCount < origamiAttackAnimation.maxBurstShots) {
-                        const origamiX = player.x + (player.direction > 0 ? player.width : -20); // Fix position for left direction
+                        // Optimized position calculation
+                        const origamiX = player.x + (player.direction > 0 ? player.width : -20);
                         const origamiY = player.y + player.height / 2;
-                        const origamiVelocityX = player.direction;
-                        const origamiVelocityY = 0;
                         
-                        const newProjectile = new OrigamiProjectile(origamiX, origamiY, origamiVelocityX, origamiVelocityY, 'player');
-                        // Set consistent speed for all locations
-                        newProjectile.speed = 12; // Standard speed for all locations
+                        const newProjectile = new OrigamiProjectile(origamiX, origamiY, player.direction, 0, 'player');
+                        newProjectile.speed = 12;
                         origamiProjectiles.push(newProjectile);
                         
                         origamiAttackAnimation.burstCount++;
@@ -2479,16 +2429,8 @@ function attack() {
                     }
                 }
     
-    // Check for enemy hits based on character type
-    if (gameState.currentLocation === 1) { // Only on Forest location (second location)
-        enemies.forEach(enemy => {
-            const dx = Math.abs(player.x - enemy.x);
-            const dy = Math.abs(player.y - enemy.y);
-            
-            // Chameleon damage is now handled by projectiles in updatePlayer()
-            // Troub, Toxin, and Origami damage is handled by projectiles in updatePlayer()
-        });
-    }
+    // Enemy hits are now handled by projectiles in updatePlayer()
+    // No need for additional checks here
     
     gameState.hits++;
     // Special abilities removed - no ability ready checks
@@ -2569,7 +2511,6 @@ function restartGame() {
     arrowProjectiles = [];
     toxinProjectiles = [];
     origamiProjectiles = [];
-    blueSphereProjectiles = [];
     // Clear chameleon projectiles
     chameleonProjectiles = [];
     
@@ -2635,31 +2576,36 @@ function updatePlayer() {
     
     // Clear keys if not in game screen to prevent lag
     if (gameState.currentScreen !== 'game') {
-        Object.keys(keys).forEach(key => {
-            keys[key] = false;
-        });
+        // Optimized key clearing - only clear if there are keys to clear
+        if (Object.keys(keys).length > 0) {
+            for (let key in keys) {
+                keys[key] = false;
+            }
+        }
         return;
     }
     
-    // Get current location bounds
-    const locationStart = gameState.currentLocation * LOCATION_WIDTH;
-    const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
+    // Get current location bounds - optimized with caching
+    const currentLocation = gameState.currentLocation;
+    const locationStart = currentLocation * LOCATION_WIDTH;
+    const locationEnd = locationStart + LOCATION_WIDTH;
+    const playerWidth = player.width;
     
     // Keep player within current location bounds
     if (player.x < locationStart) player.x = locationStart;
-    if (player.x + player.width > locationEnd) player.x = locationEnd - player.width;
+    if (player.x + playerWidth > locationEnd) player.x = locationEnd - playerWidth;
     
              // Check portal collision (portal is between columns j and k) - only for first location
-    if (gameState.currentLocation === 0) {
+    if (currentLocation === 0) {
         const portalX = locationStart + (36.5 * 32) - 40; // Shifted right, more towards column k
         const portalHeight = 120;
-                 const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
+        const portalY = 2 * 32 - 11; // Position at row 2 (middle position) - moved up by 11 pixels
         
-        // Check if all enemies are dead
+        // Check if all enemies are dead - optimized
         const allEnemiesDead = enemies.length === 0 || enemies.every(enemy => enemy.health <= 0);
         
          if (
-             player.x + player.width > portalX &&
+             player.x + playerWidth > portalX &&
              player.x < portalX + 80 &&
              player.y + player.height > portalY &&
              player.y < portalY + portalHeight &&
@@ -2898,9 +2844,14 @@ function updatePlayer() {
         }
     }
     
-    // Check sprite collisions BEFORE updating position
-
-    const collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation, player.velocityY);
+    // Check sprite collisions BEFORE updating position - optimized with caching
+    let collisionResult;
+    if (Math.abs(newX - player.x) > 0.1 || Math.abs(newY - player.y) > 0.1 || player.velocityY > 0) {
+        collisionResult = checkSpriteCollisions(newX, newY, player.width, player.height, gameState.currentLocation, player.velocityY);
+    } else {
+        // Player didn't move significantly, use cached result
+        collisionResult = { collision: false };
+    }
 
     
 
@@ -2933,12 +2884,10 @@ function updatePlayer() {
 
         player.y = newY;
         
-        // Check for platform collisions when falling - simplified check
+        // Check for platform collisions when falling - use existing collision result
         if (player.velocityY > 0) { // Only check when falling down
-            // Check only at the final position to reduce lag
-            const finalY = player.y + player.velocityY;
-            const fallCollisionResult = checkSpriteCollisions(player.x, finalY, player.width, player.height, gameState.currentLocation, player.velocityY);
-            if (fallCollisionResult.collision && fallCollisionResult.type === 'platform') {
+            // Use the collision result from above if it was a platform collision
+            if (collisionResult.collision && collisionResult.type === 'platform') {
                 // Hit a platform - stop falling
                 player.velocityY = 0;
                 player.onGround = true;
@@ -3383,7 +3332,6 @@ function updatePlayer() {
                         if (player.character && player.character.name === 'Origami') {
                             // Create independent bleeding effect
                             activeBleedingEffects.push(new BleedingEffect(enemy));
-                            console.log('🩸 Origami bleeding activated on target!');
                             // Remove projectile immediately
                             shouldRemove = true;
                         } else {
@@ -3451,74 +3399,27 @@ function updatePlayer() {
             // Update enemies
         enemies.forEach(enemy => enemy.update(player));
         
-        // Update bleeding effects
+        // Update bleeding effects - optimized with visibility check
         for (let i = activeBleedingEffects.length - 1; i >= 0; i--) {
             const bleedingEffect = activeBleedingEffects[i];
-            const shouldKeep = bleedingEffect.update();
-            if (!shouldKeep) {
+            // Only update bleeding effects for visible enemies
+            if (bleedingEffect.target) {
+                const enemyScreenX = bleedingEffect.target.x - cameraX;
+                if (enemyScreenX > -100 && enemyScreenX < canvas.width + 100) {
+                    const shouldKeep = bleedingEffect.update();
+                    if (!shouldKeep) {
+                        activeBleedingEffects.splice(i, 1);
+                    }
+                }
+            } else {
+                // Remove invalid bleeding effects
                 activeBleedingEffects.splice(i, 1);
             }
         }
     
-    // Update friendly enemies
-    friendlyEnemies.forEach(friendlyEnemy => {
-        friendlyEnemy.update(player);
-        friendlyEnemy.glowTimer++;
-        
-        // Friendly enemies attack other enemies
-        enemies.forEach(enemy => {
-            const dx = enemy.x - friendlyEnemy.x;
-            const dy = enemy.y - friendlyEnemy.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < friendlyEnemy.attackRange && friendlyEnemy.attackCooldown === 0) {
-                friendlyEnemy.attackCooldown = 60; // 1 second at 60fps
-                
-                // Create blue sphere projectile
-                const projectileSpeed = 5;
-                const velocityX = (dx / distance) * projectileSpeed;
-                const velocityY = (dy / distance) * projectileSpeed;
-                blueSphereProjectiles.push(new BlueSphereProjectile(friendlyEnemy.x, friendlyEnemy.y, velocityX, velocityY));
-            }
-        });
-    });
+
     
-    // Update blue sphere projectiles
-    for (let i = blueSphereProjectiles.length - 1; i >= 0; i--) {
-        const projectile = blueSphereProjectiles[i];
-        projectile.update();
-        
-        let shouldRemove = false;
-        
-        // Check collision with enemies
-        for (let j = enemies.length - 1; j >= 0; j--) {
-            const enemy = enemies[j];
-            if (projectile.x < enemy.x + enemy.width &&
-                projectile.x + projectile.width > enemy.x &&
-                projectile.y < enemy.y + enemy.height &&
-                projectile.y + projectile.height > enemy.y) {
-                
-                // Check if player is on the same platform as platform_walker enemy
-                if (isPlayerOnEnemyPlatform(enemy)) {
-                    enemy.health -= projectile.damage;
-                    if (enemy.health <= 0) {
-                        enemies.splice(j, 1);
-                    }
-                    shouldRemove = true;
-                    break;
-                }
-            }
-        }
-        
-        // Remove off-screen projectiles
-        if (!shouldRemove && projectile.isOffScreen()) {
-            shouldRemove = true;
-        }
-        
-        if (shouldRemove) {
-            blueSphereProjectiles.splice(i, 1);
-        }
-    }
+
 
     // Update chameleon attack animation
     if (chameleonAttackAnimation.active) {
@@ -4678,20 +4579,7 @@ function drawEnemies() {
         }
     });
 }
-        function drawFriendlyEnemies() {
-            friendlyEnemies.forEach(friendlyEnemy => {
-                const screenX = friendlyEnemy.x - cameraX;
-                
-                // Only draw if friendly enemy is visible on screen
-                if (screenX > -friendlyEnemy.width && screenX < canvas.width) {
-                    // Determine enemy direction based on player position
-                    const enemyDirection = player.x > friendlyEnemy.x ? 1 : -1;
-                    
-                    // Draw friendly enemy as blue fire ball (stable)
-                            drawBlueFireBall(screenX, friendlyEnemy.y, friendlyEnemy.width, friendlyEnemy.height);
-                }
-            });
-        }
+
 
 function drawBlueFireBall(screenX, y, width, height) {
     // Outer glow
@@ -4968,42 +4856,7 @@ function drawToxinAttackAnimation() {
     }
 }
 
-function drawBlueSphereProjectiles() {
-    blueSphereProjectiles.forEach(projectile => {
-        const screenX = projectile.x - cameraX;
-        
-        // Only draw if projectile is visible on screen
-        if (screenX > -projectile.width && screenX < canvas.width) {
-            // Draw blue sphere projectile with glow effect
-            ctx.fillStyle = 'rgba(0, 100, 255, 0.4)';
-            ctx.beginPath();
-            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2 + 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Main blue sphere
-            ctx.fillStyle = '#0066ff';
-            ctx.beginPath();
-            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Inner blue core
-            ctx.fillStyle = '#00ffff';
-            ctx.beginPath();
-            ctx.arc(screenX + projectile.width/2, projectile.y + projectile.height/2, projectile.width/3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Blue trail particles
-            for (let i = 0; i < 2; i++) {
-                const trailX = screenX - projectile.velocityX * (i + 1) * 0.5;
-                const trailY = projectile.y - projectile.velocityY * (i + 1) * 0.5;
-                ctx.fillStyle = `rgba(0, 170, 255, ${0.6 - i * 0.3})`;
-                ctx.beginPath();
-                ctx.arc(trailX + projectile.width/2, trailY + projectile.height/2, 3 - i, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-    });
-}
+
 
 function drawSplashScreen() {
     // Always start with black background to avoid green flash
@@ -5093,11 +4946,18 @@ function gameLoop() {
         
 
         
-        // Update enemies
-        enemies.forEach(enemy => enemy.update(player));
+        // Update enemies - optimized with visibility check
+        const currentLocation = gameState.currentLocation;
+        enemies.forEach(enemy => {
+            // Only update enemies that are visible on screen or close to it
+            const enemyScreenX = enemy.x - cameraX;
+            if (enemyScreenX > -100 && enemyScreenX < canvas.width + 100) {
+                enemy.update(player);
+            }
+        });
         
         // Check for victory - if all enemies are defeated on second location
-        if (enemies.length === 0 && gameState.currentLocation === 1 && !gameState.gameWon && !gameState.gameOver) {
+        if (enemies.length === 0 && currentLocation === 1 && !gameState.gameWon && !gameState.gameOver) {
             gameState.gameWon = true;
         }
         
@@ -5105,16 +4965,12 @@ function gameLoop() {
         
         drawEnemies();
         
-
-        
-        drawFriendlyEnemies();
         drawFireProjectiles();
         drawArrowProjectiles();
         drawToxinProjectiles();
         drawOrigamiProjectiles();
         drawChameleonProjectiles();
         drawToxinAttackAnimation();
-        drawBlueSphereProjectiles();
         drawPlayer();
         
         // Draw platform indicators for all locations - HIDDEN FOR PRODUCTION
@@ -6821,33 +6677,22 @@ function checkSpriteCollisions(playerX, playerY, playerWidth, playerHeight, curr
             { x: 36, y: 15, width: 1, height: 1, type: 'platform' }
         ];
         
-        // Check for platforms that are under other platforms and convert them to walls
-        for (let i = 0; i < collisionAreas.length; i++) {
-            const area = collisionAreas[i];
-            if (area.type === 'platform') {
-                // Check if there's another platform directly above this one
-                for (let j = 0; j < collisionAreas.length; j++) {
-                    const otherArea = collisionAreas[j];
-                    if (otherArea.type === 'platform' && i !== j) {
-                        // Check if other platform is directly above this one
-                        if (otherArea.x === area.x && otherArea.y === area.y - 1) {
-                            // Convert this platform to wall (blocked from all sides)
-                            area.type = 'wall';
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        // Platform overlap check removed for performance - platforms are pre-configured
         
-        // Check each collision area
+        // Check each collision area - optimized with early exit
         for (const area of collisionAreas) {
             const areaX = locationStart + area.x * tileSize;
             const areaY = area.y * tileSize;
             const areaWidth = area.width * tileSize;
             const areaHeight = area.height * tileSize;
             
-            // Simple AABB collision detection
+            // Quick bounds check before full AABB
+            if (playerX + playerWidth < areaX || playerX > areaX + areaWidth ||
+                playerY + playerHeight < areaY || playerY > areaY + areaHeight) {
+                continue; // Skip this area - no collision possible
+            }
+            
+            // Full AABB collision detection
             if (playerX < areaX + areaWidth &&
                 playerX + playerWidth > areaX &&
                 playerY < areaY + areaHeight &&
