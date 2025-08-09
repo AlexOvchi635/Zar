@@ -2288,31 +2288,37 @@ const keys = {};
 
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true;
-    if (e.code === 'Space') {
-        if (gameState.gameWon || gameState.gameOver) {
-            // Return to character selection if won or game over
-            gameState.currentScreen = 'characterSelect';
-            gameState.gameWon = false;
-            gameState.gameOver = false;
-            document.getElementById('characterSelect').style.display = 'block';
-            document.getElementById('gameUI').style.display = 'none';
-        } else {
-            // Normal attack if not won or game over
-            attack();
+    
+    // Only handle game-specific keys when in game screen
+    if (gameState.currentScreen === 'game') {
+        if (e.code === 'Space') {
+            if (gameState.gameWon || gameState.gameOver) {
+                // Return to character selection if won or game over
+                gameState.currentScreen = 'characterSelect';
+                gameState.gameWon = false;
+                gameState.gameOver = false;
+                document.getElementById('characterSelect').style.display = 'block';
+                document.getElementById('gameUI').style.display = 'none';
+            } else {
+                // Normal attack if not won or game over
+                attack();
+            }
         }
+        // Special abilities removed - E key disabled
+        if (e.code === 'KeyR') restartGame();
     }
-    // Special abilities removed - E key disabled
-    if (e.code === 'KeyR') restartGame();
 });
 
 document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
     
-    // Stop Toxin auto-fire when Space is released
-    if (e.code === 'Space' && player.character && player.character.name === 'Toxin') {
-        toxinRage.autoFireActive = false;
-        toxinRage.autoFireTimer = 0;
-        console.log('🎯 Toxin auto-fire stopped - Space released!');
+    // Only handle game-specific keys when in game screen
+    if (gameState.currentScreen === 'game') {
+        // Stop Toxin auto-fire when Space is released
+        if (e.code === 'Space' && player.character && player.character.name === 'Toxin') {
+            toxinRage.autoFireActive = false;
+            toxinRage.autoFireTimer = 0;
+        }
     }
 });
 
@@ -2351,7 +2357,7 @@ function selectCharacter(characterKey) {
 
 // Attack function
 function attack() {
-    if (!player.character || player.attackCooldown > 0 || gameState.gameOver) return;
+    if (!player.character || player.attackCooldown > 0 || gameState.gameOver || gameState.currentScreen !== 'game') return;
 
                     player.attacking = true;
                     
@@ -2386,7 +2392,6 @@ function attack() {
         // Apply critical damage if active
         if (troubCriticalStrike.criticalActive) {
             newArrowProjectile.damage = 45; // 3x damage (15 * 3 = 45)
-            console.log('💥 Critical arrow created with 3x damage!');
         }
         
         arrowProjectiles.push(newArrowProjectile);
@@ -2394,13 +2399,10 @@ function attack() {
     
                     // Create toxin projectile for Toxin
                 if (player.character.name === 'Toxin') {
-                    console.log('🎯 Toxin attack triggered - Direction:', player.direction);
-                    
                     // Start auto-fire system like Chameleon
                     if (!toxinRage.autoFireActive) {
                         toxinRage.autoFireActive = true;
                         toxinRage.autoFireTimer = 0;
-                        console.log('🎯 Toxin auto-fire started!');
                     }
                     
                     // Create first projectile immediately
@@ -2413,7 +2415,6 @@ function attack() {
                     // Set consistent speed for all locations
                     newToxinProjectile.speed = 9; // Standard speed for all locations
                     toxinProjectiles.push(newToxinProjectile);
-                    console.log('💥 Toxin projectile created at:', toxinX, toxinY, 'Velocity:', toxinVelocityX);
                     
                     // Toxin sounds removed
                     
@@ -2422,20 +2423,16 @@ function attack() {
                     toxinAttackAnimation.timer = 15; // 0.25 seconds at 60fps
                     toxinAttackAnimation.blinkTimer = 0;
                     toxinAttackAnimation.visible = true;
-                    console.log('🎯 Toxin attack animation activated - Direction:', player.direction, 'Active:', toxinAttackAnimation.active, 'Visible:', toxinAttackAnimation.visible);
                 }
                 
                 // Create chameleon projectile for Chameleon
                 if (player.character.name === 'Chameleon') {
-                    console.log('🎯 Chameleon attack triggered - Direction:', player.direction);
-                    
                     // Start burst fire for Chameleon
                     if (!chameleonAttackAnimation.active) {
                         chameleonAttackAnimation.active = true;
                         chameleonAttackAnimation.burstCount = 0;
                         chameleonAttackAnimation.burstTimer = 0;
                         chameleonAttackAnimation.visible = true;
-                        console.log('🎯 Chameleon burst fire started!');
                     }
                     
                     // Create projectile if burst count allows
@@ -2449,7 +2446,6 @@ function attack() {
                         // Set consistent speed for all locations
                         newChameleonProjectile.speed = 16; // Standard speed for all locations
                         chameleonProjectiles.push(newChameleonProjectile);
-                        console.log('💥 Chameleon projectile created at:', chameleonX, chameleonY, 'Velocity:', chameleonVelocityX, 'Burst:', chameleonAttackAnimation.burstCount + 1);
                         
                         chameleonAttackAnimation.burstCount++;
                         chameleonAttackAnimation.burstTimer = chameleonAttackAnimation.burstDelay;
@@ -2458,15 +2454,12 @@ function attack() {
                 
                 // Create origami projectile for Origami
                 if (player.character.name === 'Origami') {
-                    console.log('🎯 Origami attack triggered - Direction:', player.direction);
-                    
                     // Start burst fire for Origami
                     if (!origamiAttackAnimation.active) {
                         origamiAttackAnimation.active = true;
                         origamiAttackAnimation.burstCount = 0;
                         origamiAttackAnimation.burstTimer = 0;
                         origamiAttackAnimation.visible = true;
-                        console.log('🎯 Origami burst fire started!');
                     }
                     
                     // Create projectile if burst count allows
@@ -2480,7 +2473,6 @@ function attack() {
                         // Set consistent speed for all locations
                         newProjectile.speed = 12; // Standard speed for all locations
                         origamiProjectiles.push(newProjectile);
-                        console.log('💥 Origami projectile created at:', origamiX, origamiY, 'Velocity:', origamiVelocityX, 'Burst:', origamiAttackAnimation.burstCount + 1);
                         
                         origamiAttackAnimation.burstCount++;
                         origamiAttackAnimation.burstTimer = origamiAttackAnimation.burstDelay;
@@ -2640,6 +2632,14 @@ function updatePlayer() {
     
     // Don't update if game is over or transitioning
     if (gameState.gameOver || gameState.transitioning) return;
+    
+    // Clear keys if not in game screen to prevent lag
+    if (gameState.currentScreen !== 'game') {
+        Object.keys(keys).forEach(key => {
+            keys[key] = false;
+        });
+        return;
+    }
     
     // Get current location bounds
     const locationStart = gameState.currentLocation * LOCATION_WIDTH;
@@ -2933,22 +2933,16 @@ function updatePlayer() {
 
         player.y = newY;
         
-        // Check for platform collisions when falling
+        // Check for platform collisions when falling - simplified check
         if (player.velocityY > 0) { // Only check when falling down
-            // Check multiple points along the fall path
-            let landedOnPlatform = false;
-            for (let checkY = player.y; checkY <= player.y + player.velocityY; checkY += 2) {
-                const fallCollisionResult = checkSpriteCollisions(player.x, checkY, player.width, player.height, gameState.currentLocation, player.velocityY);
-                if (fallCollisionResult.collision && fallCollisionResult.type === 'platform') {
-                    // Hit a platform - stop falling
-                    player.velocityY = 0;
-                    player.onGround = true;
-                    landedOnPlatform = true;
-                    break;
-                }
-            }
-            
-            if (!landedOnPlatform) {
+            // Check only at the final position to reduce lag
+            const finalY = player.y + player.velocityY;
+            const fallCollisionResult = checkSpriteCollisions(player.x, finalY, player.width, player.height, gameState.currentLocation, player.velocityY);
+            if (fallCollisionResult.collision && fallCollisionResult.type === 'platform') {
+                // Hit a platform - stop falling
+                player.velocityY = 0;
+                player.onGround = true;
+            } else {
                 // No ground level - player should fall through
                 player.onGround = false;
             }
@@ -2978,7 +2972,6 @@ function updatePlayer() {
         chameleonCamouflage.timer--;
         if (chameleonCamouflage.timer <= 0) {
             chameleonCamouflage.active = false;
-            console.log('🦎 Chameleon camouflage deactivated!');
         }
     }
     
@@ -2992,7 +2985,6 @@ function updatePlayer() {
             troubCriticalStrike.criticalActive = false;
             troubCriticalStrike.criticalReady = false;
             troubCriticalStrike.glowIntensity = 0;
-            console.log('🎵 Troub critical strike ended!');
         }
     }
     
@@ -3564,7 +3556,6 @@ function updatePlayer() {
             toxinProjectiles.push(newToxinProjectile);
             
             toxinRage.autoFireTimer = 0; // Reset timer
-            console.log('💥 Toxin auto-fire projectile created!');
         }
     }
 }
