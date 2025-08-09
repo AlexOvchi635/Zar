@@ -62,7 +62,49 @@ let chameleonAttackAnimation = {
     maxBurstShots: 10 // More shots per burst
 };
 
-// Toxin special ability variables removed
+// Chameleon camouflage ability variables
+let chameleonCamouflage = {
+    active: false,
+    timer: 0,
+    duration: 180, // 3 seconds at 60fps
+    usedThisLocation: false, // Track if used in current location
+    transparency: 0.3, // 30% opacity when camouflaged
+    keyPressed: false // To prevent continuous activation
+};
+
+// Troub critical strike ability variables
+let troubCriticalStrike = {
+    attackCount: 0,
+    criticalReady: false,
+    criticalActive: false,
+    timer: 0,
+    duration: 30, // 0.5 seconds at 60fps
+    glowIntensity: 0
+};
+
+
+
+// Toxin rage ability variables
+let toxinRage = {
+    active: true, // Always active - no need to activate
+    baseAttackRate: 25, // Normal attack rate (increased for faster base shooting)
+    currentAttackRate: 25,
+    rageMultiplier: 2, // Attack speed multiplier when health is low
+    // Auto-fire system like Chameleon
+    autoFireActive: false,
+    autoFireTimer: 0,
+    autoFireDelay: 25 // Will be updated by updateToxinRage()
+};
+
+// Origami bleeding ability variables
+let origamiBleeding = {
+    active: true, // Always active
+    baseDamage: 0.5, // Base projectile damage (reduced from 1)
+    bleedingDamage: 1, // Damage per bleeding tick (reduced from 2)
+    bleedingDuration: 120, // 6 seconds (120 frames at 20 FPS)
+    bleedingInterval: 40, // 2 seconds (40 frames at 20 FPS)
+    bleedingTicks: 3 // Number of bleeding ticks (6 seconds / 2 seconds = 3 ticks)
+};
 
 // Sound variables - Toxin sounds removed
 
@@ -592,6 +634,78 @@ function drawGridOverlay(screenX) {
         }
     }
 }
+
+// Function to activate chameleon camouflage ability
+function activateChameleonCamouflage() {
+    if (gameState.selectedCharacter === 'chameleon' && 
+        !chameleonCamouflage.active && 
+        !chameleonCamouflage.usedThisLocation &&
+        !chameleonCamouflage.keyPressed) {
+        
+        chameleonCamouflage.active = true;
+        chameleonCamouflage.timer = chameleonCamouflage.duration;
+        chameleonCamouflage.usedThisLocation = true;
+        chameleonCamouflage.keyPressed = true;
+        
+        console.log('🦎 Chameleon camouflage activated! (One use per location)');
+    }
+}
+
+// Function to handle Troub critical strike
+function handleTroubCriticalStrike() {
+    if (gameState.selectedCharacter === 'troub') {
+        troubCriticalStrike.attackCount++;
+        
+        // Every 3rd attack is critical
+        if (troubCriticalStrike.attackCount % 3 === 0) {
+            // This is a critical attack
+            troubCriticalStrike.criticalActive = true;
+            troubCriticalStrike.timer = 1;
+            troubCriticalStrike.criticalReady = false;
+            troubCriticalStrike.glowIntensity = 0;
+        } else if (troubCriticalStrike.attackCount % 3 === 2) {
+            // Next attack will be critical, show glow
+            troubCriticalStrike.criticalReady = true;
+            troubCriticalStrike.glowIntensity = 1.0;
+        } else {
+            // Normal attack, no special effects
+            troubCriticalStrike.criticalReady = false;
+            troubCriticalStrike.glowIntensity = 0;
+        }
+    }
+}
+
+
+
+// Function to update Toxin rage mode
+function updateToxinRage() {
+    if (gameState.selectedCharacter === 'toxin') {
+        // Adjust attack rate based on health (3 health total)
+        if (gameState.health <= 1) {
+            // 1 health or less - maximum rage (8x speed = 4x * 2x)
+            toxinRage.currentAttackRate = Math.max(3, Math.floor(toxinRage.baseAttackRate / 8));
+            toxinRage.autoFireDelay = toxinRage.currentAttackRate;
+        } else if (gameState.health <= 2) {
+            // 2 health - high rage (4x speed)
+            toxinRage.currentAttackRate = Math.max(5, Math.floor(toxinRage.baseAttackRate / 4));
+            toxinRage.autoFireDelay = toxinRage.currentAttackRate;
+        } else {
+            // 3 health - normal attack rate
+            toxinRage.currentAttackRate = toxinRage.baseAttackRate;
+            toxinRage.autoFireDelay = toxinRage.currentAttackRate;
+        }
+        
+        // Don't force immediate attack cooldown reset - let it use the new rage rate naturally
+        // if (player.character && player.character.name === 'Toxin') {
+        //     player.attackCooldown = 0;
+        // }
+    } else {
+        // Reset to normal attack rate when not active
+        toxinRage.currentAttackRate = toxinRage.baseAttackRate;
+    }
+}
+
+
 
 // Function to draw sprite 1.1 from first pack on A0-A18 coordinates
 function drawSprite1_1OnA0A18(screenX) {
@@ -1892,7 +2006,7 @@ class ArrowProjectile {
         this.height = 16; // Increased from 8
         this.velocityX = velocityX;
         this.velocityY = velocityY;
-        this.damage = 18;
+        this.damage = 15; // Reduced base damage
         this.speed = 8; // Moderate speed for interesting gameplay
     }
     
@@ -1997,9 +2111,14 @@ class OrigamiProjectile {
         this.height = 16; // Smaller sprite
         this.velocityX = velocityX;
         this.velocityY = velocityY;
-        this.damage = 6; // Origami damage for platform_walker (108/6 = 18 hits)
+        this.damage = origamiBleeding.baseDamage; // Use bleeding system damage
         this.speed = 12; // Original speed for Origami
         this.owner = owner; // 'player' or 'enemy' or null
+        // Bleeding effect properties
+        this.bleedingActive = false;
+        this.bleedingTarget = null;
+        this.bleedingTimer = 0;
+        this.bleedingTickCount = 0;
     }
     
     update() {
@@ -2022,6 +2141,51 @@ class OrigamiProjectile {
         const locationStart = gameState.currentLocation * LOCATION_WIDTH;
         const locationEnd = (gameState.currentLocation + 1) * LOCATION_WIDTH;
         return this.x < locationStart || this.x > locationEnd || this.y < 0 || this.y > canvas.height;
+    }
+    
+    // Activate bleeding effect on target
+    activateBleeding(target) {
+        this.bleedingActive = true;
+        this.bleedingTarget = target;
+        this.bleedingTimer = 0;
+        this.bleedingTickCount = 0;
+        console.log('🩸 Origami bleeding activated on target!');
+    }
+    
+    // Update bleeding effect
+    updateBleeding() {
+        if (!this.bleedingActive || !this.bleedingTarget) return;
+        
+        this.bleedingTimer++;
+        
+        // Apply bleeding damage every interval
+        if (this.bleedingTimer >= origamiBleeding.bleedingInterval) {
+            if (this.bleedingTickCount < origamiBleeding.bleedingTicks) {
+                // Apply bleeding damage
+                this.bleedingTarget.health -= origamiBleeding.bleedingDamage;
+                this.bleedingTickCount++;
+                this.bleedingTimer = 0;
+                
+                console.log(`🩸 Bleeding tick ${this.bleedingTickCount}: -${origamiBleeding.bleedingDamage} HP to enemy (${this.bleedingTarget.health} HP remaining)`);
+                
+                // Check if enemy is dead
+                if (this.bleedingTarget.health <= 0) {
+                    console.log('💀 Enemy killed by bleeding!');
+                    // Remove enemy from enemies array
+                    const enemyIndex = enemies.indexOf(this.bleedingTarget);
+                    if (enemyIndex > -1) {
+                        enemies.splice(enemyIndex, 1);
+                    }
+                    this.bleedingActive = false;
+                    this.bleedingTarget = null;
+                }
+            } else {
+                // Bleeding effect finished
+                this.bleedingActive = false;
+                this.bleedingTarget = null;
+                console.log('🩸 Bleeding effect finished');
+            }
+        }
     }
 }
 
@@ -2125,7 +2289,12 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('keyup', (e) => {
     keys[e.code] = false;
     
-    // Toxin sounds removed from spacebar release
+    // Stop Toxin auto-fire when Space is released
+    if (e.code === 'Space' && player.character && player.character.name === 'Toxin') {
+        toxinRage.autoFireActive = false;
+        toxinRage.autoFireTimer = 0;
+        console.log('🎯 Toxin auto-fire stopped - Space released!');
+    }
 });
 
 
@@ -2151,6 +2320,7 @@ function selectCharacter(characterKey) {
         // Toxin sounds removed from character switch
         
         player.character = characters[characterKey];
+        gameState.selectedCharacter = characterKey; // Set the selected character
         gameState.currentScreen = 'game';
         document.getElementById('characterSelect').style.display = 'none';
         document.getElementById('gameUI').style.display = 'block';
@@ -2167,13 +2337,14 @@ function attack() {
                     player.attacking = true;
                     
                     // Different cooldown for ranged vs melee characters
-                    if (player.character.name === 'Toxin') {
-                        player.attackCooldown = 15; // 0.25 seconds (15 frames at 60 FPS) - twice as fast as Troub
-                    } else if (player.character.name === 'Troub') {
-                        player.attackCooldown = 30; // 0.5 seconds (30 frames at 60 FPS) for Troub
-                    } else {
-                        player.attackCooldown = 15; // Normal cooldown for melee characters
-                    }
+                                    if (player.character.name === 'Toxin') {
+                    // Always use rage mode attack rate (automatic)
+                    player.attackCooldown = toxinRage.currentAttackRate;
+                } else if (player.character.name === 'Troub') {
+                    player.attackCooldown = 30; // 0.5 seconds (30 frames at 60 FPS) for Troub
+                } else {
+                    player.attackCooldown = 15; // Normal cooldown for melee characters
+                }
     
     // Check if special ability is active
     // Special abilities removed from attack function
@@ -2181,6 +2352,9 @@ function attack() {
     
     // Create arrow projectile for Troub
     if (player.character.name === 'Troub') {
+        // Handle critical strike
+        handleTroubCriticalStrike();
+        
         const arrowX = player.x + (player.direction > 0 ? player.width : 0);
         const arrowY = player.y + player.height / 2;
         const arrowVelocityX = player.direction;
@@ -2189,13 +2363,28 @@ function attack() {
         const newArrowProjectile = new ArrowProjectile(arrowX, arrowY, arrowVelocityX, arrowVelocityY);
         // Set consistent speed for all locations
         newArrowProjectile.speed = 8; // Standard speed for all locations
+        
+        // Apply critical damage if active
+        if (troubCriticalStrike.criticalActive) {
+            newArrowProjectile.damage = 45; // 3x damage (15 * 3 = 45)
+            console.log('💥 Critical arrow created with 3x damage!');
+        }
+        
         arrowProjectiles.push(newArrowProjectile);
     }
     
                     // Create toxin projectile for Toxin
                 if (player.character.name === 'Toxin') {
                     console.log('🎯 Toxin attack triggered - Direction:', player.direction);
-                    // Position bullet to come from the center of the fire animation - higher position
+                    
+                    // Start auto-fire system like Chameleon
+                    if (!toxinRage.autoFireActive) {
+                        toxinRage.autoFireActive = true;
+                        toxinRage.autoFireTimer = 0;
+                        console.log('🎯 Toxin auto-fire started!');
+                    }
+                    
+                    // Create first projectile immediately
                     const toxinX = player.x + (player.direction > 0 ? player.width : 0);
                     const toxinY = player.y + player.height / 2 + 6.5; // Raised by 3.5 pixels higher
                     const toxinVelocityX = player.direction;
@@ -2400,6 +2589,24 @@ function restartGame() {
     chameleonAttackAnimation.timer = 0;
     chameleonAttackAnimation.blinkTimer = 0;
     chameleonAttackAnimation.visible = false;
+    
+    // Reset chameleon camouflage
+    chameleonCamouflage.active = false;
+    chameleonCamouflage.timer = 0;
+    chameleonCamouflage.usedThisLocation = false;
+    chameleonCamouflage.keyPressed = false;
+    
+    // Reset Troub critical strike
+    troubCriticalStrike.attackCount = 0;
+    troubCriticalStrike.criticalReady = false;
+    troubCriticalStrike.criticalActive = false;
+    troubCriticalStrike.timer = 0;
+    troubCriticalStrike.glowIntensity = 0;
+    
+    // Reset Toxin rage mode
+    toxinRage.currentAttackRate = toxinRage.baseAttackRate;
+    
+
 }
 
 // Camera system
@@ -2442,6 +2649,9 @@ function updatePlayer() {
                 gameState.currentLocation++;
                 player.x = (gameState.currentLocation * LOCATION_WIDTH) + 100;
                 gameState.transitioning = false;
+                
+                // Reset chameleon camouflage for new location
+                chameleonCamouflage.usedThisLocation = false;
                 
                 // Initialize enemies for new location if needed
                  if (gameState.currentLocation === 1) { // Лес location
@@ -2730,6 +2940,45 @@ function updatePlayer() {
     if (player.attackCooldown > 0) player.attackCooldown--;
     if (gameState.abilityTimer > 0) gameState.abilityTimer--;
     
+    // Chameleon camouflage ability input
+    if (keys['KeyQ']) {
+        activateChameleonCamouflage();
+    } else {
+        chameleonCamouflage.keyPressed = false;
+    }
+    
+
+    
+
+    
+    // Update chameleon camouflage
+    if (chameleonCamouflage.active) {
+        chameleonCamouflage.timer--;
+        if (chameleonCamouflage.timer <= 0) {
+            chameleonCamouflage.active = false;
+            console.log('🦎 Chameleon camouflage deactivated!');
+        }
+    }
+    
+    // Chameleon camouflage cooldown removed - now one use per location
+    
+    // Update Troub critical strike
+    if (troubCriticalStrike.criticalActive) {
+        troubCriticalStrike.timer--;
+        
+        if (troubCriticalStrike.timer <= 0) {
+            troubCriticalStrike.criticalActive = false;
+            troubCriticalStrike.criticalReady = false;
+            troubCriticalStrike.glowIntensity = 0;
+            console.log('🎵 Troub critical strike ended!');
+        }
+    }
+    
+    // Update Toxin rage mode
+    updateToxinRage();
+    
+
+    
                     // Update toxin attack animation
                 if (toxinAttackAnimation.active) {
                     toxinAttackAnimation.timer--;
@@ -2793,6 +3042,11 @@ function updatePlayer() {
     
     // Check for enemy attacks and fire projectiles
     enemies.forEach(enemy => {
+        // Skip enemy attacks if player is camouflaged
+        if (chameleonCamouflage.active) {
+            return; // Enemies can't see camouflaged player
+        }
+        
         const attackResult = enemy.attack(player);
         if (attackResult.damage > 0) {
             // Only create projectiles, no direct damage from enemy touch
@@ -2883,8 +3137,11 @@ function updatePlayer() {
     }
 
     // Update fire projectiles
-    fireProjectiles.forEach((projectile, index) => {
+    for (let i = fireProjectiles.length - 1; i >= 0; i--) {
+        const projectile = fireProjectiles[i];
         projectile.update();
+        
+        let shouldRemove = false;
         
         // Check collision with player
         if (projectile.x < player.x + player.width &&
@@ -2895,6 +3152,13 @@ function updatePlayer() {
             {
                 gameState.health -= 1; // Each hit takes 1 health point
                 
+                // Instantly update Toxin rage mode if player is Toxin
+                if (player.character && player.character.name === 'Toxin') {
+                    updateToxinRage();
+                    // Reset auto-fire timer for instant rage activation
+                    toxinRage.autoFireTimer = 0;
+                }
+                
                 // Check if player is dead
                 if (gameState.health <= 0) {
                     gameState.health = 0;
@@ -2902,12 +3166,13 @@ function updatePlayer() {
                 }
             }
             
-            fireProjectiles.splice(index, 1);
+            shouldRemove = true;
         }
         
         // Check collision with enemies (only for player projectiles, not enemy projectiles)
-        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1) && !projectile.owner) {
-            enemies.forEach(enemy => {
+        if (!shouldRemove && (gameState.currentLocation === 0 || gameState.currentLocation === 1) && !projectile.owner) {
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const enemy = enemies[j];
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
@@ -2917,26 +3182,31 @@ function updatePlayer() {
                     if (isPlayerOnEnemyPlatform(enemy)) {
                         enemy.health -= projectile.damage;
                         if (enemy.health <= 0) {
-                            const enemyIndex = enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
-                                enemies.splice(enemyIndex, 1);
-                            }
+                            enemies.splice(j, 1);
                         }
-                        fireProjectiles.splice(index, 1);
+                        shouldRemove = true;
+                        break;
                     }
                 }
-            });
+            }
         }
         
         // Remove off-screen projectiles
-        if (projectile.isOffScreen()) {
-            fireProjectiles.splice(index, 1);
+        if (!shouldRemove && projectile.isOffScreen()) {
+            shouldRemove = true;
         }
-    });
+        
+        if (shouldRemove) {
+            fireProjectiles.splice(i, 1);
+        }
+    }
     
     // Update dragon fireballs (completely independent)
-    dragonFireballs.forEach((fireball, index) => {
+    for (let i = dragonFireballs.length - 1; i >= 0; i--) {
+        const fireball = dragonFireballs[i];
         fireball.update();
+        
+        let shouldRemove = false;
         
         // Check collision with player - only when fireball reaches hero sprite (not when flying above)
         if (fireball.x < player.x + player.width &&
@@ -2946,28 +3216,43 @@ function updatePlayer() {
             // Player hit by dragon fireball
             gameState.health -= 1; // Each hit takes 1 health point
             
+            // Instantly update Toxin rage mode if player is Toxin
+            if (player.character && player.character.name === 'Toxin') {
+                updateToxinRage();
+                // Reset auto-fire timer for instant rage activation
+                toxinRage.autoFireTimer = 0;
+            }
+            
             // Check if player is dead
             if (gameState.health <= 0) {
                 gameState.health = 0;
                 gameState.gameOver = true;
             }
             
-            dragonFireballs.splice(index, 1);
+            shouldRemove = true;
         }
         
         // Remove if off screen
-        if (fireball.isOffScreen()) {
-            dragonFireballs.splice(index, 1);
+        if (!shouldRemove && fireball.isOffScreen()) {
+            shouldRemove = true;
         }
-    });
+        
+        if (shouldRemove) {
+            dragonFireballs.splice(i, 1);
+        }
+    }
     
     // Update arrow projectiles
-    arrowProjectiles.forEach((projectile, index) => {
+    for (let i = arrowProjectiles.length - 1; i >= 0; i--) {
+        const projectile = arrowProjectiles[i];
         projectile.update();
+        
+        let shouldRemove = false;
         
         // Check collision with enemies (both locations)
         if ((gameState.currentLocation === 0 || gameState.currentLocation === 1)) {
-            enemies.forEach(enemy => {
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const enemy = enemies[j];
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
@@ -2977,30 +3262,36 @@ function updatePlayer() {
                     if (isPlayerOnEnemyPlatform(enemy)) {
                         enemy.health -= projectile.damage;
                         if (enemy.health <= 0) {
-                            const enemyIndex = enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
-                                enemies.splice(enemyIndex, 1);
-                            }
+                            enemies.splice(j, 1);
                         }
-                        arrowProjectiles.splice(index, 1);
+                        shouldRemove = true;
+                        break;
                     }
                 }
-            });
+            }
         }
         
         // Remove off-screen projectiles
-        if (projectile.isOffScreen()) {
-            arrowProjectiles.splice(index, 1);
+        if (!shouldRemove && projectile.isOffScreen()) {
+            shouldRemove = true;
         }
-    });
+        
+        if (shouldRemove) {
+            arrowProjectiles.splice(i, 1);
+        }
+    }
     
     // Update toxin projectiles
-    toxinProjectiles.forEach((projectile, index) => {
+    for (let i = toxinProjectiles.length - 1; i >= 0; i--) {
+        const projectile = toxinProjectiles[i];
         projectile.update();
+        
+        let shouldRemove = false;
         
         // Check collision with enemies (both locations)
         if ((gameState.currentLocation === 0 || gameState.currentLocation === 1)) {
-            enemies.forEach(enemy => {
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const enemy = enemies[j];
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
@@ -3010,26 +3301,36 @@ function updatePlayer() {
                     if (isPlayerOnEnemyPlatform(enemy)) {
                         enemy.health -= projectile.damage;
                         if (enemy.health <= 0) {
-                            const enemyIndex = enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
-                                enemies.splice(enemyIndex, 1);
-                            }
+                            enemies.splice(j, 1);
                         }
-                        toxinProjectiles.splice(index, 1);
+                        shouldRemove = true;
+                        break;
                     }
                 }
-            });
+            }
         }
         
         // Remove off-screen projectiles
-        if (projectile.isOffScreen()) {
-            toxinProjectiles.splice(index, 1);
+        if (!shouldRemove && projectile.isOffScreen()) {
+            shouldRemove = true;
         }
-    });
+        
+        if (shouldRemove) {
+            toxinProjectiles.splice(i, 1);
+        }
+    }
     
     // Update origami projectiles
-    origamiProjectiles.forEach((projectile, index) => {
+    for (let i = origamiProjectiles.length - 1; i >= 0; i--) {
+        const projectile = origamiProjectiles[i];
         projectile.update();
+        
+        // Update bleeding effect for Origami projectiles
+        if (player.character && player.character.name === 'Origami') {
+            projectile.updateBleeding();
+        }
+        
+        let shouldRemove = false;
         
         // Check collision with player (only enemy projectiles should damage player)
         if (projectile.owner !== 'player' && projectile.x < player.x + player.width &&
@@ -3038,18 +3339,26 @@ function updatePlayer() {
             projectile.y + projectile.height > player.y) {
             gameState.health -= 1; // Each hit takes 1 health point
             
+            // Instantly update Toxin rage mode if player is Toxin
+            if (player.character && player.character.name === 'Toxin') {
+                updateToxinRage();
+                // Force immediate attack cooldown update
+                player.attackCooldown = Math.min(player.attackCooldown, toxinRage.currentAttackRate);
+            }
+            
             // Check if player is dead
             if (gameState.health <= 0) {
                 gameState.health = 0;
                 gameState.gameOver = true;
             }
             
-            origamiProjectiles.splice(index, 1);
+            shouldRemove = true;
         }
         
         // Check collision with enemies (only for player projectiles, not enemy projectiles)
-        if ((gameState.currentLocation === 0 || gameState.currentLocation === 1) && projectile.owner === 'player') {
-            enemies.forEach(enemy => {
+        if (!shouldRemove && (gameState.currentLocation === 0 || gameState.currentLocation === 1) && projectile.owner === 'player') {
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const enemy = enemies[j];
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
@@ -3058,31 +3367,51 @@ function updatePlayer() {
                     // Check if player is on the same platform as platform_walker enemy
                     if (isPlayerOnEnemyPlatform(enemy)) {
                         enemy.health -= projectile.damage;
-                        if (enemy.health <= 0) {
-                            const enemyIndex = enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
-                                enemies.splice(enemyIndex, 1);
-                            }
+                        
+                        // Activate bleeding effect for Origami projectiles
+                        if (player.character && player.character.name === 'Origami') {
+                            projectile.activateBleeding(enemy);
+                            // Don't remove projectile immediately - let it continue bleeding
+                            shouldRemove = false;
+                        } else {
+                            shouldRemove = true;
                         }
-                        origamiProjectiles.splice(index, 1);
+                        
+                        if (enemy.health <= 0) {
+                            enemies.splice(j, 1);
+                        }
+                        break;
                     }
                 }
-            });
+            }
         }
         
-        // Remove off-screen projectiles
-        if (projectile.isOffScreen()) {
-            origamiProjectiles.splice(index, 1);
+        // Remove off-screen projectiles (but keep bleeding projectiles active)
+        if (!shouldRemove && projectile.isOffScreen() && !projectile.bleedingActive) {
+            shouldRemove = true;
         }
-    });
+        
+        // Remove projectiles when bleeding is finished
+        if (projectile.bleedingActive && !projectile.bleedingTarget) {
+            shouldRemove = true;
+        }
+        
+        if (shouldRemove) {
+            origamiProjectiles.splice(i, 1);
+        }
+    }
     
     // Update chameleon projectiles
-    chameleonProjectiles.forEach((projectile, index) => {
+    for (let i = chameleonProjectiles.length - 1; i >= 0; i--) {
+        const projectile = chameleonProjectiles[i];
         projectile.update();
+        
+        let shouldRemove = false;
         
         // Check collision with enemies (both locations)
         if ((gameState.currentLocation === 0 || gameState.currentLocation === 1)) {
-            enemies.forEach(enemy => {
+            for (let j = enemies.length - 1; j >= 0; j--) {
+                const enemy = enemies[j];
                 if (projectile.x < enemy.x + enemy.width &&
                     projectile.x + projectile.width > enemy.x &&
                     projectile.y < enemy.y + enemy.height &&
@@ -3092,22 +3421,24 @@ function updatePlayer() {
                     if (isPlayerOnEnemyPlatform(enemy)) {
                         enemy.health -= projectile.damage;
                         if (enemy.health <= 0) {
-                            const enemyIndex = enemies.indexOf(enemy);
-                            if (enemyIndex > -1) {
-                                enemies.splice(enemyIndex, 1);
-                            }
+                            enemies.splice(j, 1);
                         }
-                        chameleonProjectiles.splice(index, 1);
+                        shouldRemove = true;
+                        break;
                     }
                 }
-            });
+            }
         }
         
         // Remove off-screen projectiles
-        if (projectile.isOffScreen()) {
-            chameleonProjectiles.splice(index, 1);
+        if (!shouldRemove && projectile.isOffScreen()) {
+            shouldRemove = true;
         }
-    });
+        
+        if (shouldRemove) {
+            chameleonProjectiles.splice(i, 1);
+        }
+    }
     
             // Update enemies
         enemies.forEach(enemy => enemy.update(player));
@@ -3136,11 +3467,15 @@ function updatePlayer() {
     });
     
     // Update blue sphere projectiles
-    blueSphereProjectiles.forEach((projectile, index) => {
+    for (let i = blueSphereProjectiles.length - 1; i >= 0; i--) {
+        const projectile = blueSphereProjectiles[i];
         projectile.update();
         
+        let shouldRemove = false;
+        
         // Check collision with enemies
-        enemies.forEach(enemy => {
+        for (let j = enemies.length - 1; j >= 0; j--) {
+            const enemy = enemies[j];
             if (projectile.x < enemy.x + enemy.width &&
                 projectile.x + projectile.width > enemy.x &&
                 projectile.y < enemy.y + enemy.height &&
@@ -3150,21 +3485,23 @@ function updatePlayer() {
                 if (isPlayerOnEnemyPlatform(enemy)) {
                     enemy.health -= projectile.damage;
                     if (enemy.health <= 0) {
-                        const enemyIndex = enemies.indexOf(enemy);
-                        if (enemyIndex > -1) {
-                            enemies.splice(enemyIndex, 1);
-                        }
+                        enemies.splice(j, 1);
                     }
-                    blueSphereProjectiles.splice(index, 1);
+                    shouldRemove = true;
+                    break;
                 }
             }
-        });
+        }
         
         // Remove off-screen projectiles
-        if (projectile.isOffScreen()) {
-            blueSphereProjectiles.splice(index, 1);
+        if (!shouldRemove && projectile.isOffScreen()) {
+            shouldRemove = true;
         }
-    });
+        
+        if (shouldRemove) {
+            blueSphereProjectiles.splice(i, 1);
+        }
+    }
 
     // Update chameleon attack animation
     if (chameleonAttackAnimation.active) {
@@ -3184,6 +3521,25 @@ function updatePlayer() {
             chameleonAttackAnimation.visible = false;
             chameleonAttackAnimation.burstCount = 0;
             chameleonAttackAnimation.burstTimer = 0;
+        }
+    }
+    
+    // Update Toxin auto-fire system
+    if (toxinRage.autoFireActive && player.character && player.character.name === 'Toxin') {
+        toxinRage.autoFireTimer++;
+        if (toxinRage.autoFireTimer >= toxinRage.autoFireDelay) {
+            // Create additional projectile
+            const toxinX = player.x + (player.direction > 0 ? player.width : 0);
+            const toxinY = player.y + player.height / 2 + 6.5;
+            const toxinVelocityX = player.direction;
+            const toxinVelocityY = 0;
+            
+            const newToxinProjectile = new ToxinProjectile(toxinX, toxinY, toxinVelocityX, toxinVelocityY);
+            newToxinProjectile.speed = 9;
+            toxinProjectiles.push(newToxinProjectile);
+            
+            toxinRage.autoFireTimer = 0; // Reset timer
+            console.log('💥 Toxin auto-fire projectile created!');
         }
     }
 }
@@ -3219,6 +3575,9 @@ function updateUI() {
         if (gameState.gameOver) {
             abilityInfo.textContent = 'GAME OVER';
             abilityInfo.style.color = '#ff0000';
+        } else if (chameleonCamouflage.active && gameState.selectedCharacter === 'chameleon') {
+            abilityInfo.textContent = 'CAMOUFLAGE ACTIVE!';
+            abilityInfo.style.color = '#00ff00';
         } else if (gameState.abilityReady) {
             if (player.character && player.character.name === 'Troub') {
                 abilityInfo.textContent = 'CONVERT READY!';
@@ -3233,6 +3592,30 @@ function updateUI() {
                 abilityInfo.textContent = 'DASH READY!';
             }
             abilityInfo.style.color = '#00ffff';
+        } else if (gameState.selectedCharacter === 'chameleon' && !chameleonCamouflage.usedThisLocation) {
+            abilityInfo.textContent = 'CAMOUFLAGE READY! (Q)';
+            abilityInfo.style.color = '#00ff00';
+        } else if (gameState.selectedCharacter === 'chameleon' && chameleonCamouflage.usedThisLocation) {
+            abilityInfo.textContent = 'CAMOUFLAGE USED!';
+            abilityInfo.style.color = '#ff8800';
+        } else if (gameState.selectedCharacter === 'troub' && troubCriticalStrike.criticalReady) {
+            abilityInfo.textContent = 'SUPER SHOT READY!';
+            abilityInfo.style.color = '#ffaa00';
+        } else if (gameState.selectedCharacter === 'troub' && troubCriticalStrike.criticalActive) {
+            abilityInfo.textContent = 'SUPER SHOT FIRED!';
+            abilityInfo.style.color = '#ff6600';
+        } else if (gameState.selectedCharacter === 'toxin') {
+            // Show current rage level based on health (3 health total)
+            if (gameState.health <= 1) {
+                abilityInfo.textContent = 'MAXIMUM RAGE! (8x SPEED)';
+                abilityInfo.style.color = '#ff0000';
+            } else if (gameState.health <= 2) {
+                abilityInfo.textContent = 'HIGH RAGE! (4x SPEED)';
+                abilityInfo.style.color = '#ff4400';
+            } else {
+                abilityInfo.textContent = 'RAGE MODE: READY';
+                abilityInfo.style.color = '#ffaa00';
+            }
         } else {
             abilityInfo.textContent = 'Ability: Ready';
             abilityInfo.style.color = '#ffffff';
@@ -3513,8 +3896,7 @@ function drawBackground() {
             try {
                 ctx.drawImage(backgroundImages.hyperspace, screenX, 0, LOCATION_WIDTH, canvas.height);
                 
-                // Draw grid overlay for level design
-                drawGridOverlay(screenX);
+                // Grid overlay removed for second location
                 
                 // Draw black sprite 1.2 from first pack on A0-A18 coordinates
                 drawBlackSprite1_2OnA0A18(screenX);
@@ -4011,6 +4393,12 @@ function drawPlayer() {
          } else if (player.character.name === 'Chameleon' && characterSprites.chameleon && characterSprites.chameleon.complete) {
              try {
                  ctx.save();
+                 
+                 // Apply transparency effect if camouflage is active
+                 if (chameleonCamouflage.active) {
+                     ctx.globalAlpha = chameleonCamouflage.transparency;
+                 }
+                 
                  if (player.direction === -1) {
                      ctx.scale(-1, 1);
                      ctx.drawImage(characterSprites.chameleon, -(screenX + 80), player.y, 80, player.height);
@@ -4022,11 +4410,26 @@ function drawPlayer() {
                  console.error('Error drawing Chameleon sprite:', error);
                  // Fallback to colored rectangle
                  ctx.fillStyle = player.character.color;
+                 
+                 // Apply transparency effect if camouflage is active
+                 if (chameleonCamouflage.active) {
+                     ctx.globalAlpha = chameleonCamouflage.transparency;
+                 }
+                 
                  ctx.fillRect(screenX, player.y, player.width, player.height);
+                 ctx.globalAlpha = 1.0; // Reset alpha
              }
          } else if (player.character.name === 'Troub' && characterSprites.troub && characterSprites.troub.complete) {
              try {
                  ctx.save();
+                 
+                 // Apply glow effect if critical strike is ready or active
+                 if (troubCriticalStrike.criticalReady || troubCriticalStrike.criticalActive) {
+                     ctx.shadowColor = '#ffaa00';
+                     ctx.shadowBlur = 20 * troubCriticalStrike.glowIntensity;
+                     ctx.globalAlpha = 0.8 + (0.2 * troubCriticalStrike.glowIntensity);
+                 }
+                 
                  if (player.direction === -1) {
                      ctx.scale(-1, 1);
                      ctx.drawImage(characterSprites.troub, -(screenX + 80), player.y, 80, player.height);
@@ -4038,7 +4441,16 @@ function drawPlayer() {
                  console.error('Error drawing Troub sprite:', error);
                  // Fallback to colored rectangle
                  ctx.fillStyle = player.character.color;
+                 
+                 // Apply glow effect if critical strike is ready or active
+                 if (troubCriticalStrike.criticalReady || troubCriticalStrike.criticalActive) {
+                     ctx.shadowColor = '#ffaa00';
+                     ctx.shadowBlur = 20 * troubCriticalStrike.glowIntensity;
+                     ctx.globalAlpha = 0.8 + (0.2 * troubCriticalStrike.glowIntensity);
+                 }
+                 
                  ctx.fillRect(screenX, player.y, player.width, player.height);
+                 ctx.globalAlpha = 1.0; // Reset alpha
              }
          } else {
              // Draw colored rectangle for other characters
@@ -4047,6 +4459,8 @@ function drawPlayer() {
          }
         
                  // Character name hidden
+        
+
         
         // Draw attack animation
         if (player.attacking) {
@@ -4092,6 +4506,9 @@ function drawPlayer() {
             player.attacking = false;
         }
     }
+    
+    // Reset global alpha at the end of drawPlayer
+    ctx.globalAlpha = 1.0;
 }
 
 function drawEnemies() {
@@ -4186,57 +4603,44 @@ function drawEnemies() {
                     ctx.fillRect(screenX, enemy.y, 80, 48);
                 }
                 
-                // Draw enemy health bar (only on Forest location)
-                // Health bar hidden for platform_walker enemies and dragons (dragons have their own health bar)
-                if (gameState.currentLocation === 1 && enemy.type !== 'platform_walker' && enemy.type !== 'dragon') {
-                    const healthBarWidth = 60;
-                    const healthBarHeight = 4;
-                    const healthBarX = screenX + 10;
-                    const healthBarY = enemy.y - 10;
-                    
-                    // Health bar background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-                    
-                    // Health bar fill
-                    const healthPercentage = enemy.health / 30; // 30 is max health
-                    ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
-                }
+
                 
-                // Draw dragon health bar (on both locations)
-                if (enemy.type === 'dragon') {
-                    const healthBarWidth = 50; // Smaller health bar for dragons
-                    const healthBarHeight = 3; // Thinner health bar
-                    const healthBarX = screenX + 15;
-                    const healthBarY = enemy.y - 8;
-                    
-                    // Health bar background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-                    
-                    // Health bar fill
-                    const healthPercentage = enemy.health / 30; // 30 is max health for dragons (same as other enemies)
-                    ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
-                }
+                // Draw enemy health bar for all enemies (to show bleeding effect)
+                const healthBarWidth = 60;
+                const healthBarHeight = 4;
+                const healthBarX = screenX + 10;
+                const healthBarY = enemy.y - 10;
                 
-                // Draw platform_walker health bar (on both locations)
+                // Calculate health percentage
+                let maxHealth;
                 if (enemy.type === 'platform_walker') {
-                    const healthBarWidth = 50; // Same size as dragon health bar
-                    const healthBarHeight = 3; // Same thickness as dragon health bar
-                    const healthBarX = screenX + 15;
-                    const healthBarY = enemy.y - 8;
-                    
-                    // Health bar background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-                    
-                    // Health bar fill
-                    const healthPercentage = enemy.health / 108; // 108 is max health for platform_walker
-                    ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
+                    maxHealth = 108;
+                } else if (enemy.type === 'dragon') {
+                    maxHealth = 30;
+                } else {
+                    maxHealth = 30;
                 }
+                
+                const healthPercentage = enemy.health / maxHealth;
+                
+                // Background (gray)
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+                
+                // Health bar (green to red based on health)
+                const healthWidth = Math.max(0, healthBarWidth * healthPercentage); // Prevent negative width
+                if (healthPercentage > 0.6) {
+                    ctx.fillStyle = '#00FF00'; // Green
+                } else if (healthPercentage > 0.3) {
+                    ctx.fillStyle = '#FFFF00'; // Yellow
+                } else {
+                    ctx.fillStyle = '#FF0000'; // Red
+                }
+                ctx.fillRect(healthBarX, healthBarY, healthWidth, healthBarHeight);
+                
+
+                
+
             }
             // Draw regular fire enemies and horizontal enemies
             else if (enemy.type === 'fire' || enemy.type === 'horizontal') {
@@ -4253,25 +4657,7 @@ function drawEnemies() {
                     ctx.fillRect(screenX, enemy.y, 80, 48);
                 }
                 
-                // Draw enemy health bar (only on Forest location)
-                // Health bar completely hidden for platform_walker enemies
-                if (gameState.currentLocation === 1 && enemy.type !== 'platform_walker') {
-                    const healthBarWidth = 60;
-                    const healthBarHeight = 4;
-                    const healthBarX = screenX + 10;
-                    const healthBarY = enemy.y - 10;
-                    
-                    // Health bar background
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
-                    
-                    // Health bar fill
-                    const maxHealth = 30;
-                    const healthPercentage = enemy.health / maxHealth;
-                    ctx.fillStyle = healthPercentage > 0.5 ? '#00ff00' : healthPercentage > 0.25 ? '#ffff00' : '#ff0000';
-                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * healthPercentage, healthBarHeight);
-                }
-                // NO HEALTH BAR FOR PLATFORM_WALKER ENEMIES
+
             }
         }
     });
@@ -4438,10 +4824,21 @@ function drawArrowProjectiles() {
         
         // Only draw if projectile is visible on screen
         if (screenX > -projectile.width && screenX < canvas.width) {
+            // Check if this is a critical arrow (high damage)
+            const isCritical = projectile.damage > 30;
+            
             // Draw arrow sprite if available
             if (arrowSprite && arrowSprite.complete) {
                 try {
                     ctx.save();
+                    
+                    // Apply glow effect for critical arrows
+                    if (isCritical) {
+                        ctx.shadowColor = '#ffaa00';
+                        ctx.shadowBlur = 15;
+                        ctx.globalAlpha = 0.9;
+                    }
+                    
                     // Flip arrow based on direction
                     if (projectile.velocityX < 0) {
                         ctx.scale(-1, 1);
@@ -4453,12 +4850,12 @@ function drawArrowProjectiles() {
                 } catch (error) {
                     console.error('Error drawing arrow sprite:', error);
                     // Fallback to colored rectangle
-                    ctx.fillStyle = '#8B4513';
+                    ctx.fillStyle = isCritical ? '#ffaa00' : '#8B4513';
                     ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
                 }
             } else {
                 // Fallback to colored rectangle
-                ctx.fillStyle = '#8B4513';
+                ctx.fillStyle = isCritical ? '#ffaa00' : '#8B4513';
                 ctx.fillRect(screenX, projectile.y, projectile.width, projectile.height);
             }
         }
@@ -4503,6 +4900,8 @@ function drawOrigamiProjectiles() {
         const screenX = projectile.x - cameraX;
         // Only draw if projectile is visible on screen
         if (screenX > -projectile.width && screenX < canvas.width) {
+
+            
             if (origamiAttackSprite && origamiAttackSprite.complete) {
                 try {
                     ctx.save();
