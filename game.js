@@ -601,12 +601,17 @@ function drawSprite1_1OnA0A18(screenX) {
     const spriteX = 1; // Sprite 1.1 = column 1, row 1
     const spriteY = 1;
     
-    // Draw sprite 1.1 on A0-A18 coordinates (first column, all rows)
-    for (let y = 0; y < 19; y++) { // A0 to A18 = 19 tiles
+    // Calculate visible area to optimize rendering
+    const visibleStartY = Math.max(0, Math.floor(-screenX / tileSize));
+    const visibleEndY = Math.min(19, Math.ceil((canvas.width - screenX) / tileSize));
+    
+    // Only draw tiles that are visible on screen
+    for (let y = visibleStartY; y < visibleEndY; y++) {
         const screenY = y * tileSize;
         const screenGridX = screenX + 0; // A column = x = 0
         
-        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        // Additional visibility check
+        if (screenGridX >= -tileSize && screenGridX <= canvas.width) {
             ctx.drawImage(
                 industrialTilesSprite,
                 spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
@@ -4974,10 +4979,16 @@ function drawBlackSprite1_2OnA0A18(screenX) {
     const tileSize = 32;
     const spriteX = 1; // column 1
     const spriteY = 2; // row 2 (1.2)
-    for (let y = 0; y < 19; y++) {
+    
+    // Calculate visible area to optimize rendering
+    const visibleStartY = Math.max(0, Math.floor(-screenX / tileSize));
+    const visibleEndY = Math.min(19, Math.ceil((canvas.width - screenX) / tileSize));
+    
+    // Only draw tiles that are visible on screen
+    for (let y = visibleStartY; y < visibleEndY; y++) {
         const screenY = y * tileSize;
         const screenGridX = screenX + 0;
-        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        if (screenGridX >= -tileSize && screenGridX <= canvas.width) {
             ctx.drawImage(
                 industrialTilesSprite,
                 spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
@@ -4993,11 +5004,16 @@ function drawBlackSprite1_2OnB18_L18(screenX) {
     const tileSize = 32;
     const spriteX = 1; // column 1
     const spriteY = 2; // row 2 (1.2)
+    
+    // Calculate visible columns to optimize rendering
+    const visibleStartCol = Math.max(1, Math.floor(-screenX / tileSize));
+    const visibleEndCol = Math.min(37, Math.ceil((canvas.width - screenX) / tileSize));
+    
     // B-l = columns 1-37 (B=1, l=37) - покрываем до l18
-    for (let col = 1; col <= 37; col++) {
+    for (let col = visibleStartCol; col <= visibleEndCol; col++) {
         const screenGridX = screenX + col * tileSize;
         const screenY = 18 * tileSize;
-        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        if (screenGridX >= -tileSize && screenGridX <= canvas.width) {
             ctx.drawImage(
                 industrialTilesSprite,
                 spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
@@ -5015,12 +5031,15 @@ function drawBlackSprite1_2OnM18_L18(screenX) {
     const spriteX = 1; // column 1
     const spriteY = 2; // row 2 (1.2)
     
+    // Calculate visible columns to optimize rendering
+    const visibleStartCol = Math.max(12, Math.floor(-screenX / tileSize));
+    const visibleEndCol = Math.min(37, Math.ceil((canvas.width - screenX) / tileSize));
+    
     // M18 до конца локации (M=12, конец=37)
-    const maxCols = Math.floor(1200 / tileSize); // 37 колонок
-    for (let col = 12; col < maxCols; col++) { // M=12 до конца
+    for (let col = visibleStartCol; col < visibleEndCol; col++) { // M=12 до конца
         const screenGridX = screenX + col * tileSize;
         const screenY = 18 * tileSize;
-        if (screenGridX >= 0 && screenGridX <= canvas.width) {
+        if (screenGridX >= -tileSize && screenGridX <= canvas.width) {
             ctx.drawImage(
                 industrialTilesSprite,
                 spriteX * tileSize, spriteY * tileSize, tileSize, tileSize,
