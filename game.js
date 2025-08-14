@@ -235,7 +235,7 @@ portalSprite.onload = function() {
 portalSprite.onerror = function() {
     console.error('❌ Failed to load portal sprite!');
 };
-portalSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiamlxiktldu5biljkebu2xvrkaolbsvasmspsesvhscg44n5h6rae';
+portalSprite.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreiamlxiktldu5biljkebu2xvrkaolbsvasmspsesvhscg44n5h6rae';
 
 // Load forest background
 function loadForestBackground() {
@@ -247,7 +247,7 @@ function loadForestBackground() {
     backgroundImages.forest.onerror = function() {
         console.error('❌ Failed to load forest background!');
     };
-    backgroundImages.forest.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.forest.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load street background
@@ -260,7 +260,7 @@ function loadStreetBackground() {
     backgroundImages.street.onerror = function() {
         console.error('❌ Failed to load street background!');
     };
-    backgroundImages.street.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.street.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load home background
@@ -273,7 +273,7 @@ function loadHomeBackground() {
     backgroundImages.home.onerror = function() {
         console.error('❌ Failed to load home background!');
     };
-    backgroundImages.home.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.home.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load castle background
@@ -286,7 +286,7 @@ function loadCastleBackground() {
     backgroundImages.castle.onerror = function() {
         console.error('❌ Failed to load castle background!');
     };
-    backgroundImages.castle.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.castle.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load island background
@@ -299,7 +299,7 @@ function loadIslandBackground() {
     backgroundImages.island.onerror = function() {
         console.error('❌ Failed to load island background!');
     };
-    backgroundImages.island.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.island.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load portal background
@@ -312,7 +312,7 @@ function loadPortalBackground() {
     backgroundImages.portal.onerror = function() {
         console.error('❌ Failed to load portal background!');
     };
-    backgroundImages.portal.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.portal.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load hyperspace background
@@ -325,7 +325,7 @@ function loadHyperspaceBackground() {
     backgroundImages.hyperspace.onerror = function() {
         console.error('❌ Failed to load hyperspace background!');
     };
-    backgroundImages.hyperspace.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    backgroundImages.hyperspace.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load industrial tiles for hyperspace location
@@ -510,7 +510,7 @@ function loadSplashBackground() {
         console.error('❌ Failed to load splash background image!');
         console.error('🔗 URL:', splashBackgroundImage.src);
     };
-    splashBackgroundImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiecu6i7wsyinswlrcwq7wqgkv2wtgbftvkkxur37xly6lzkk5vioi';
+    splashBackgroundImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load character selection background image
@@ -525,7 +525,7 @@ function loadCharacterSelectionBackground() {
         console.error('❌ Failed to load character selection background image!');
         console.error('🔗 URL:', characterSelectionBackgroundImage.src);
     };
-    characterSelectionBackgroundImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
+    characterSelectionBackgroundImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeif26yqcux2ep7s4uhfcohcwxxaclwliyelpyu3v5e6koajpjkqiju';
 }
 
 // Load start button image
@@ -540,7 +540,7 @@ function loadStartButton() {
         console.error('❌ Failed to load start button image!');
         console.error('🔗 URL:', startButtonImage.src);
     };
-    startButtonImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiefgxgxrkgczne52lepzd6ikpdwjtmpere426turuf5p6gqjw3bhi';
+    startButtonImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreiefgxgxrkgczne52lepzd6ikpdwjtmpere426turuf5p6gqjw3bhi';
 }
 
 // Load ZARGATES logo image
@@ -570,7 +570,7 @@ function loadOrigamiCharacter() {
         console.error('❌ Failed to load Origami character image!');
         console.error('🔗 URL:', origamiCharacterImage.src);
     };
-    origamiCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeiexcznwao3bk66lwdpupmvgnlbqwfc6j2qqegwfwyo74ownrjwvey';
+    origamiCharacterImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeibmpq5fjwhweyuoxr3ki7wj5ss4usv4x7nplbai7xc4m5ylzjlpiq';
 }
 
 // Load Troub character image
@@ -585,7 +585,7 @@ function loadTroubCharacter() {
         console.error('❌ Failed to load Troub character image!');
         console.error('🔗 URL:', troubCharacterImage.src);
     };
-    troubCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigynqkchgip6vipkibbyugdzuoo66reyngffuwmy4gjai3ksomijm';
+    troubCharacterImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeifkdtew3jfvjqc7otpsjt5jdywe7ouem43yyird7hhkchsbbiw57q';
 }
 
 // Load Toxin character image
@@ -600,7 +600,7 @@ function loadToxinCharacter() {
         console.error('❌ Failed to load Toxin character image!');
         console.error('🔗 URL:', toxinCharacterImage.src);
     };
-    toxinCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeid6cbdavearktbmsw7i3k6fdr3gxcknhhe4rseafxwlvkz35caep4';
+    toxinCharacterImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeifb3pet4ecuz3okn4qodvkppz5ts46frbxaipiyo6cuw26kfh7zwi';
 }
 
 // Load Chameleon character image
@@ -615,7 +615,7 @@ function loadChameleonCharacter() {
         console.error('❌ Failed to load Chameleon character image!');
         console.error('🔗 URL:', chameleonCharacterImage.src);
     };
-    chameleonCharacterImage.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeigssfz7ksllby2cerjfhsc5cvm3eodlnau6yjwmajn2tsukx4e7jm';
+    chameleonCharacterImage.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeibbkig57q2ud53qacnbbybnnjhgsoljhgkzz765ggwj3eosrca3eu';
 }
 
 // Function to draw grid overlay on all locations
@@ -980,7 +980,7 @@ function loadOrigamiSprite() {
     characterSprites.origami.onerror = function() {
         console.error('❌ Failed to load Origami sprite!');
     };
-         characterSprites.origami.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibmpq5fjwhweyuoxr3ki7wj5ss4usv4x7nplbai7xc4m5ylzjlpiq';
+         characterSprites.origami.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeibmpq5fjwhweyuoxr3ki7wj5ss4usv4x7nplbai7xc4m5ylzjlpiq';
     
     // Load Toxin sprite
     characterSprites.toxin = new Image();
@@ -991,7 +991,7 @@ function loadOrigamiSprite() {
     characterSprites.toxin.onerror = function() {
         console.error('❌ Failed to load Toxin sprite!');
     };
-    characterSprites.toxin.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifb3pet4ecuz3okn4qodvkppz5ts46frbxaipiyo6cuw26kfh7zwi';
+    characterSprites.toxin.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeifb3pet4ecuz3okn4qodvkppz5ts46frbxaipiyo6cuw26kfh7zwi';
     
     // Load Chameleon sprite
     characterSprites.chameleon = new Image();
@@ -1002,7 +1002,7 @@ function loadOrigamiSprite() {
     characterSprites.chameleon.onerror = function() {
         console.error('❌ Failed to load Chameleon sprite!');
     };
-    characterSprites.chameleon.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibbkig57q2ud53qacnbbybnnjhgsoljhgkzz765ggwj3eosrca3eu';
+    characterSprites.chameleon.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeibbkig57q2ud53qacnbbybnnjhgsoljhgkzz765ggwj3eosrca3eu';
     
     // Load Troub sprite
     characterSprites.troub = new Image();
@@ -1013,7 +1013,7 @@ function loadOrigamiSprite() {
     characterSprites.troub.onerror = function() {
         console.error('❌ Failed to load Troub sprite!');
     };
-    characterSprites.troub.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeifkdtew3jfvjqc7otpsjt5jdywe7ouem43yyird7hhkchsbbiw57q';
+    characterSprites.troub.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeifkdtew3jfvjqc7otpsjt5jdywe7ouem43yyird7hhkchsbbiw57q';
      
 
 }
@@ -1028,7 +1028,7 @@ function loadFireEnemySprite() {
     enemySprites.fireEnemy.onerror = function() {
         console.error('❌ Failed to load fire enemy sprite!');
     };
-    enemySprites.fireEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeidrxvgd47fxr4x275tgj2q6lxboovbobd6hjejrdedolrr444gzpa';
+    enemySprites.fireEnemy.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreigssk2uxavmfi67zmcgfjfb47qhsjuwjg4avoq446tsr2qmhzzarq';
 }
 
 // Load PNG enemy sprite (for first location)
@@ -1041,7 +1041,7 @@ function loadPngEnemySprite() {
     enemySprites.pngEnemy.onerror = function() {
         console.error('❌ Failed to load PNG enemy sprite!');
     };
-    enemySprites.pngEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibrqslzrlvjqiahds5u2xfvfjau6uwk2cgu5sh6m4tjx2o2i7ufru';
+    enemySprites.pngEnemy.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeibrqslzrlvjqiahds5u2xfvfjau6uwk2cgu5sh6m4tjx2o2i7ufru';
 }
 
 // Load Forest enemy sprite (for second location only)
@@ -1054,7 +1054,7 @@ function loadForestEnemySprite() {
     enemySprites.forestEnemy.onerror = function() {
         console.error('❌ Failed to load Forest enemy sprite!');
     };
-    enemySprites.forestEnemy.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeibrqslzrlvjqiahds5u2xfvfjau6uwk2cgu5sh6m4tjx2o2i7ufru';
+    enemySprites.forestEnemy.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeibrqslzrlvjqiahds5u2xfvfjau6uwk2cgu5sh6m4tjx2o2i7ufru';
 }
 
 // Load Dragon enemy sprite
@@ -1067,7 +1067,7 @@ function loadDragonEnemySprite() {
     enemySprites.dragon.onerror = function() {
         console.error('❌ Failed to load Dragon enemy sprite!');
     };
-    enemySprites.dragon.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafybeib5v5iq66fnklvloajn542vtc3e4moh6qtteifb5w2ouabbezq4ny';
+    enemySprites.dragon.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafybeib5v5iq66fnklvloajn542vtc3e4moh6qtteifb5w2ouabbezq4ny';
 }
 
 // Load arrow sprite for Troub
@@ -1080,7 +1080,7 @@ function loadArrowSprite() {
     arrowSprite.onerror = function() {
         console.error('❌ Failed to load Arrow sprite!');
     };
-    arrowSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreibrxc3vvsn6wnjwx2dzwi7rtlr42p53253ve6ad45i4c54lafc7s4';
+    arrowSprite.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreibrxc3vvsn6wnjwx2dzwi7rtlr42p53253ve6ad45i4c54lafc7s4';
 }
 
 // Load Toxin attack animation sprite
@@ -1098,7 +1098,7 @@ function loadToxinAttackSprite() {
         console.error('❌ Failed to load Toxin attack sprite!');
         console.error('Error details:', toxinAttackSprite.src);
     };
-    toxinAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreidqafobnux4uyqp3yhi7j5qpa74krpwvqy7jkkz6kvrupevhlx7lu';
+    toxinAttackSprite.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreidqafobnux4uyqp3yhi7j5qpa74krpwvqy7jkkz6kvrupevhlx7lu';
     console.log('🔄 Loading Toxin attack sprite from:', toxinAttackSprite.src);
     console.log('🔄 Initial complete status:', toxinAttackSprite.complete);
 }
@@ -1118,7 +1118,7 @@ function loadOrigamiAttackSprite() {
         console.error('❌ Failed to load Origami attack sprite!');
         console.error('Error details:', origamiAttackSprite.src);
     };
-    origamiAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreibriqoyyftazbdlcvlaoa7xw6owxe7ppvr2qb7ge5nq3jo44nukqu';
+    origamiAttackSprite.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreibriqoyyftazbdlcvlaoa7xw6owxe7ppvr2qb7ge5nq3jo44nukqu';
     console.log('🔄 Loading Origami attack sprite from:', origamiAttackSprite.src);
     console.log('🔄 Initial complete status:', origamiAttackSprite.complete);
 }
@@ -1134,7 +1134,7 @@ function loadToxinBulletSprite() {
     toxinBulletSprite.onerror = function() {
         console.error('❌ Failed to load Toxin bullet sprite!');
     };
-    toxinBulletSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreiccmzsystm4q3sxxkieul3mvsxq7bgr4e27o6qapxyvh4cocw7aze';
+    toxinBulletSprite.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreiccmzsystm4q3sxxkieul3mvsxq7bgr4e27o6qapxyvh4cocw7aze';
 }
 
 // loadMachineGunSound function removed - Toxin sounds disabled
@@ -7144,7 +7144,7 @@ function loadChameleonAttackSprite() {
         console.error('❌ Failed to load Chameleon attack sprite!');
         console.error('Error details:', chameleonAttackSprite.src);
     };
-    chameleonAttackSprite.src = 'https://white-worthwhile-nightingale-687.mypinata.cloud/ipfs/bafkreies4udpli5erj45fylfmnhoyr7nsbzbvlpu2pqs77lh2vl6vpqtqu';
+    chameleonAttackSprite.src = 'https://amber-quick-egret-833.mypinata.cloud/ipfs/bafkreies4udpli5erj45fylfmnhoyr7nsbzbvlpu2pqs77lh2vl6vpqtqu';
     console.log('🔄 Loading Chameleon attack sprite from:', chameleonAttackSprite.src);
     console.log('🔄 Initial complete status:', chameleonAttackSprite.complete);
 }
